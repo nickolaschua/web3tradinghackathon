@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Project Scaffolding** - Package layout, requirements.txt (pandas-ta-classic), config.yaml, .env.example, __init__.py files
 - [x] **Phase 2: API Client & Rate Limiter** - RoostooClient HMAC SHA256 signing, exponential backoff (3 retries, 2s/4s/8s), global 30/min sliding-window rate limiter, 65s trade cooldown
-- [ ] **Phase 3: Infrastructure Utilities** - TelegramAlerter (never-raise), StateManager (atomic write: .tmp then rename)
+- [x] **Phase 3: Infrastructure Utilities** - TelegramAlerter (real HTTP, never-raise, level emojis), StateManager (atomic write with backup/fallback, versioned metadata, JSON serializer)
 - [x] **Phase 4: Data Pipeline** - LiveFetcher (seed from Binance Parquet flat columns, live poll), close-to-close ATR proxy, no ADX/OBV, cross-asset features before dropna, shift(1) for look-ahead prevention, 35-bar warm-up
 - [ ] **Phase 5: Execution Engine** - RegimeDetector (resample 4H->daily, EMA20/50), RiskManager (tiered CB + dump/load state), OrderManager (fill_price None check, resync, dump/load state, cancel_order stub)
 - [x] **Phase 6: Strategy Interface** - TradingSignal (pair required, no default), momentum.py stub, mean_reversion.py stub with correct generate_signal signatures
@@ -54,7 +54,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 03-01: `bot/monitoring/telegram.py` (TelegramAlerter, all calls in try/except) + `bot/persistence/state_manager.py` (atomic write, read, schema validation)
+- [x] 03-01: `bot/monitoring/telegram.py` (TelegramAlerter real HTTP, level emojis, _enabled guard) + `bot/persistence/state_manager.py` (atomic write with backup, versioned metadata, JSON serializer)
 
 ### Phase 4: Data Pipeline
 **Goal**: LiveFetcher that seeds from Binance Parquet flat columns (not multi-index), polls Roostoo ticker every 60s to build synthetic candles, computes features with the close-to-close ATR proxy (no ATR/ADX/OBV), calls cross-asset features BEFORE dropna, shifts all indicators 1 bar, and reports is_warmed_up() after 35 bars.
@@ -119,7 +119,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Project Scaffolding | 2/2 | Complete | 2026-03-16 |
 | 2. API Client & Rate Limiter | 2/2 | Complete | 2026-03-17 |
-| 3. Infrastructure Utilities | 0/1 | Not started | - |
+| 3. Infrastructure Utilities | 1/1 | Complete | 2026-03-17 |
 | 4. Data Pipeline | 3/3 | Complete | 2026-03-16 |
 | 5. Execution Engine | 3/3 | Complete | 2026-03-16 |
 | 6. Strategy Interface | 2/2 | Complete | 2026-03-16 |
