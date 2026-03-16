@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** A correctly-wired, crash-safe infrastructure that submits valid orders and never loses state — the user fills in alpha logic on top.
-**Current focus:** Phase 4 — Data Pipeline (Complete)
+**Current focus:** Phase 2 — API Client & Rate Limiter (1/2 complete)
 
 ## Current Position
 
-Phase: 4 of 8 (Data Pipeline)
-Plan: 3 of 3 in Phase 4 (COMPLETE)
-Status: Phase 4 complete (04-01 + 04-02 + 04-03); ready for Phase 2
-Last activity: 2026-03-16 — Completed 04-03-PLAN.md (cross-asset features, warmup guard, integration test)
+Phase: 2 of 8 (API Client & Rate Limiter)
+Plan: 1 of 2 in Phase 2 (02-01 COMPLETE)
+Status: 02-01 complete (HMAC signing + all 6 endpoints); ready for 02-02
+Last activity: 2026-03-16 — Completed 02-01-PLAN.md (RoostooClient all 6 endpoints)
 
-Progress: ████████████████░ 81% (13/16 plans complete)
+Progress: █████████████████░ 87% (14/16 plans complete)
 
 ## Performance Metrics
 
@@ -32,9 +32,10 @@ Progress: ████████████████░ 81% (13/16 plans c
 | 5. Execution Engine | 3/3 | 31 min | 10 min |
 | 6. Strategy Interface | 2/2 | 5 min | 2.5 min |
 | 7. Main Loop Orchestration | 2/2 | 32 min | 16 min |
+| 2. API Client & Rate Limiter | 1/2 | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-01 (3 min), 06-02 (2 min), 01-01 (2 min), 04-02 (5 min), 04-03 (15 min)
+- Last 5 plans: 06-02 (2 min), 01-01 (2 min), 04-02 (5 min), 04-03 (15 min), 02-01 (8 min)
 - Trend: Wiring plans (reconciliation, main loop, cross-asset) take 8-12 min; scaffold plans 2-3 min
 
 ## Accumulated Context
@@ -59,11 +60,11 @@ None.
 
 ### Blockers/Concerns
 
-Phase 2 (API client) and Phase 3 (infrastructure) pending — bot cannot actually run until RoostooClient, TelegramAlerter, and StateManager are implemented. Phase 4 now complete; Phase 5-7 already done. Ready for Phase 2.
+Phase 3 (infrastructure) pending — bot cannot actually run until TelegramAlerter and StateManager are implemented. Phase 2 is 1/2 complete (RoostooClient done, rate limiter pending).
 
 ## Session Continuity
 
-Last session: 2026-03-16/2026-03-17
-Stopped at: Completed 04-03-PLAN.md (cross-asset features, is_warmed_up, get_feature_matrix, integration test)
+Last session: 2026-03-16
+Stopped at: Completed 02-01-PLAN.md (RoostooClient all 6 endpoints implemented)
 Resume file: None
-Next: Phase 2 — API Client & Rate Limiter (02-01: RoostooClient, 02-02: rate limiter)
+Next: Phase 2, Plan 02-02 — rate limiter (30/min sliding window) + exponential backoff (2s/4s/8s)

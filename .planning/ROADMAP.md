@@ -44,7 +44,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 02-01: `RoostooClient` — HMAC signing, all endpoints (`/v3/ticker`, `/v3/balance`, `/v3/place_order`, `/v3/pending_count`, `/v3/cancel_order`), `pending_count` Success=false not a WARNING (check TotalPending)
+- [x] 02-01: `RoostooClient` — HMAC signing, all endpoints (`/v3/ticker`, `/v3/balance`, `/v3/place_order`, `/v3/pending_count`, `/v3/cancel_order`), `pending_count` Success=false not a WARNING (check TotalPending)
 - [ ] 02-02: Rate limiter — global 30/min sliding window in `bot/api/rate_limiter.py`, lock released BEFORE `time.sleep()`, 65s trade cooldown layer; exponential backoff (2s/4s/8s) integrated into client
 
 ### Phase 3: Infrastructure Utilities
@@ -118,7 +118,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Project Scaffolding | 2/2 | Complete | 2026-03-16 |
-| 2. API Client & Rate Limiter | 0/2 | Not started | - |
+| 2. API Client & Rate Limiter | 1/2 | In progress | - |
 | 3. Infrastructure Utilities | 0/1 | Not started | - |
 | 4. Data Pipeline | 3/3 | Complete | 2026-03-16 |
 | 5. Execution Engine | 3/3 | Complete | 2026-03-16 |
