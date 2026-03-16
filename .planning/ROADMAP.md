@@ -17,7 +17,7 @@ None
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Project Scaffolding** - Package layout, requirements.txt (pandas-ta-classic), config.yaml, .env.example, __init__.py files
-- [ ] **Phase 2: API Client & Rate Limiter** - RoostooClient HMAC SHA256 signing, exponential backoff (3 retries, 2s/4s/8s), global 30/min sliding-window rate limiter, 65s trade cooldown
+- [x] **Phase 2: API Client & Rate Limiter** - RoostooClient HMAC SHA256 signing, exponential backoff (3 retries, 2s/4s/8s), global 30/min sliding-window rate limiter, 65s trade cooldown
 - [ ] **Phase 3: Infrastructure Utilities** - TelegramAlerter (never-raise), StateManager (atomic write: .tmp then rename)
 - [x] **Phase 4: Data Pipeline** - LiveFetcher (seed from Binance Parquet flat columns, live poll), close-to-close ATR proxy, no ADX/OBV, cross-asset features before dropna, shift(1) for look-ahead prevention, 35-bar warm-up
 - [ ] **Phase 5: Execution Engine** - RegimeDetector (resample 4H->daily, EMA20/50), RiskManager (tiered CB + dump/load state), OrderManager (fill_price None check, resync, dump/load state, cancel_order stub)
@@ -45,7 +45,7 @@ Plans:
 
 Plans:
 - [x] 02-01: `RoostooClient` — HMAC signing, all endpoints (`/v3/ticker`, `/v3/balance`, `/v3/place_order`, `/v3/pending_count`, `/v3/cancel_order`), `pending_count` Success=false not a WARNING (check TotalPending)
-- [ ] 02-02: Rate limiter — global 30/min sliding window in `bot/api/rate_limiter.py`, lock released BEFORE `time.sleep()`, 65s trade cooldown layer; exponential backoff (2s/4s/8s) integrated into client
+- [x] 02-02: Rate limiter — global 30/min sliding window in `bot/api/rate_limiter.py`, lock released BEFORE `time.sleep()`, 65s trade cooldown layer; exponential backoff (2s/4s/8s) integrated into client
 
 ### Phase 3: Infrastructure Utilities
 **Goal**: TelegramAlerter that can never propagate an exception, and StateManager with guaranteed atomic writes (write to `.tmp` + `os.rename`) so a crash mid-write never corrupts state.
@@ -118,7 +118,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Project Scaffolding | 2/2 | Complete | 2026-03-16 |
-| 2. API Client & Rate Limiter | 1/2 | In progress | - |
+| 2. API Client & Rate Limiter | 2/2 | Complete | 2026-03-17 |
 | 3. Infrastructure Utilities | 0/1 | Not started | - |
 | 4. Data Pipeline | 3/3 | Complete | 2026-03-16 |
 | 5. Execution Engine | 3/3 | Complete | 2026-03-16 |

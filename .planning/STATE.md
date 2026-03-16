@@ -5,38 +5,38 @@
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** A correctly-wired, crash-safe infrastructure that submits valid orders and never loses state — the user fills in alpha logic on top.
-**Current focus:** Phase 2 — API Client & Rate Limiter (1/2 complete)
+**Current focus:** Phase 2 — API Client & Rate Limiter (2/2 complete)
 
 ## Current Position
 
-Phase: 2 of 8 (API Client & Rate Limiter)
-Plan: 1 of 2 in Phase 2 (02-01 COMPLETE)
-Status: 02-01 complete (HMAC signing + all 6 endpoints); ready for 02-02
-Last activity: 2026-03-16 — Completed 02-01-PLAN.md (RoostooClient all 6 endpoints)
+Phase: 2 of 8 (API Client & Rate Limiter) - COMPLETE
+Plan: 2 of 2 in Phase 2 (02-02 COMPLETE)
+Status: Phase 2 complete (HMAC signing + all 6 endpoints + rate limiter + backoff); ready for Phase 3
+Last activity: 2026-03-17 — Completed 02-02-PLAN.md (rate limiter + exponential backoff)
 
-Progress: █████████████████░ 87% (14/16 plans complete)
+Progress: █████████████████░ 94% (15/16 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 15
 - Average duration: 6 min
-- Total execution time: 95 min
+- Total execution time: 98 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Project Scaffolding | 2/2 | 4 min | 2 min |
+| 2. API Client & Rate Limiter | 2/2 | 11 min | 5.5 min |
 | 4. Data Pipeline | 3/3 | 15 min | 5 min |
 | 5. Execution Engine | 3/3 | 31 min | 10 min |
 | 6. Strategy Interface | 2/2 | 5 min | 2.5 min |
 | 7. Main Loop Orchestration | 2/2 | 32 min | 16 min |
-| 2. API Client & Rate Limiter | 1/2 | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-02 (2 min), 01-01 (2 min), 04-02 (5 min), 04-03 (15 min), 02-01 (8 min)
-- Trend: Wiring plans (reconciliation, main loop, cross-asset) take 8-12 min; scaffold plans 2-3 min
+- Last 5 plans: 02-01 (8 min), 02-02 (3 min), 07-02 (16 min), 05-01 (10 min), 04-03 (15 min)
+- Trend: Wiring plans (rate limiter, main loop, cross-asset) take 3-16 min; infrastructure impacts duration
 
 ## Accumulated Context
 
@@ -60,11 +60,11 @@ None.
 
 ### Blockers/Concerns
 
-Phase 3 (infrastructure) pending — bot cannot actually run until TelegramAlerter and StateManager are implemented. Phase 2 is 1/2 complete (RoostooClient done, rate limiter pending).
+Phase 3 (infrastructure) pending — bot cannot actually run until TelegramAlerter and StateManager are implemented. Phase 2 now complete.
 
 ## Session Continuity
 
-Last session: 2026-03-16
-Stopped at: Completed 02-01-PLAN.md (RoostooClient all 6 endpoints implemented)
+Last session: 2026-03-17
+Stopped at: Completed 02-02-PLAN.md (rate limiter + exponential backoff + trade cooldown wired)
 Resume file: None
-Next: Phase 2, Plan 02-02 — rate limiter (30/min sliding window) + exponential backoff (2s/4s/8s)
+Next: Phase 3 — Infrastructure Utilities (TelegramAlerter, StateManager)
