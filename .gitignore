@@ -1,0 +1,32 @@
+# Secrets
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Runtime state
+state.json
+state.json.tmp
+state.json.bak
+
+# Logs
+logs/
+
+# Historical data
+data/parquet/
+*.parquet
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
