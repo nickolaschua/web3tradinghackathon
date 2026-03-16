@@ -75,7 +75,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: `RegimeDetector` in `bot/execution/regime.py` — resample 4H DataFrame to daily, EMA(20)/EMA(50) crossover, bullish/bearish/neutral enum, requires 300+ 4H bars warmup
+- [x] 05-01: `RegimeDetector` in `bot/execution/regime.py` — resample 4H DataFrame to daily, EMA(20)/EMA(50) crossover, bullish/bearish/neutral enum, requires 300+ 4H bars warmup
 - [ ] 05-02: `RiskManager` in `bot/execution/risk.py` — ATR-based stop-loss, trailing stops, tiered circuit breaker (0%/25%/50%/100% size at 30%/20%/10%/<10% drawdown), `dump_state()` / `load_state()` for `trailing_stops`, `entry_prices`, `portfolio_hwm`, `circuit_breaker_active`
 - [ ] 05-03: `OrderManager` in `bot/execution/order_manager.py` — place/track orders, explicit `is None` fill_price check (not `or`), `_resync_from_exchange()` writes back to `self._positions`, `get_all_positions()`, `dump_state()` / `load_state()`, `cancel_order(order_id)` stub
 
@@ -121,7 +121,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. API Client & Rate Limiter | 0/2 | Not started | - |
 | 3. Infrastructure Utilities | 0/1 | Not started | - |
 | 4. Data Pipeline | 0/3 | Not started | - |
-| 5. Execution Engine | 0/3 | Not started | - |
+| 5. Execution Engine | 1/3 | In progress | - |
 | 6. Strategy Interface | 0/2 | Not started | - |
 | 7. Main Loop Orchestration | 0/2 | Not started | - |
 | 8. EC2 Deployment | 0/2 | Not started | - |
