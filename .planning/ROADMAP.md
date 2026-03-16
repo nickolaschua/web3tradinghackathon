@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Infrastructure Utilities** - TelegramAlerter (never-raise), StateManager (atomic write: .tmp then rename)
 - [ ] **Phase 4: Data Pipeline** - LiveFetcher (seed from Binance Parquet flat columns, live poll), close-to-close ATR proxy, no ADX/OBV, cross-asset features before dropna, shift(1) for look-ahead prevention, 35-bar warm-up
 - [ ] **Phase 5: Execution Engine** - RegimeDetector (resample 4H->daily, EMA20/50), RiskManager (tiered CB + dump/load state), OrderManager (fill_price None check, resync, dump/load state, cancel_order stub)
-- [ ] **Phase 6: Strategy Interface** - TradingSignal (pair required, no default), momentum.py stub, mean_reversion.py stub with correct generate_signal signatures
+- [x] **Phase 6: Strategy Interface** - TradingSignal (pair required, no default), momentum.py stub, mean_reversion.py stub with correct generate_signal signatures
 - [ ] **Phase 7: Main Loop Orchestration** - main.py with startup reconciliation, 7-step loop order, boundary-aligned sleep, SIGTERM/SIGINT shutdown handler
 - [ ] **Phase 8: EC2 Deployment** - systemd service, chrony Amazon Time Sync, deploy script, smoke test with testing keys
 
@@ -122,6 +122,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 3. Infrastructure Utilities | 0/1 | Not started | - |
 | 4. Data Pipeline | 0/3 | Not started | - |
 | 5. Execution Engine | 3/3 | Complete | 2026-03-16 |
-| 6. Strategy Interface | 0/2 | Not started | - |
+| 6. Strategy Interface | 2/2 | Complete | 2026-03-16 |
 | 7. Main Loop Orchestration | 0/2 | Not started | - |
 | 8. EC2 Deployment | 0/2 | Not started | - |
