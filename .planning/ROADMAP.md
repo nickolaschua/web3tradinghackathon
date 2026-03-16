@@ -107,8 +107,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: EC2 setup — launch t3.micro ap-southeast-2, install Python 3.11 + deps, clone repo, create `.env` with testing keys, configure chrony, write systemd unit file
-- [ ] 08-02: Deploy and verify — start service, tail logs, confirm `startup_reconciliation()` succeeds, confirm first mock trade executes, switch to Round 1 keys before Mar 21 8PM
+- [x] 08-01: Deployment artifacts — write systemd unit file, bootstrap.sh (AL2023 python3.11), deploy.sh (git pull + restart)
+- [ ] 08-02: EC2 provisioning & smoke test — launch t3.micro ap-southeast-2, run bootstrap.sh, populate .env with testing keys, start service, verify startup_reconciliation and first trade execution
 
 ## Progress
 
@@ -124,4 +124,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 5. Execution Engine | 3/3 | Complete | 2026-03-16 |
 | 6. Strategy Interface | 2/2 | Complete | 2026-03-16 |
 | 7. Main Loop Orchestration | 2/2 | Complete | 2026-03-17 |
-| 8. EC2 Deployment | 0/2 | Not started | - |
+| 8. EC2 Deployment | 1/2 | In Progress | 2026-03-17 |

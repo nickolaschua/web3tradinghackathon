@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 
 ## Current Position
 
-Phase: 3 of 8 (Infrastructure Utilities) - COMPLETE
-Plan: 1 of 1 in Phase 3 (03-01 COMPLETE)
-Status: Phase 3 complete (TelegramAlerter HTTP + StateManager with versioning/backup); ready for Phase 4+
-Last activity: 2026-03-17 — Completed 03-01-PLAN.md (Telegram alerting + state persistence)
+Phase: 8 of 8 (EC2 Deployment) - IN PROGRESS
+Plan: 1 of 2 in Phase 8 (08-01 COMPLETE)
+Status: Phase 8 Plan 01 complete (deployment artifacts: systemd unit, bootstrap script, deploy script); ready for 08-02 EC2 provisioning
+Last activity: 2026-03-17 — Completed 08-01-PLAN.md (systemd service, bootstrap.sh, deploy.sh)
 
-Progress: ████████████████████ 100% (16/16 plans complete)
+Progress: ██████████████████░░ 95% (17/18 plans complete)
 
 ## Performance Metrics
 
@@ -36,8 +36,8 @@ Progress: ████████████████████ 100% (16/
 | 7. Main Loop Orchestration | 2/2 | 32 min | 16 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (8 min), 02-02 (3 min), 07-02 (16 min), 05-01 (10 min), 04-03 (15 min)
-- Trend: Wiring plans (rate limiter, main loop, cross-asset) take 3-16 min; infrastructure impacts duration
+- Last 5 plans: 07-02 (16 min), 05-01 (10 min), 04-03 (15 min), 07-01 (16 min), 08-01 (7 min)
+- Trend: Wiring plans (main loop, cross-asset) take 10-16 min; deployment artifacts (systemd + scripts) faster at ~7 min
 
 ## Accumulated Context
 
@@ -66,6 +66,6 @@ Phase 3 (infrastructure) pending — bot cannot actually run until TelegramAlert
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Completed 03-01-PLAN.md (TelegramAlerter HTTP + StateManager with versioning/backup)
+Stopped at: Completed 08-01-PLAN.md (systemd service unit, bootstrap.sh, deploy.sh)
 Resume file: None
-Next: Phase 4 — Data Pipeline (if any plans remain) or Phase 5+ as per ROADMAP.md
+Next: Phase 8 Plan 02 — EC2 provisioning and deployment execution (launch instance, smoke test with testing keys)
