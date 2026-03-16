@@ -22,7 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 4: Data Pipeline** - LiveFetcher (seed from Binance Parquet flat columns, live poll), close-to-close ATR proxy, no ADX/OBV, cross-asset features before dropna, shift(1) for look-ahead prevention, 35-bar warm-up
 - [ ] **Phase 5: Execution Engine** - RegimeDetector (resample 4H->daily, EMA20/50), RiskManager (tiered CB + dump/load state), OrderManager (fill_price None check, resync, dump/load state, cancel_order stub)
 - [x] **Phase 6: Strategy Interface** - TradingSignal (pair required, no default), momentum.py stub, mean_reversion.py stub with correct generate_signal signatures
-- [ ] **Phase 7: Main Loop Orchestration** - main.py with startup reconciliation, 7-step loop order, boundary-aligned sleep, SIGTERM/SIGINT shutdown handler (1/2 complete)
+- [x] **Phase 7: Main Loop Orchestration** - main.py with startup reconciliation, 7-step loop order, boundary-aligned sleep, SIGTERM/SIGINT shutdown handler
 - [ ] **Phase 8: EC2 Deployment** - systemd service, chrony Amazon Time Sync, deploy script, smoke test with testing keys
 
 ## Phase Details
@@ -97,7 +97,7 @@ Plans:
 
 Plans:
 - [x] 07-01: `startup_reconciliation()` — `client.get_balance()` + `client.get_open_orders()`, reconcile vs state, Telegram WARN on discrepancy; RiskManager + OrderManager `load_state()` on startup; SIGTERM/SIGINT handler registered
-- [ ] 07-02: Main loop — (1) poll ticker (2) balance + CB check (3) check stops per position (4) if new 4H candle: features + signal + size + submit (5) write state.json (6) heartbeat log (7) `time.sleep(60.0 - (time.time() % 60.0))`
+- [x] 07-02: Main loop — (1) poll ticker (2) balance + CB check (3) check stops per position (4) if new 4H candle: features + signal + size + submit (5) write state.json (6) heartbeat log (7) `time.sleep(60.0 - (time.time() % 60.0))` + seed loader + wired main()
 
 ### Phase 8: EC2 Deployment
 **Goal**: Provision t3.micro in ap-southeast-2, configure systemd service (ExecStart=python main.py, RestartSec=10), sync time with chrony → Amazon Time Sync (169.254.169.123), deploy bot, smoke-test with testing keys, confirm first trade executes before competition window closes.
@@ -123,5 +123,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 4. Data Pipeline | 2/3 | In progress | - |
 | 5. Execution Engine | 3/3 | Complete | 2026-03-16 |
 | 6. Strategy Interface | 2/2 | Complete | 2026-03-16 |
-| 7. Main Loop Orchestration | 2/2 | Complete | 2026-03-16 |
+| 7. Main Loop Orchestration | 2/2 | Complete | 2026-03-17 |
 | 8. EC2 Deployment | 0/2 | Not started | - |
