@@ -8,6 +8,8 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 
+from bot.data.features import compute_features, compute_cross_asset_features
+
 
 class LiveFetcher:
     """
@@ -153,3 +155,61 @@ class LiveFetcher:
     def __repr__(self) -> str:
         summary = {p: len(b) for p, b in self._buffers.items()}
         return f"LiveFetcher(buffers={summary}, maxlen={self._maxlen})"
+
+    def is_warmed_up(self, pair: str = "BTC/USD") -> bool:
+        """
+        Return True when the buffer for `pair` has at least 35 candles.
+
+        Threshold: MACD(12,26,9) requires 35 bars to stabilise. Below this
+        threshold, indicator values are unreliable and should not drive trades.
+
+        Args:
+            pair: Pair to check (defaults to "BTC/USD", the primary tradeable pair).
+
+        Returns:
+            True if buffer contains >= 35 candles, False otherwise.
+        """
+        return len(self._buffers.get(pair, [])) >= 35
+
+    def get_feature_matrix(self, pair: str = "BTC/USD") -> pd.DataFrame:
+        """
+        Return the fully-processed feature matrix for `pair`, ready for strategy input.
+
+        Ordering is CRITICAL and must not be changed:
+        1. compute_features(df)                          — indicators + shift(1)
+        2. compute_cross_asset_features(df, other_dfs)  — ETH/SOL lag columns injected
+        3. df.dropna()                                   — warmup rows removed LAST
+
+        If dropna() runs before step 2, the ETH/SOL columns do not yet exist and
+        pandas silently drops every row, returning an empty DataFrame.
+
+        Returns an empty DataFrame (same columns, 0 rows) if not yet warmed up.
+        Callers should check is_warmed_up() before calling this method.
+
+        Args:
+            pair: Primary pair to build feature matrix for (default "BTC/USD").
+
+        Returns:
+            DataFrame with OHLCV + indicator + cross-asset columns, no NaN rows.
+            DatetimeIndex aligned to pair's candle boundaries.
+        """
+        if not self.is_warmed_up(pair):
+            return pd.DataFrame()
+
+        # Step 1: Raw OHLCV → compute indicators → shift(1)
+        df = self._to_dataframe(pair)
+        df = compute_features(df)
+
+        # Step 2: Inject cross-asset lag features from other pairs in buffer
+        # MUST be before dropna — otherwise empty-column dropna removes all rows
+        other_dfs = {
+            p: self._to_dataframe(p)
+            for p in self._buffers
+            if p != pair
+        }
+        df = compute_cross_asset_features(df, other_dfs)
+
+        # Step 3: Drop warmup rows (NaN from rolling windows and shift)
+        df = df.dropna()
+
+        return df

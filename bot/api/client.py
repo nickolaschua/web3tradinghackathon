@@ -1,12 +1,18 @@
 """
-RoostooClient — interface stub.
+RoostooClient — HMAC-signed HTTP client for the Roostoo mock exchange API.
 
-Full implementation delivered in Phase 2 (02-01-PLAN.md).
-Stub defines the public interface so main.py can be imported before Phase 2.
+Phase 2 (02-01): HMAC signing and all 6 endpoints.
+Phase 2 (02-02): Rate limiter + exponential backoff (added on top).
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import logging
+import time
+import urllib.parse
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +38,36 @@ class RoostooClient:
         self.api_key = api_key
         self.secret = secret
         self.base_url = base_url
+
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
+    def _sign(self, params: dict) -> str:
+        """HMAC-SHA256 sign: sort params alphabetically, urlencode, sign with secret."""
+        msg = urllib.parse.urlencode(sorted(params.items()))
+        return hmac.new(self.secret.encode(), msg.encode(), hashlib.sha256).hexdigest()
+
+    def _request(self, method: str, path: str, params: dict | None = None) -> dict:
+        """Make a signed HTTP request. GET uses query string; POST uses form-encoded body."""
+        if params is None:
+            params = {}
+        signature = self._sign(params)
+        headers = {
+            "RST-API-KEY": self.api_key,
+            "MSG-SIGNATURE": signature,
+        }
+        url = self.base_url + path
+        if method == "GET":
+            resp = requests.get(url, params=params, headers=headers, timeout=10)
+        else:
+            resp = requests.post(url, data=params, headers=headers, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+
+    # ------------------------------------------------------------------
+    # Public endpoints
+    # ------------------------------------------------------------------
 
     def get_balance(self) -> dict:
         """Return portfolio balances. Keys: 'total_usd', 'BTC', 'USD'."""
