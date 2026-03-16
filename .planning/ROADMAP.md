@@ -16,7 +16,7 @@ None
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Project Scaffolding** - Package layout, requirements.txt (pandas-ta-classic), config.yaml, .env.example, __init__.py files
+- [x] **Phase 1: Project Scaffolding** - Package layout, requirements.txt (pandas-ta-classic), config.yaml, .env.example, __init__.py files
 - [ ] **Phase 2: API Client & Rate Limiter** - RoostooClient HMAC SHA256 signing, exponential backoff (3 retries, 2s/4s/8s), global 30/min sliding-window rate limiter, 65s trade cooldown
 - [ ] **Phase 3: Infrastructure Utilities** - TelegramAlerter (never-raise), StateManager (atomic write: .tmp then rename)
 - [ ] **Phase 4: Data Pipeline** - LiveFetcher (seed from Binance Parquet flat columns, live poll), close-to-close ATR proxy, no ADX/OBV, cross-asset features before dropna, shift(1) for look-ahead prevention, 35-bar warm-up
@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01: Package skeleton — `bot/` with `api/`, `data/`, `execution/`, `strategy/`, `monitoring/`, `persistence/`, `config/` subdirs + all `__init__.py` files
-- [ ] 01-02: Config and dependency files — `requirements.txt` (pandas-ta-classic, not pandas-ta), `bot/config/config.yaml`, `.env.example` (three key sets), `.gitignore`
+- [x] 01-02: Config and dependency files — `requirements.txt` (pandas-ta-classic, not pandas-ta), `bot/config/config.yaml`, `.env.example` (three key sets), `.gitignore`
 
 ### Phase 2: API Client & Rate Limiter
 **Goal**: Deliver a fully-signed RoostooClient with HMAC SHA256 (alphabetical param sort, form-encoded POST body), 3-retry exponential backoff, and a global sliding-window rate limiter (30/min, lock released before sleep, 65s trade cooldown) that covers ALL outbound calls.
@@ -117,7 +117,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Project Scaffolding | 1/2 | In progress | - |
+| 1. Project Scaffolding | 2/2 | Complete | 2026-03-16 |
 | 2. API Client & Rate Limiter | 0/2 | Not started | - |
 | 3. Infrastructure Utilities | 0/1 | Not started | - |
 | 4. Data Pipeline | 1/3 | In progress | - |
