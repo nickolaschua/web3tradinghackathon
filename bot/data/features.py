@@ -77,3 +77,65 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
     out[ind_cols] = out[ind_cols].shift(1)
 
     return out
+
+
+def compute_cross_asset_features(
+    btc_df: pd.DataFrame,
+    other_dfs: dict[str, pd.DataFrame],
+) -> pd.DataFrame:
+    """
+    Inject cross-asset lagged log-return features into the BTC feature DataFrame.
+
+    For each pair in `other_dfs`, computes 1-bar and 2-bar lagged log returns
+    and appends them as columns to `btc_df`. These represent prior-period
+    movement in correlated assets — a common momentum/spillover feature.
+
+    IMPORTANT: This function must be called AFTER compute_features() but BEFORE
+    dropna(). If dropna() runs first, the ETH/SOL columns do not yet exist and
+    pandas silently drops every row.
+
+    Column naming:
+    - "ETH/USD" → prefix "eth": eth_return_lag1, eth_return_lag2
+    - "SOL/USD" → prefix "sol": sol_return_lag1, sol_return_lag2
+    - General: f"{pair.split('/')[0].lower()}_return_lag{n}"
+
+    Cross-asset columns are NOT shifted an additional bar — the lag is already
+    encoded in the column name (lag1 = yesterday's return, lag2 = two days ago).
+    These are aligned to the same index as btc_df via pandas reindex.
+
+    Args:
+        btc_df: BTC feature DataFrame (already processed by compute_features).
+                Must have a DatetimeIndex.
+        other_dfs: Dict mapping pair symbol → raw OHLCV DataFrame.
+                   Empty dict is valid — function returns btc_df unchanged.
+
+    Returns:
+        btc_df with additional cross-asset lag columns (new DataFrame, not in-place).
+    """
+    out = btc_df.copy()
+
+    for pair, df in other_dfs.items():
+        if df.empty:
+            continue
+
+        # Normalize column names (Binance Parquet may be capitalized)
+        df = df.copy()
+        df.columns = df.columns.str.lower()
+
+        prefix = pair.split("/")[0].lower()   # "ETH/USD" → "eth"
+
+        # Log returns for this asset
+        log_ret = np.log(df["close"] / df["close"].shift(1))
+
+        # lag1 = yesterday's return; lag2 = two days ago
+        lag1 = log_ret.shift(1)
+        lag2 = log_ret.shift(2)
+
+        # Align to btc_df index — fills NaN where timestamps don't overlap
+        out[f"{prefix}_return_lag1"] = lag1.reindex(out.index)
+        out[f"{prefix}_return_lag2"] = lag2.reindex(out.index)
+
+    return out
+
+
+__all__ = ["compute_features", "compute_cross_asset_features"]
