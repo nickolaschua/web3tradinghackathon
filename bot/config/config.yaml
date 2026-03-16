@@ -1,0 +1,40 @@
+# Trading Universe Configuration
+tradeable_pairs:
+  - BTC/USD
+
+feature_pairs:
+  - BTC/USD
+  - ETH/USD
+  - SOL/USD
+
+candle_interval: "4h"
+max_positions: 1
+
+# Cooldown
+trade_cooldown_seconds: 65
+
+# Risk Management
+hard_stop_pct: 0.05
+atr_stop_multiplier: 2.0
+trailing_stop_multiplier: 1.5
+
+# Circuit Breaker (Tiered)
+circuit_breaker:
+  halt_threshold: 0.30
+  reduce_heavy_threshold: 0.20
+  reduce_light_threshold: 0.10
+
+# Data Pipeline
+warmup_bars: 35
+regime_warmup_bars: 300
+
+# Regime Detection
+regime:
+  ema_fast: 20
+  ema_slow: 50
+  confirmation_bars: 2
+
+# Logging
+log_level: "INFO"
+log_max_bytes: 10485760
+log_backup_count: 10
