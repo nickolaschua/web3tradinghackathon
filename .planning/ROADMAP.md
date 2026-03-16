@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Project Scaffolding** - Package layout, requirements.txt (pandas-ta-classic), config.yaml, .env.example, __init__.py files
 - [ ] **Phase 2: API Client & Rate Limiter** - RoostooClient HMAC SHA256 signing, exponential backoff (3 retries, 2s/4s/8s), global 30/min sliding-window rate limiter, 65s trade cooldown
 - [ ] **Phase 3: Infrastructure Utilities** - TelegramAlerter (never-raise), StateManager (atomic write: .tmp then rename)
-- [ ] **Phase 4: Data Pipeline** - LiveFetcher (seed from Binance Parquet flat columns, live poll), close-to-close ATR proxy, no ADX/OBV, cross-asset features before dropna, shift(1) for look-ahead prevention, 35-bar warm-up
+- [x] **Phase 4: Data Pipeline** - LiveFetcher (seed from Binance Parquet flat columns, live poll), close-to-close ATR proxy, no ADX/OBV, cross-asset features before dropna, shift(1) for look-ahead prevention, 35-bar warm-up
 - [ ] **Phase 5: Execution Engine** - RegimeDetector (resample 4H->daily, EMA20/50), RiskManager (tiered CB + dump/load state), OrderManager (fill_price None check, resync, dump/load state, cancel_order stub)
 - [x] **Phase 6: Strategy Interface** - TradingSignal (pair required, no default), momentum.py stub, mean_reversion.py stub with correct generate_signal signatures
 - [x] **Phase 7: Main Loop Orchestration** - main.py with startup reconciliation, 7-step loop order, boundary-aligned sleep, SIGTERM/SIGINT shutdown handler
@@ -66,7 +66,7 @@ Plans:
 Plans:
 - [x] 04-01: `LiveFetcher.__init__` with `seed_dfs: dict[str, pd.DataFrame]`, `_seed_from_history()` using flat Parquet column access, live ticker poll, synthetic candle append, `get_latest_price(pair)`, `get_candle_boundaries()`
 - [x] 04-02: `compute_features()` — close-to-close ATR proxy, RSI, MACD, EMA slope; OBV disabled; ADX removed; all columns shifted by 1 bar
-- [ ] 04-03: `compute_cross_asset_features()` called BEFORE `dropna()`; `is_warmed_up()` threshold 35 bars; integration test seeding from fixture Parquet
+- [x] 04-03: `compute_cross_asset_features()` called BEFORE `dropna()`; `is_warmed_up()` threshold 35 bars; integration test seeding from fixture Parquet
 
 ### Phase 5: Execution Engine
 **Goal**: RegimeDetector that resamples 4H->daily before EMA crossover (preserving calibration, needing 300+ 4H bar warmup), RiskManager with tiered circuit breaker (30%/20%/10% thresholds) + full dump/load state for crash recovery, and OrderManager with correct fill_price None check, position resync from exchange, and state persistence.
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Project Scaffolding | 2/2 | Complete | 2026-03-16 |
 | 2. API Client & Rate Limiter | 0/2 | Not started | - |
 | 3. Infrastructure Utilities | 0/1 | Not started | - |
-| 4. Data Pipeline | 2/3 | In progress | - |
+| 4. Data Pipeline | 3/3 | Complete | 2026-03-16 |
 | 5. Execution Engine | 3/3 | Complete | 2026-03-16 |
 | 6. Strategy Interface | 2/2 | Complete | 2026-03-16 |
 | 7. Main Loop Orchestration | 2/2 | Complete | 2026-03-17 |
