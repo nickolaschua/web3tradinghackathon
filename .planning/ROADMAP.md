@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: API Client & Rate Limiter** - RoostooClient HMAC SHA256 signing, exponential backoff (3 retries, 2s/4s/8s), global 30/min sliding-window rate limiter, 65s trade cooldown
 - [x] **Phase 3: Infrastructure Utilities** - TelegramAlerter (real HTTP, never-raise, level emojis), StateManager (atomic write with backup/fallback, versioned metadata, JSON serializer)
 - [x] **Phase 4: Data Pipeline** - LiveFetcher (seed from Binance Parquet flat columns, live poll), close-to-close ATR proxy, no ADX/OBV, cross-asset features before dropna, shift(1) for look-ahead prevention, 35-bar warm-up
-- [ ] **Phase 5: Execution Engine** - RegimeDetector (resample 4H->daily, EMA20/50), RiskManager (tiered CB + dump/load state), OrderManager (fill_price None check, resync, dump/load state, cancel_order stub)
+- [x] **Phase 5: Execution Engine** - RegimeDetector (resample 4H->daily, EMA20/50), RiskManager (tiered CB + dump/load state), OrderManager (fill_price None check, resync, dump/load state, cancel_order stub)
 - [x] **Phase 6: Strategy Interface** - TradingSignal (pair required, no default), momentum.py stub, mean_reversion.py stub with correct generate_signal signatures
 - [x] **Phase 7: Main Loop Orchestration** - main.py with startup reconciliation, 7-step loop order, boundary-aligned sleep, SIGTERM/SIGINT shutdown handler
 - [ ] **Phase 8: EC2 Deployment** - systemd service, chrony Amazon Time Sync, deploy script, smoke test with testing keys
@@ -100,15 +100,16 @@ Plans:
 - [x] 07-02: Main loop — (1) poll ticker (2) balance + CB check (3) check stops per position (4) if new 4H candle: features + signal + size + submit (5) write state.json (6) heartbeat log (7) `time.sleep(60.0 - (time.time() % 60.0))` + seed loader + wired main()
 
 ### Phase 8: EC2 Deployment
-**Goal**: Provision t3.micro in ap-southeast-2, configure systemd service (ExecStart=python main.py, RestartSec=10), sync time with chrony → Amazon Time Sync (169.254.169.123), deploy bot, smoke-test with testing keys, confirm first trade executes before competition window closes.
+**Goal**: Provision t3.medium in ap-southeast-2 (via HackathonBotTemplate), configure systemd service (ExecStart=python main.py, RestartSec=10), sync time with chrony → Amazon Time Sync (169.254.169.123), deploy bot, smoke-test with testing keys, confirm first trade executes before competition window closes.
 **Depends on**: Phase 7
 **Research**: Likely (EC2 + Python 3.11 systemd service setup; chrony Amazon Time Sync config)
-**Research topics**: systemd Python venv service ExecStart pattern; chrony refclock for 169.254.169.123; EC2 ap-southeast-2 t3.micro bootstrap with Python 3.11; testing key smoke-test checklist
+**Research topics**: systemd Python venv service ExecStart pattern; chrony refclock for 169.254.169.123; EC2 ap-southeast-2 t3.medium (HackathonBotTemplate) bootstrap with Python 3.11; testing key smoke-test checklist
+**Connection**: Session Manager only (SSH blocked in hackathon environment); login via SSO portal https://d-906625dad1.awsapps.com/start
 **Plans**: 2 plans
 
 Plans:
 - [x] 08-01: Deployment artifacts — write systemd unit file, bootstrap.sh (AL2023 python3.11), deploy.sh (git pull + restart)
-- [ ] 08-02: EC2 provisioning & smoke test — launch t3.micro ap-southeast-2, run bootstrap.sh, populate .env with testing keys, start service, verify startup_reconciliation and first trade execution
+- [ ] 08-02: EC2 provisioning & smoke test — launch t3.medium ap-southeast-2 (HackathonBotTemplate), connect via Session Manager, clone repo + venv, populate .env with testing keys, start service via systemd, verify startup_reconciliation and state.json written, switch to Round 1 keys before Mar 21 8PM SGT
 
 ## Progress
 

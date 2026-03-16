@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** A correctly-wired, crash-safe infrastructure that submits valid orders and never loses state — the user fills in alpha logic on top.
-**Current focus:** Phase 2 — API Client & Rate Limiter (2/2 complete)
+**Current focus:** Phase 8 — EC2 Deployment (1/2 complete; 08-02 paused mid-execution)
 
 ## Current Position
 
@@ -19,7 +19,7 @@ Progress: ██████████████████░░ 95% (17/1
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 6 min
 - Total execution time: 103 min
 
@@ -61,11 +61,11 @@ None.
 
 ### Blockers/Concerns
 
-Phase 3 (infrastructure) pending — bot cannot actually run until TelegramAlerter and StateManager are implemented. Phase 2 now complete.
+None. All code phases complete. EC2 deployment (08-02) paused mid-execution — user stepped away after launching instance and connecting via Session Manager. Resumes tomorrow at Step 6 (clone + venv).
 
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Completed 08-01-PLAN.md (systemd service unit, bootstrap.sh, deploy.sh)
-Resume file: None
-Next: Phase 8 Plan 02 — EC2 provisioning and deployment execution (launch instance, smoke test with testing keys)
+Stopped at: Mid-08-02 execution — Task 1 in progress (EC2 launched + Session Manager connected; Steps 6–9 and Tasks 2–4 remain)
+Resume file: .planning/HANDOFF.md
+Next: Resume 08-02 at Step 6 (git clone + venv + pip install). User will say "I'm back" or similar. Hard deadline: Round 1 keys active by Mar 21 8PM SGT (Mar 21 12:00 UTC).
