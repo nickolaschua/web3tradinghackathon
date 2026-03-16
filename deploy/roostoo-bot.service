@@ -1,0 +1,44 @@
+# Roostoo Trading Bot - systemd service unit
+#
+# This unit manages the Python trading bot on AL2023 EC2 instances.
+# Environment variables (ROOSTOO_API_KEY, ROOSTOO_SECRET, etc.) are injected
+# by systemd's EnvironmentFile= before Python starts, so they are available
+# via os.environ — no load_dotenv() call needed in production (but keeping it
+# for local dev fallback is harmless, as systemd vars take precedence).
+#
+# Key design decisions:
+# - ExecStart uses absolute path to venv Python (not python3 symlink or source activate)
+# - ReadWritePaths covers whole /home/ec2-user/bot dir (state.json doesn't exist on first systemd start)
+# - MemoryDenyWriteExecute omitted (breaks numpy/pandas JIT at import)
+# - ProtectHome omitted (WorkingDirectory is under /home/ec2-user, conflict risk)
+# - network-online.target ensures IP assigned before first bot API call
+
+[Unit]
+Description=Roostoo Trading Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/home/ec2-user/bot
+EnvironmentFile=/home/ec2-user/bot/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/ec2-user/bot/venv/bin/python main.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Hardening (safe subset for Python + pandas/numpy)
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/home/ec2-user/bot
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictRealtime=yes
+LockPersonality=yes
+
+[Install]
+WantedBy=multi-user.target
