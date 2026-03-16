@@ -98,3 +98,103 @@ class RegimeDetector:
     def get_size_multiplier(self) -> float:
         """Get the position size multiplier for the current regime."""
         return self._current_regime.size_multiplier
+
+    def _compute_ema_crossover(self, daily_df: pd.DataFrame) -> Optional[RegimeState]:
+        """
+        Compute EMA(20)/EMA(50) crossover signal on daily data.
+
+        Args:
+            daily_df: Daily OHLCV DataFrame
+
+        Returns:
+            RegimeState if enough data, None otherwise
+        """
+        if len(daily_df) < 50:
+            return None
+
+        close = daily_df["close"]
+        ema20 = close.ewm(span=20, adjust=False).mean()
+        ema50 = close.ewm(span=50, adjust=False).mean()
+
+        e20 = ema20.iloc[-1]
+        e50 = ema50.iloc[-1]
+
+        # Dead zone: if spread < 0.1%, consider sideways
+        if abs(e20 - e50) / e50 < 0.001:
+            return RegimeState.SIDEWAYS
+
+        # Crossover signal
+        if e20 > e50:
+            return RegimeState.BULL_TREND
+        else:
+            return RegimeState.BEAR_TREND
+
+    def update(self, df_4h: pd.DataFrame) -> RegimeState:
+        """
+        Update regime based on 4H data, applying hysteresis.
+
+        Args:
+            df_4h: DataFrame with 4H OHLCV data
+
+        Returns:
+            Current regime state after update
+        """
+        # Check warmup
+        if not self.is_warmed_up(df_4h):
+            logger.debug(
+                f"RegimeDetector: not warmed up ({len(df_4h)}/{self.MIN_4H_BARS} bars)"
+            )
+            return self._current_regime
+
+        # Resample to daily and compute signal
+        daily_df = self._resample_to_daily(df_4h)
+        raw_signal = self._compute_ema_crossover(daily_df)
+
+        if raw_signal is None:
+            return self._current_regime
+
+        # Hysteresis logic
+        if raw_signal != self._current_regime:
+            if raw_signal == self._pending_regime:
+                self._pending_count += 1
+            else:
+                self._pending_regime = raw_signal
+                self._pending_count = 1
+
+            if self._pending_count >= self.CONFIRMATION_BARS:
+                old = self._current_regime
+                self._current_regime = raw_signal
+                self._pending_regime = None
+                self._pending_count = 0
+                logger.info(f"Regime: {old.name} -> {self._current_regime.name}")
+        else:
+            self._pending_regime = None
+            self._pending_count = 0
+
+        return self._current_regime
+
+    def dump_state(self) -> dict:
+        """
+        Serialize regime state for crash recovery.
+
+        Returns:
+            Dictionary with current_regime, pending_regime, pending_count
+        """
+        return {
+            "current_regime": self._current_regime.name,
+            "pending_regime": self._pending_regime.name if self._pending_regime else None,
+            "pending_count": self._pending_count,
+        }
+
+    def load_state(self, state: dict) -> None:
+        """
+        Restore regime state from serialized dict.
+
+        Args:
+            state: Dictionary from dump_state()
+        """
+        self._current_regime = RegimeState[state["current_regime"]]
+        self._pending_regime = (
+            RegimeState[state["pending_regime"]] if state.get("pending_regime") else None
+        )
+        self._pending_count = state.get("pending_count", 0)
