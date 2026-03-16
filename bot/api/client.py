@@ -14,7 +14,11 @@ import urllib.parse
 
 import requests
 
+from bot.api.rate_limiter import _rate_limiter, _trade_cooldown
+
 logger = logging.getLogger(__name__)
+
+BACKOFF_DELAYS = [2, 4, 8]  # seconds; 3 retries = 4 total attempts (FAQ Q19)
 
 
 class RoostooClient:
@@ -49,7 +53,7 @@ class RoostooClient:
         return hmac.new(self.secret.encode(), msg.encode(), hashlib.sha256).hexdigest()
 
     def _request(self, method: str, path: str, params: dict | None = None) -> dict:
-        """Make a signed HTTP request. GET uses query string; POST uses form-encoded body."""
+        """Signed HTTP request with rate limiting and exponential backoff."""
         if params is None:
             params = {}
         signature = self._sign(params)
@@ -58,12 +62,24 @@ class RoostooClient:
             "MSG-SIGNATURE": signature,
         }
         url = self.base_url + path
-        if method == "GET":
-            resp = requests.get(url, params=params, headers=headers, timeout=10)
-        else:
-            resp = requests.post(url, data=params, headers=headers, timeout=10)
-        resp.raise_for_status()
-        return resp.json()
+        last_exc: Exception | None = None
+        for attempt in range(len(BACKOFF_DELAYS) + 1):  # attempts 0, 1, 2, 3
+            if attempt > 0:
+                delay = BACKOFF_DELAYS[attempt - 1]
+                logger.warning("retry %d/3 for %s %s in %ds", attempt, method, path, delay)
+                time.sleep(delay)
+            _rate_limiter.acquire()
+            try:
+                if method == "GET":
+                    resp = requests.get(url, params=params, headers=headers, timeout=10)
+                else:
+                    resp = requests.post(url, data=params, headers=headers, timeout=10)
+                resp.raise_for_status()
+                return resp.json()
+            except (requests.RequestException, ValueError) as exc:
+                last_exc = exc
+                logger.warning("request %s %s failed (attempt %d/4): %s", method, path, attempt + 1, exc)
+        raise RuntimeError(f"request {method} {path} failed after 4 attempts") from last_exc
 
     # ------------------------------------------------------------------
     # Public endpoints
@@ -78,7 +94,8 @@ class RoostooClient:
         return self._request("GET", "/v3/balance", {})
 
     def place_order(self, pair: str, side: str, quantity: float) -> dict:
-        """Submit a market order. side must be 'BUY' or 'SELL'. quantity in coin units."""
+        """Submit a market order. Enforces 65s trade cooldown before dispatching."""
+        _trade_cooldown.acquire()
         return self._request("POST", "/v3/place_order", {
             "pair": pair,
             "side": side,
