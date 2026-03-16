@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Package skeleton — `bot/` with `api/`, `data/`, `execution/`, `strategy/`, `monitoring/`, `persistence/`, `config/` subdirs + all `__init__.py` files
+- [x] 01-01: Package skeleton — `bot/` with `api/`, `data/`, `execution/`, `strategy/`, `monitoring/`, `persistence/`, `config/` subdirs + all `__init__.py` files
 - [ ] 01-02: Config and dependency files — `requirements.txt` (pandas-ta-classic, not pandas-ta), `bot/config/config.yaml`, `.env.example` (three key sets), `.gitignore`
 
 ### Phase 2: API Client & Rate Limiter
@@ -117,7 +117,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Project Scaffolding | 0/2 | Not started | - |
+| 1. Project Scaffolding | 1/2 | In progress | - |
 | 2. API Client & Rate Limiter | 0/2 | Not started | - |
 | 3. Infrastructure Utilities | 0/1 | Not started | - |
 | 4. Data Pipeline | 0/3 | Not started | - |
