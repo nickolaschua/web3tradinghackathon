@@ -11,13 +11,24 @@ from typing import Any
 from dotenv import load_dotenv
 
 from bot.api.client import RoostooClient
+from bot.data.features import compute_features
+from bot.data.live_fetcher import LiveFetcher
 from bot.execution.order_manager import OrderManager
 from bot.execution.regime import RegimeDetector
 from bot.execution.risk import RiskManager
 from bot.monitoring.telegram import TelegramAlerter
 from bot.persistence.state_manager import StateManager
+from bot.strategy.base import SignalDirection
 from bot.strategy.mean_reversion import MeanReversionStrategy
 from bot.strategy.momentum import MomentumStrategy
+
+_CANDLE_4H_SECONDS = 4 * 3600  # seconds per 4H candle period
+
+_BINANCE_TO_ROOSTOO: dict[str, str] = {
+    "BTCUSDT": "BTC/USD",
+    "ETHUSDT": "ETH/USD",
+    "SOLUSDT": "SOL/USD",
+}
 
 
 def _setup_logging() -> None:
@@ -181,8 +192,318 @@ def _register_shutdown_handler(
     logger.info("Shutdown handler registered (SIGTERM + SIGINT)")
 
 
+def _run_one_cycle(
+    *,
+    client: RoostooClient,
+    live_fetcher: LiveFetcher,
+    risk_manager: RiskManager,
+    order_manager: OrderManager,
+    telegram: TelegramAlerter,
+    state_manager: StateManager,
+    strategy: Any,
+    regime_detector: RegimeDetector,
+    tradeable_pairs: list[str],
+    feature_pairs: list[str],
+    loop_state: dict,
+    config: dict,
+) -> None:
+    """
+    Execute one iteration of the 7-step main loop (PROJECT.md Issue 08).
+
+    Steps in mandatory order:
+      1. Poll ticker for all feature_pairs → update live_fetcher buffers
+      2. Fetch balance + check circuit breaker
+      3. Check stops for each open position (ATR from features_cache)
+      4. If new 4H candle epoch: compute features → signal → size → submit
+      5. Write state.json atomically
+      6. Heartbeat log
+      7. Boundary-aligned sleep to next 60s boundary
+
+    Args:
+        loop_state: Mutable dict persisted across cycles.
+                    Keys: "last_signal_epoch" (int), "features_cache" (dict[str, dict])
+    """
+    logger = logging.getLogger(__name__)
+    warmup_bars = config.get("warmup_bars", 35)
+    base_position_pct = config.get("base_position_pct", 0.25)
+
+    # ── Step 1: Poll ticker for all pairs ────────────────────────────────────
+    prices: dict[str, float] = {}
+    for pair in feature_pairs:
+        try:
+            ticker = client.get_ticker(pair)
+            price = float(ticker.get("LastPrice", 0.0))
+            if price > 0.0:
+                live_fetcher.poll_ticker(pair, price)
+                prices[pair] = price
+        except Exception as exc:
+            logger.warning("Step 1: poll_ticker failed for %s: %s", pair, exc)
+
+    # ── Step 2: Balance + circuit breaker check ───────────────────────────────
+    total_usd = 0.0
+    cb_active = False
+    try:
+        balance_resp = client.get_balance()
+        total_usd = float(balance_resp.get("total_usd", 0.0))
+        cb_active = risk_manager.check_circuit_breaker(total_usd)
+        if cb_active:
+            logger.warning("Step 2: circuit breaker active (total_usd=%.2f)", total_usd)
+    except Exception as exc:
+        logger.error("Step 2: balance check failed: %s", exc)
+
+    # ── Step 3: Check stops per open position ────────────────────────────────
+    features_cache: dict[str, dict] = loop_state.setdefault("features_cache", {})
+    positions = order_manager.get_all_positions()
+
+    for pair, pos in list(positions.items()):
+        current_price = prices.get(pair)
+        if current_price is None or current_price <= 0.0:
+            continue
+        # Use ATR from last cycle's feature computation; fallback = 2% of price
+        cached_atr = features_cache.get(pair, {}).get("atr_proxy", current_price * 0.02)
+        try:
+            stop_result = risk_manager.check_stops(pair, current_price, cached_atr)
+            if stop_result.should_exit:
+                logger.info(
+                    "Step 3: stop triggered for %s: %s (%s)",
+                    pair, stop_result.exit_reason, stop_result.exit_type,
+                )
+                order_manager.close_position(pair, pos.quantity, current_price)
+                telegram.send(
+                    f"\U0001f534 Stop triggered: {pair} | {stop_result.exit_type} | "
+                    f"price={current_price:.4f}"
+                )
+        except Exception as exc:
+            logger.error("Step 3: stop check failed for %s: %s", pair, exc)
+
+    # ── Step 4: New 4H candle — features + signal + size + submit ────────────
+    now = time.time()
+    current_4h_epoch = int(now) // _CANDLE_4H_SECONDS
+    last_signal_epoch = loop_state.get("last_signal_epoch", 0)
+
+    if current_4h_epoch > last_signal_epoch:
+        loop_state["last_signal_epoch"] = current_4h_epoch
+        logger.info("Step 4: new 4H candle epoch %d — computing signals", current_4h_epoch)
+
+        for pair in tradeable_pairs:
+            try:
+                df = live_fetcher._to_dataframe(pair)
+
+                if len(df) < warmup_bars:
+                    logger.info(
+                        "Step 4: %s has %d bars (need %d) — skipping (warmup)",
+                        pair, len(df), warmup_bars,
+                    )
+                    continue
+
+                features_df = compute_features(df).dropna()
+                if features_df.empty:
+                    logger.warning("Step 4: compute_features returned empty DataFrame for %s", pair)
+                    continue
+
+                # Update cache — last row as dict; ATR available for step 3 in next cycle
+                features_cache[pair] = features_df.iloc[-1].to_dict()
+
+                # Regime detection
+                regime = regime_detector.update(df)
+                regime_mult = regime.size_multiplier
+                logger.debug(
+                    "Step 4: regime=%s (mult=%.1f) for %s", regime.name, regime_mult, pair
+                )
+
+                # Signal generation — pass full DataFrame to strategy
+                signal = strategy.generate_signal(pair, features_df)
+
+                if signal.direction == SignalDirection.HOLD:
+                    logger.debug("Step 4: HOLD signal for %s", pair)
+                    continue
+
+                current_price = prices.get(pair, 0.0)
+                if current_price <= 0.0:
+                    logger.warning("Step 4: no price for %s, skipping", pair)
+                    continue
+
+                if signal.direction == SignalDirection.BUY:
+                    if cb_active:
+                        logger.info("Step 4: CB active, skipping BUY for %s", pair)
+                        continue
+
+                    if pair in order_manager.get_all_positions():
+                        logger.debug(
+                            "Step 4: already in position for %s, skipping BUY", pair
+                        )
+                        continue
+
+                    atr = features_cache[pair].get("atr_proxy", current_price * 0.02)
+                    # Use signal.size if provided; fall back to base_position_pct
+                    size_pct = signal.size if signal.size > 0.0 else base_position_pct
+
+                    open_pos = order_manager.get_all_positions()
+                    # Build {pair: usd_value} dict as required by size_new_position
+                    open_pos_usd: dict[str, float] = {
+                        p: pos_obj.quantity * prices.get(p, current_price)
+                        for p, pos_obj in open_pos.items()
+                    }
+                    free_usd = max(0.0, total_usd - sum(open_pos_usd.values()))
+
+                    sizing = risk_manager.size_new_position(
+                        pair=pair,
+                        current_price=current_price,
+                        current_atr=atr,
+                        free_balance_usd=free_usd,
+                        open_positions=open_pos_usd,
+                        regime_multiplier=regime_mult,
+                        signal_size_pct=size_pct,
+                    )
+
+                    if sizing.decision.name == "APPROVED":
+                        managed = order_manager.place_order(
+                            pair=pair,
+                            side="BUY",
+                            quantity=sizing.approved_quantity,
+                            entry_price=current_price,
+                            initial_stop=sizing.stop_price,
+                        )
+                        if managed:
+                            telegram.send(
+                                f"\U0001f7e2 BUY {pair}: qty={sizing.approved_quantity:.6f} "
+                                f"@ ~{current_price:.4f} | stop={sizing.stop_price:.4f}"
+                            )
+                    else:
+                        logger.info(
+                            "Step 4: BUY blocked for %s: %s (%s)",
+                            pair, sizing.decision.name, sizing.reason,
+                        )
+
+                elif signal.direction == SignalDirection.SELL:
+                    pos = order_manager.get_all_positions().get(pair)
+                    if pos is None:
+                        logger.debug(
+                            "Step 4: SELL signal for %s but no open position", pair
+                        )
+                        continue
+                    managed = order_manager.close_position(pair, pos.quantity, current_price)
+                    if managed:
+                        telegram.send(
+                            f"\U0001f534 SELL {pair}: qty={pos.quantity:.6f} @ ~{current_price:.4f}"
+                        )
+
+            except Exception as exc:
+                logger.error(
+                    "Step 4: error processing %s: %s", pair, exc, exc_info=True
+                )
+
+    # Periodic reconciliation (every 5 min — OrderManager tracks interval internally)
+    order_manager.maybe_reconcile()
+
+    # ── Step 5: Write state.json ──────────────────────────────────────────────
+    try:
+        state = {
+            "risk_manager": risk_manager.dump_state(),
+            "order_manager": order_manager.dump_state(),
+            "last_signal_epoch": loop_state.get("last_signal_epoch", 0),
+            "timestamp": time.time(),
+        }
+        state_manager.write(state)
+    except Exception as exc:
+        logger.error("Step 5: state write failed: %s", exc)
+
+    # ── Step 6: Heartbeat log ─────────────────────────────────────────────────
+    logger.info(
+        "Heartbeat: positions=%d cb_active=%s 4h_epoch=%d prices_polled=%d",
+        len(order_manager.get_all_positions()),
+        cb_active,
+        current_4h_epoch,
+        len(prices),
+    )
+
+    # ── Step 7: Boundary-aligned sleep ───────────────────────────────────────
+    sleep_secs = max(0.0, 60.0 - (time.time() % 60.0))
+    logger.debug("Step 7: sleeping %.1fs to next 60s boundary", sleep_secs)
+    time.sleep(sleep_secs)
+
+
+def _load_seed_data(config: dict) -> dict[str, Any]:
+    """
+    Load historical Parquet seed data for the configured feature pairs.
+
+    Tries multiple filename conventions for each pair. Missing files are silently
+    skipped — the bot starts with an empty buffer and warms up from live ticks.
+
+    Filename patterns tried (in order):
+      1. {data_dir}/{BINANCE_SYM}_4h.parquet          (e.g. BTCUSDT_4h.parquet)
+      2. {data_dir}/{BINANCE_SYM}-4h.parquet           (e.g. BTCUSDT-4h.parquet)
+      3. {data_dir}/{BINANCE_SYM.lower()}_4h.parquet
+      4. {data_dir}/{BINANCE_SYM}-4h-*.parquet (glob)  (from binance_historical_data)
+
+    Returns:
+        dict[str, pd.DataFrame] with Roostoo pair names (e.g. "BTC/USD") as keys.
+        Pairs with no data are omitted — LiveFetcher handles missing pairs gracefully.
+    """
+    import glob as glob_mod
+
+    import pandas as pd
+
+    logger = logging.getLogger(__name__)
+    data_dir = Path(config.get("data_dir", "data"))
+
+    roostoo_to_binance = {v: k for k, v in _BINANCE_TO_ROOSTOO.items()}
+    feature_pairs: list[str] = config.get("feature_pairs", ["BTC/USD"])
+
+    seed_dfs: dict[str, pd.DataFrame] = {}
+
+    for pair in feature_pairs:
+        binance_sym = roostoo_to_binance.get(pair)
+        if not binance_sym:
+            logger.warning("_load_seed_data: no Binance symbol for pair %s, skipping", pair)
+            continue
+
+        candidates = [
+            data_dir / f"{binance_sym}_4h.parquet",
+            data_dir / f"{binance_sym}-4h.parquet",
+            data_dir / f"{binance_sym.lower()}_4h.parquet",
+        ]
+
+        loaded = False
+        for path in candidates:
+            if path.exists():
+                try:
+                    df = pd.read_parquet(path)
+                    logger.info("Seed data for %s: %d rows from %s", pair, len(df), path)
+                    seed_dfs[pair] = df
+                    loaded = True
+                    break
+                except Exception as exc:
+                    logger.warning("Failed to read %s: %s", path, exc)
+
+        if not loaded:
+            # Try glob for date-suffixed files: BTCUSDT-4h-2024-01-01.parquet etc.
+            pattern = str(data_dir / f"{binance_sym}-4h-*.parquet")
+            matches = sorted(glob_mod.glob(pattern))
+            if matches:
+                try:
+                    dfs = [pd.read_parquet(m) for m in matches]
+                    df = pd.concat(dfs).sort_index()
+                    logger.info(
+                        "Seed data for %s: %d rows from %d glob files",
+                        pair, len(df), len(dfs),
+                    )
+                    seed_dfs[pair] = df
+                    loaded = True
+                except Exception as exc:
+                    logger.warning("Glob seed load failed for %s: %s", pair, exc)
+
+        if not loaded:
+            logger.info(
+                "No seed data found for %s (tried %s) — cold start",
+                pair, [str(c) for c in candidates],
+            )
+
+    return seed_dfs
+
+
 def main() -> None:
-    """Entry point — startup sequence for the trading bot."""
+    """Entry point — full trading bot with startup reconciliation and main loop."""
     load_dotenv()
     _setup_logging()
     logger = logging.getLogger(__name__)
@@ -190,7 +511,7 @@ def main() -> None:
 
     config = _load_config()
 
-    # Initialise components
+    # ── Component initialisation ──────────────────────────────────────────────
     api_key = os.environ["ROOSTOO_API_KEY"]
     secret = os.environ["ROOSTOO_SECRET"]
     tg_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
@@ -201,6 +522,16 @@ def main() -> None:
     state_manager = StateManager(path=Path(config.get("state_path", "state.json")))
     risk_manager = RiskManager(config=config)
     order_manager = OrderManager(client=client, risk_manager=risk_manager, config=config)
+    regime_detector = RegimeDetector(config=config)
+
+    # Load seed data and initialise LiveFetcher
+    seed_dfs = _load_seed_data(config)
+    live_fetcher = LiveFetcher(seed_dfs=seed_dfs)
+    logger.info("LiveFetcher initialised: %s", live_fetcher)
+
+    # Strategy selection — user swaps this to MeanReversionStrategy or custom
+    strategy = MomentumStrategy()
+    logger.info("Strategy: %s", strategy.__class__.__name__)
 
     # Register shutdown handler BEFORE reconciliation (handles crashes during startup)
     _register_shutdown_handler(state_manager, risk_manager, order_manager, telegram)
@@ -214,9 +545,51 @@ def main() -> None:
         state_manager=state_manager,
     )
 
-    telegram.send("\u2705 Bot started — reconciliation complete")
-    logger.info("Startup complete — main loop not yet implemented (07-02)")
-    # TODO(07-02): main loop goes here
+    telegram.send("\u2705 Bot started — entering main loop")
+    logger.info("Startup complete — entering main loop")
+
+    # Restore loop_state from persisted state (preserves last_signal_epoch across restarts)
+    saved_state = state_manager.read() or {}
+    loop_state: dict[str, Any] = {
+        "last_signal_epoch": saved_state.get("last_signal_epoch", 0),
+        "features_cache": {},
+    }
+
+    tradeable_pairs: list[str] = config.get("tradeable_pairs", ["BTC/USD"])
+    feature_pairs: list[str] = config.get("feature_pairs", ["BTC/USD"])
+
+    # ── Main loop ─────────────────────────────────────────────────────────────
+    while True:
+        try:
+            _run_one_cycle(
+                client=client,
+                live_fetcher=live_fetcher,
+                risk_manager=risk_manager,
+                order_manager=order_manager,
+                telegram=telegram,
+                state_manager=state_manager,
+                strategy=strategy,
+                regime_detector=regime_detector,
+                tradeable_pairs=tradeable_pairs,
+                feature_pairs=feature_pairs,
+                loop_state=loop_state,
+                config=config,
+            )
+        except KeyboardInterrupt:
+            logger.info("KeyboardInterrupt — saving state and exiting")
+            state = {
+                "risk_manager": risk_manager.dump_state(),
+                "order_manager": order_manager.dump_state(),
+                "last_signal_epoch": loop_state.get("last_signal_epoch", 0),
+                "timestamp": time.time(),
+            }
+            state_manager.write(state)
+            telegram.send("\U0001f6d1 Bot stopped (KeyboardInterrupt) — state saved")
+            sys.exit(0)
+        except Exception as exc:
+            logger.error("Main loop exception: %s", exc, exc_info=True)
+            telegram.send(f"\u26a0\ufe0f WARN: main loop exception — retrying in 10s: {exc}")
+            time.sleep(10)
 
 
 if __name__ == "__main__":
