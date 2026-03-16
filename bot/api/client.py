@@ -69,26 +69,38 @@ class RoostooClient:
     # Public endpoints
     # ------------------------------------------------------------------
 
-    def get_balance(self) -> dict:
-        """Return portfolio balances. Keys: 'total_usd', 'BTC', 'USD'."""
-        raise NotImplementedError("RoostooClient.get_balance() — implement in Phase 2")
-
-    def get_open_orders(self) -> list:
-        """Return list of open order dicts."""
-        raise NotImplementedError("RoostooClient.get_open_orders() — implement in Phase 2")
-
     def get_ticker(self, pair: str) -> dict:
         """Return ticker dict with 'LastPrice' for the given pair."""
-        raise NotImplementedError("RoostooClient.get_ticker() — implement in Phase 2")
+        return self._request("GET", "/v3/ticker", {"pair": pair})
+
+    def get_balance(self) -> dict:
+        """Return portfolio balances. Keys: 'total_usd', 'BTC', 'USD'."""
+        return self._request("GET", "/v3/balance", {})
 
     def place_order(self, pair: str, side: str, quantity: float) -> dict:
-        """Submit a market order. side must be 'BUY' or 'SELL'."""
-        raise NotImplementedError("RoostooClient.place_order() — implement in Phase 2")
+        """Submit a market order. side must be 'BUY' or 'SELL'. quantity in coin units."""
+        return self._request("POST", "/v3/place_order", {
+            "pair": pair,
+            "side": side,
+            "quantity": str(quantity),
+            "type": "MARKET",
+        })
 
     def pending_count(self) -> dict:
-        """Return {'TotalPending': int}. Success=false is normal for 0 pending."""
-        raise NotImplementedError("RoostooClient.pending_count() — implement in Phase 2")
+        """Return raw response containing 'TotalPending'.
+
+        Success=false is the normal response for zero pending orders; check TotalPending only.
+        """
+        return self._request("GET", "/v3/pending_count", {})
 
     def cancel_order(self, order_id: int) -> dict:
         """Cancel an order by ID."""
-        raise NotImplementedError("RoostooClient.cancel_order() — implement in Phase 2")
+        return self._request("POST", "/v3/cancel_order", {"order_id": str(order_id)})
+
+    def get_open_orders(self) -> list:
+        """Return list of open order dicts.
+
+        pending_only MUST be string 'TRUE' not Python bool True.
+        """
+        resp = self._request("GET", "/v3/order", {"pending_only": "TRUE"})
+        return resp.get("Data", [])
