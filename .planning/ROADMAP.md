@@ -65,7 +65,7 @@ Plans:
 
 Plans:
 - [x] 04-01: `LiveFetcher.__init__` with `seed_dfs: dict[str, pd.DataFrame]`, `_seed_from_history()` using flat Parquet column access, live ticker poll, synthetic candle append, `get_latest_price(pair)`, `get_candle_boundaries()`
-- [ ] 04-02: `compute_features()` — close-to-close ATR proxy, RSI, MACD, EMA slope; OBV disabled; ADX removed; all columns shifted by 1 bar
+- [x] 04-02: `compute_features()` — close-to-close ATR proxy, RSI, MACD, EMA slope; OBV disabled; ADX removed; all columns shifted by 1 bar
 - [ ] 04-03: `compute_cross_asset_features()` called BEFORE `dropna()`; `is_warmed_up()` threshold 35 bars; integration test seeding from fixture Parquet
 
 ### Phase 5: Execution Engine
@@ -120,7 +120,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Project Scaffolding | 2/2 | Complete | 2026-03-16 |
 | 2. API Client & Rate Limiter | 0/2 | Not started | - |
 | 3. Infrastructure Utilities | 0/1 | Not started | - |
-| 4. Data Pipeline | 1/3 | In progress | - |
+| 4. Data Pipeline | 2/3 | In progress | - |
 | 5. Execution Engine | 3/3 | Complete | 2026-03-16 |
 | 6. Strategy Interface | 2/2 | Complete | 2026-03-16 |
 | 7. Main Loop Orchestration | 1/2 | In progress | - |
