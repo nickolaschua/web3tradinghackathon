@@ -155,6 +155,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 6. Strategy Interface | 2/2 | Complete | 2026-03-16 |
 | 7. Main Loop Orchestration | 2/2 | Complete | 2026-03-17 |
 | 8. EC2 Deployment | 2/2 | Complete | 2026-03-17 |
-| 9. Historical Data Download | 0/1 | Not Started | — |
+| 9. Historical Data Download | 1/1 | Complete | 2026-03-17 |
 | 10. Backtest Runner + Feature Prep | 0/3 | Not Started | — |
 | 11. XGBoost Model Training | TBD | Not Started | — |

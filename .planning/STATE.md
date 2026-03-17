@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 
 ## Current Position
 
-Phase: 8 of 8 (EC2 Deployment) - COMPLETE
-Plan: 2 of 2 in Phase 8 (08-02 COMPLETE)
-Status: All 18 plans complete. Bot deployed to EC2 ap-southeast-2, running in tmux, Round 1 keys active, startup_reconciliation confirmed ($50,000 USD balance), state.json written.
-Last activity: 2026-03-17 — Completed 08-02 (EC2 provisioning, auth debugging, smoke test passed)
+Phase: 9 of 11 (Historical Data Download) - COMPLETE
+Plan: 1 of 1 in Phase 9 (09-01 COMPLETE)
+Status: All 3 Parquet files (BTCUSDT/ETHUSDT/SOLUSDT 4H, 2022-01-01 → today) created and verified. Historical data download script ready for production use.
+Last activity: 2026-03-17 — Completed 09-01 (pyarrow added, download script created, 9,219 4H candles per pair downloaded and verified)
 
-Progress: ████████████████████ 100% (18/18 plans complete)
+Progress: ██████████████████░░ 95% (19/20 plans complete)
 
 ## Performance Metrics
 
@@ -67,6 +67,6 @@ None. Project complete.
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Project complete — bot live on EC2 in tmux, Round 1 keys active
+Stopped at: Phase 09 complete — historical data downloaded (9,219 4H candles per pair, 2022-01-01 → today)
 Resume file: .planning/HANDOFF.md
-Next: Monitor bot warmup. Optionally fill in alpha strategy in bot/strategy/momentum.py or bot/strategy/mean_reversion.py before warmup completes (~Mar 23). Hard deadline: Round 1 keys confirmed active — nothing blocking competition.
+Next: Phase 10 (Backtest Runner) or continue with bot monitoring. Historical data ready to seed LiveFetcher on startup for immediate feature warmup.
