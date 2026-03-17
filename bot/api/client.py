@@ -91,8 +91,34 @@ class RoostooClient:
         return self._request("GET", "/v3/ticker", {"pair": pair})
 
     def get_balance(self) -> dict:
-        """Return portfolio balances. Keys: 'total_usd', 'BTC', 'USD'."""
-        return self._request("GET", "/v3/balance", {})
+        """Return normalised portfolio balances.
+
+        Normalises the API response (SpotWallet or Wallet key) into a flat dict:
+          total_usd  – float, USD Free + Lock
+          USD        – {"Free": float, "Lock": float}
+          BTC        – {"Free": float, "Lock": float}
+          Data       – {asset: {"Free", "Lock", "Total"}} for order_manager reconcile
+          Success    – bool
+        """
+        resp = self._request("GET", "/v3/balance", {})
+        wallet = resp.get("SpotWallet") or resp.get("Wallet") or {}
+        usd = wallet.get("USD", {})
+        btc = wallet.get("BTC", {})
+        usd_free = float(usd.get("Free", 0))
+        usd_lock = float(usd.get("Lock", 0))
+        btc_free = float(btc.get("Free", 0))
+        btc_lock = float(btc.get("Lock", 0))
+        return {
+            "Success": resp.get("Success", False),
+            "ErrMsg": resp.get("ErrMsg", ""),
+            "total_usd": usd_free + usd_lock,
+            "USD": usd,
+            "BTC": btc,
+            "Data": {
+                "USD": {"Free": usd_free, "Lock": usd_lock, "Total": str(usd_free + usd_lock)},
+                "BTC": {"Free": btc_free, "Lock": btc_lock, "Total": str(btc_free + btc_lock)},
+            },
+        }
 
     def place_order(self, pair: str, side: str, quantity: float) -> dict:
         """Submit a market order. Enforces 65s trade cooldown before dispatching."""
