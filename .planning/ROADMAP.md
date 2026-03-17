@@ -23,7 +23,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Execution Engine** - RegimeDetector (resample 4H->daily, EMA20/50), RiskManager (tiered CB + dump/load state), OrderManager (fill_price None check, resync, dump/load state, cancel_order stub)
 - [x] **Phase 6: Strategy Interface** - TradingSignal (pair required, no default), momentum.py stub, mean_reversion.py stub with correct generate_signal signatures
 - [x] **Phase 7: Main Loop Orchestration** - main.py with startup reconciliation, 7-step loop order, boundary-aligned sleep, SIGTERM/SIGINT shutdown handler
-- [ ] **Phase 8: EC2 Deployment** - systemd service, chrony Amazon Time Sync, deploy script, smoke test with testing keys
+- [x] **Phase 8: EC2 Deployment** - systemd service, chrony Amazon Time Sync, deploy script, smoke test with testing keys
 
 ## Phase Details
 
@@ -109,7 +109,7 @@ Plans:
 
 Plans:
 - [x] 08-01: Deployment artifacts — write systemd unit file, bootstrap.sh (AL2023 python3.11), deploy.sh (git pull + restart)
-- [ ] 08-02: EC2 provisioning & smoke test — launch t3.medium ap-southeast-2 (HackathonBotTemplate), connect via Session Manager, clone repo + venv, populate .env with testing keys, start service via systemd, verify startup_reconciliation and state.json written, switch to Round 1 keys before Mar 21 8PM SGT
+- [x] 08-02: EC2 provisioning & smoke test — launched t3.medium ap-southeast-2 (HackathonBotTemplate), connected via Session Manager, cloned repo + venv (Python 3.9), populated .env with Round 1 keys, bot running in tmux, verified startup_reconciliation ($50k USD balance), state.json written, Round 1 keys active
 
 ## Progress
 
@@ -125,4 +125,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 5. Execution Engine | 3/3 | Complete | 2026-03-16 |
 | 6. Strategy Interface | 2/2 | Complete | 2026-03-16 |
 | 7. Main Loop Orchestration | 2/2 | Complete | 2026-03-17 |
-| 8. EC2 Deployment | 1/2 | In Progress | 2026-03-17 |
+| 8. EC2 Deployment | 2/2 | Complete | 2026-03-17 |

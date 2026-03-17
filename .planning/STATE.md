@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** A correctly-wired, crash-safe infrastructure that submits valid orders and never loses state — the user fills in alpha logic on top.
-**Current focus:** Phase 8 — EC2 Deployment (1/2 complete; 08-02 paused mid-execution)
+**Current focus:** PROJECT COMPLETE — bot live on EC2, Round 1 keys active, entering warmup period
 
 ## Current Position
 
-Phase: 8 of 8 (EC2 Deployment) - IN PROGRESS
-Plan: 1 of 2 in Phase 8 (08-01 COMPLETE)
-Status: Phase 8 Plan 01 complete (deployment artifacts: systemd unit, bootstrap script, deploy script); ready for 08-02 EC2 provisioning
-Last activity: 2026-03-17 — Completed 08-01-PLAN.md (systemd service, bootstrap.sh, deploy.sh)
+Phase: 8 of 8 (EC2 Deployment) - COMPLETE
+Plan: 2 of 2 in Phase 8 (08-02 COMPLETE)
+Status: All 18 plans complete. Bot deployed to EC2 ap-southeast-2, running in tmux, Round 1 keys active, startup_reconciliation confirmed ($50,000 USD balance), state.json written.
+Last activity: 2026-03-17 — Completed 08-02 (EC2 provisioning, auth debugging, smoke test passed)
 
-Progress: ██████████████████░░ 95% (17/18 plans complete)
+Progress: ████████████████████ 100% (18/18 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: 6 min
-- Total execution time: 103 min
+- Total execution time: ~120 min
 
 **By Phase:**
 
@@ -34,10 +34,11 @@ Progress: ██████████████████░░ 95% (17/1
 | 5. Execution Engine | 3/3 | 31 min | 10 min |
 | 6. Strategy Interface | 2/2 | 5 min | 2.5 min |
 | 7. Main Loop Orchestration | 2/2 | 32 min | 16 min |
+| 8. EC2 Deployment | 2/2 | ~17 min | ~8.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-02 (16 min), 05-01 (10 min), 04-03 (15 min), 07-01 (16 min), 08-01 (7 min)
-- Trend: Wiring plans (main loop, cross-asset) take 10-16 min; deployment artifacts (systemd + scripts) faster at ~7 min
+- Last 5 plans: 08-02 (live), 08-01 (7 min), 07-02 (16 min), 07-01 (16 min), 05-01 (10 min)
+- All phases complete
 
 ## Accumulated Context
 
@@ -61,11 +62,11 @@ None.
 
 ### Blockers/Concerns
 
-None. All code phases complete. EC2 deployment (08-02) paused mid-execution — user stepped away after launching instance and connecting via Session Manager. Resumes tomorrow at Step 6 (clone + venv).
+None. Project complete.
 
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Mid-08-02 execution — Task 1 in progress (EC2 launched + Session Manager connected; Steps 6–9 and Tasks 2–4 remain)
+Stopped at: Project complete — bot live on EC2 in tmux, Round 1 keys active
 Resume file: .planning/HANDOFF.md
-Next: Resume 08-02 at Step 6 (git clone + venv + pip install). User will say "I'm back" or similar. Hard deadline: Round 1 keys active by Mar 21 8PM SGT (Mar 21 12:00 UTC).
+Next: Monitor bot warmup. Optionally fill in alpha strategy in bot/strategy/momentum.py or bot/strategy/mean_reversion.py before warmup completes (~Mar 23). Hard deadline: Round 1 keys confirmed active — nothing blocking competition.
