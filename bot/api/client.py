@@ -146,5 +146,5 @@ class RoostooClient:
 
         pending_only MUST be string 'TRUE' not Python bool True.
         """
-        resp = self._request("GET", "/v3/order", {"pending_only": "TRUE"})
-        return resp.get("Data", [])
+        resp = self._request("POST", "/v3/query_order", {"pending_only": "TRUE"})
+        return resp.get("OrderMatched", [])
