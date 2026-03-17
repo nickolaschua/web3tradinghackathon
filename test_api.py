@@ -15,9 +15,12 @@ headers = {'RST-API-KEY': api_key, 'MSG-SIGNATURE': sig}
 print('total_params:', total_params)
 print('sig:', sig)
 
-r = requests.get('https://mock-api.roostoo.com/v3/balance',
-    params=total_params,
-    headers=headers)
+# Print the prepared URL so we can verify no mangling
+req = requests.Request('GET', 'https://mock-api.roostoo.com/v3/balance',
+    params=total_params, headers=headers)
+prepared = req.prepare()
+print('prepared_url:', prepared.url)
 
+r = requests.Session().send(prepared)
 print('status:', r.status_code)
 print('body:', r.text[:300])
