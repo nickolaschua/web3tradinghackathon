@@ -7,13 +7,17 @@ secret = [l.split('=',1)[1].strip() for l in lines if l.startswith('ROOSTOO_SECR
 print('key:', repr(api_key))
 print('secret:', repr(secret))
 
-ts = str(int(time.time() * 1000))
-msg = 'timestamp=' + ts
-sig = hmac.new(secret.encode(), msg.encode(), hashlib.sha256).hexdigest()
+payload = {'timestamp': str(int(time.time() * 1000))}
+total_params = "&".join(f"{k}={payload[k]}" for k in sorted(payload.keys()))
+sig = hmac.new(secret.encode('utf-8'), total_params.encode('utf-8'), hashlib.sha256).hexdigest()
+headers = {'RST-API-KEY': api_key, 'MSG-SIGNATURE': sig}
+
+print('total_params:', total_params)
+print('sig:', sig)
 
 r = requests.get('https://mock-api.roostoo.com/v3/balance',
-    params={'timestamp': ts},
-    headers={'RST-API-KEY': api_key, 'MSG-SIGNATURE': sig})
+    params=total_params,
+    headers=headers)
 
 print('status:', r.status_code)
 print('body:', r.text[:300])
