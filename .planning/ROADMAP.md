@@ -24,6 +24,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Strategy Interface** - TradingSignal (pair required, no default), momentum.py stub, mean_reversion.py stub with correct generate_signal signatures
 - [x] **Phase 7: Main Loop Orchestration** - main.py with startup reconciliation, 7-step loop order, boundary-aligned sleep, SIGTERM/SIGINT shutdown handler
 - [x] **Phase 8: EC2 Deployment** - systemd service, chrony Amazon Time Sync, deploy script, smoke test with testing keys
+- [ ] **Phase 9: Historical Data Download** - one-time script to download BTC/ETH/SOL 4H Binance candles as Parquet, seeding LiveFetcher on startup
+- [ ] **Phase 10: Backtest Runner + Feature Prep** - bar-by-bar simulation accepting pre-trained XGBoost model, full feature pipeline, comprehensive stats report
+- [ ] **Phase 11: XGBoost Model Training** - train on 2022-2023, validate on 2024 held-out data, save .pkl for live trading
 
 ## Phase Details
 
@@ -111,10 +114,36 @@ Plans:
 - [x] 08-01: Deployment artifacts — write systemd unit file, bootstrap.sh (AL2023 python3.11), deploy.sh (git pull + restart)
 - [x] 08-02: EC2 provisioning & smoke test — launched t3.medium ap-southeast-2 (HackathonBotTemplate), connected via Session Manager, cloned repo + venv (Python 3.9), populated .env with Round 1 keys, bot running in tmux, verified startup_reconciliation ($50k USD balance), state.json written, Round 1 keys active
 
+### Phase 9: Historical Data Download
+**Goal**: One-time local script that downloads BTC/USD, ETH/USD, SOL/USD 4H candles from Binance and saves them as Parquet files in the `data/` directory, so the bot can seed its LiveFetcher instantly on startup instead of cold-starting.
+**Depends on**: Phase 4 (LiveFetcher expects flat OHLCV Parquet columns)
+**Research**: Likely (Binance public API or binance-historical-data package; rate limits; Parquet column naming to match LiveFetcher expectations)
+**Plans**: TBD
+
+Plans:
+- [ ] 09-01: `scripts/download_data.py` — download BTC/ETH/SOL 4H candles from Binance, save as `data/BTCUSDT_4h.parquet`, `data/ETHUSDT_4h.parquet`, `data/SOLUSDT_4h.parquet` with flat open/high/low/close/volume columns
+
+### Phase 10: Backtest Runner + Feature Prep
+**Goal**: A backtest runner (`scripts/backtest.py`) that loads historical Parquet data, runs the full feature pipeline (existing `bot/data/features.py`), accepts a pre-trained XGBoost model (.pkl), simulates bar-by-bar execution, and outputs a comprehensive stats report: total return, Sharpe, Sortino, max drawdown, win rate, avg trade PnL, and any other metrics specified in the hackathon problem statement.
+**Depends on**: Phase 9 (needs Parquet data), Phase 4 (reuses feature pipeline)
+**Research**: Likely (XGBoost model input/output format; Sortino and other metric formulas; bar-by-bar simulation without lookahead)
+**Plans**: TBD
+
+Plans:
+- [ ] 10-01: Feature prep pipeline — load Parquet → clean → run `compute_features()` + `compute_cross_asset_features()` → produce aligned feature matrix ready for model input
+- [ ] 10-02: Backtest engine — bar-by-bar simulation with XGBoost model, position tracking, fill simulation, PnL tracking
+- [ ] 10-03: Stats report — total return, Sharpe, Sortino, max drawdown, win rate, avg trade, equity curve output
+
+### Phase 11: XGBoost Model Training
+**Goal**: Train an XGBoost model on earlier historical data (e.g. 2022–2023) and validate on held-out data (e.g. 2024) to confirm it's not overfit. Save the trained model as a `.pkl` file for use in Phase 10 backtest and live trading.
+**Depends on**: Phase 10 (needs backtest runner to validate the trained model)
+**Research**: Likely (XGBoost feature importance, walk-forward validation, label engineering for BUY/SELL signals)
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -126,3 +155,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 6. Strategy Interface | 2/2 | Complete | 2026-03-16 |
 | 7. Main Loop Orchestration | 2/2 | Complete | 2026-03-17 |
 | 8. EC2 Deployment | 2/2 | Complete | 2026-03-17 |
+| 9. Historical Data Download | 0/1 | Not Started | — |
+| 10. Backtest Runner + Feature Prep | 0/3 | Not Started | — |
+| 11. XGBoost Model Training | TBD | Not Started | — |
