@@ -56,6 +56,7 @@ class RoostooClient:
         """Signed HTTP request with rate limiting and exponential backoff."""
         if params is None:
             params = {}
+        params["timestamp"] = str(int(time.time() * 1000))
         signature = self._sign(params)
         headers = {
             "RST-API-KEY": self.api_key,
