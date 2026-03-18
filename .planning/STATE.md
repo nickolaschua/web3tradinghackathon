@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 
 ## Current Position
 
-Phase: 10 of 11 (Backtest Runner) - COMPLETE
-Plan: 3 of 3 in Phase 10 (10-03 COMPLETE)
-Status: Complete end-to-end backtest runner with quantstats-based stats report (Sharpe, Sortino, CAGR, volatility, max drawdown, win rate); all 5 functions implemented (prepare_features, load_model, run_backtest, compute_stats_report, print_stats_report).
-Last activity: 2026-03-18 — Completed 10-03 (stats report with 4H annualization PERIODS_4H=2190)
+Phase: 11 of 11 (XGBoost Model Training) - IN PROGRESS
+Plan: 1 of 2 in Phase 11 (11-01 COMPLETE)
+Status: Label engineering + walk-forward CV complete; scripts/train_model.py created with prepare_features(), prepare_training_data(), run_walk_forward_cv(); CV validation shows no look-ahead leakage (AP 0.366-0.479), all 5 folds successful, Mean AP=0.415 Mean F1=0.363.
+Last activity: 2026-03-18 — Completed 11-01 (label engineering and walk-forward CV)
 
-Progress: ██████████████████████ 100% (21/21 plans complete)
+Progress: ████████████████████░ 95.2% (20/21 plans complete)
 
 ## Performance Metrics
 
@@ -67,6 +67,6 @@ None. Project complete.
 ## Session Continuity
 
 Last session: 2026-03-18
-Stopped at: Phase 10 Plan 2 complete — backtest engine (load_model + run_backtest) ready
+Stopped at: Phase 11 Plan 1 complete — label engineering and walk-forward CV validation complete
 Resume file: .planning/HANDOFF.md
-Next: Phase 10 Plan 3 (10-03-PLAN.md) — stats report (Sharpe, Sortino, max drawdown, win rate, equity curve)
+Next: Phase 11 Plan 2 (11-02-PLAN.md) — final model training + save to models/xgb_btc_4h.pkl
