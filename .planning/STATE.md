@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 ## Current Position
 
 Phase: 10 of 11 (Backtest Runner) - In progress
-Plan: 1 of 3 in Phase 10 (10-01 COMPLETE)
-Status: Dependencies (xgboost, quantstats) installed; scripts/backtest.py with CLI args + prepare_features() created. Feature pipeline validated against real Parquet files (9,169 bars × 17 features).
-Last activity: 2026-03-18 — Completed 10-01 (xgboost>=2.0, quantstats>=0.0.62 added; scripts/backtest.py created with working prepare_features)
+Plan: 2 of 3 in Phase 10 (10-02 COMPLETE)
+Status: load_model() and run_backtest() added to scripts/backtest.py; bar-by-bar simulation with 3-way signal state machine, fee-adjusted PnL, DatetimeIndex returns Series ready for quantstats.
+Last activity: 2026-03-18 — Completed 10-02 (load_model + run_backtest engine)
 
-Progress: ██████████████████░░ 96% (20/21 plans complete)
+Progress: ███████████████████░ 95% (20/21 plans complete)
 
 ## Performance Metrics
 
@@ -67,6 +67,6 @@ None. Project complete.
 ## Session Continuity
 
 Last session: 2026-03-18
-Stopped at: Phase 10 Plan 1 complete — backtest infrastructure (dependencies + feature prep) ready
+Stopped at: Phase 10 Plan 2 complete — backtest engine (load_model + run_backtest) ready
 Resume file: .planning/HANDOFF.md
-Next: Phase 10 Plan 2 (10-02-PLAN.md) — model inference and position tracking logic
+Next: Phase 10 Plan 3 (10-03-PLAN.md) — stats report (Sharpe, Sortino, max drawdown, win rate, equity curve)
