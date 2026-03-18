@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Strategy Interface** - TradingSignal (pair required, no default), momentum.py stub, mean_reversion.py stub with correct generate_signal signatures
 - [x] **Phase 7: Main Loop Orchestration** - main.py with startup reconciliation, 7-step loop order, boundary-aligned sleep, SIGTERM/SIGINT shutdown handler
 - [x] **Phase 8: EC2 Deployment** - systemd service, chrony Amazon Time Sync, deploy script, smoke test with testing keys
-- [ ] **Phase 9: Historical Data Download** - one-time script to download BTC/ETH/SOL 4H Binance candles as Parquet, seeding LiveFetcher on startup
+- [x] **Phase 9: Historical Data Download** - one-time script to download BTC/ETH/SOL 4H Binance candles as Parquet, seeding LiveFetcher on startup
 - [ ] **Phase 10: Backtest Runner + Feature Prep** - bar-by-bar simulation accepting pre-trained XGBoost model, full feature pipeline, comprehensive stats report
 - [ ] **Phase 11: XGBoost Model Training** - train on 2022-2023, validate on 2024 held-out data, save .pkl for live trading
 
@@ -156,5 +156,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Main Loop Orchestration | 2/2 | Complete | 2026-03-17 |
 | 8. EC2 Deployment | 2/2 | Complete | 2026-03-17 |
 | 9. Historical Data Download | 1/1 | Complete | 2026-03-17 |
-| 10. Backtest Runner + Feature Prep | 0/3 | Not Started | — |
+| 10. Backtest Runner + Feature Prep | 1/3 | In progress | 2026-03-18 |
 | 11. XGBoost Model Training | TBD | Not Started | — |
