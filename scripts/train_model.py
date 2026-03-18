@@ -147,6 +147,99 @@ def run_walk_forward_cv(X: pd.DataFrame, y: pd.Series) -> list[dict]:
     return scores
 
 
+def train_final_model(
+    X: pd.DataFrame,
+    y: pd.Series,
+    test_cutoff: str = "2024-01-01",
+):
+    """
+    Train final model on train+val (all data before test_cutoff).
+    Evaluate on held-out test set (test_cutoff onwards).
+
+    No early stopping for final training — use fixed n_estimators=300.
+    This avoids the need for a validation set during final fit.
+    """
+    cutoff = pd.Timestamp(test_cutoff, tz="UTC")
+
+    # Hard split
+    X_train_val = X[X.index < cutoff]
+    y_train_val = y[y.index < cutoff]
+    X_test = X[X.index >= cutoff]
+    y_test = y[y.index >= cutoff]
+
+    print(f"Train+Val: {len(X_train_val)} bars ({X_train_val.index[0].date()} to {X_train_val.index[-1].date()})")
+    print(f"Test:      {len(X_test)} bars ({X_test.index[0].date()} to {X_test.index[-1].date()})")
+
+    if len(X_test) == 0:
+        print("WARNING: No test data available after cutoff. Adjust test_cutoff.")
+
+    # Class weight for train+val
+    n_pos = int(y_train_val.sum())
+    n_neg = int(len(y_train_val) - n_pos)
+    spw = n_neg / n_pos if n_pos > 0 else 1.0
+    print(f"Train+Val class balance: BUY={n_pos} ({n_pos/len(y_train_val):.1%}), scale_pos_weight={spw:.2f}")
+
+    # Final model: no early_stopping_rounds (no val set), fixed n_estimators
+    # Remove early_stopping_rounds from params for final training
+    final_params = {k: v for k, v in XGB_PARAMS.items() if k != "early_stopping_rounds"}
+    final_params["n_estimators"] = 300
+    final_params["scale_pos_weight"] = spw
+
+    print("\nTraining final model (n_estimators=300, no early stopping)...")
+    model = xgb.XGBClassifier(**final_params)
+    model.fit(X_train_val, y_train_val, verbose=False)
+
+    # Evaluate on test set
+    metrics = {}
+    if len(X_test) > 0 and y_test.sum() > 0:
+        proba_test = model.predict_proba(X_test)[:, 1]
+        ap_test = average_precision_score(y_test, proba_test)
+        f1_test = f1_score(y_test, (proba_test >= 0.5).astype(int), zero_division=0)
+        n_buy_test = int(y_test.sum())
+        metrics = {"test_ap": ap_test, "test_f1": f1_test,
+                   "n_test": len(X_test), "n_buy_test": n_buy_test}
+        print(f"\nTest set evaluation:")
+        print(f"  AP (AUC-PR): {ap_test:.3f}")
+        print(f"  F1 (thresh=0.5): {f1_test:.3f}")
+        print(f"  Test bars: {len(X_test)} | BUY signals: {n_buy_test} ({n_buy_test/len(X_test):.1%})")
+    else:
+        print("WARNING: Skipping test evaluation — no test data or no BUY labels in test set")
+
+    # Feature importance (top 5)
+    importances = pd.Series(
+        model.feature_importances_, index=model.feature_names_in_
+    ).sort_values(ascending=False)
+    print(f"\nTop 5 feature importances:")
+    for feat, imp in importances.head(5).items():
+        print(f"  {feat}: {imp:.4f}")
+
+    return model, metrics
+
+
+def save_model(model: xgb.XGBClassifier, output_path: str) -> None:
+    """Save model with pickle (matches load_model() in scripts/backtest.py)."""
+    # Sanity check interface requirements from load_model()
+    assert hasattr(model, "predict_proba"), "Model must have predict_proba"
+    assert hasattr(model, "feature_names_in_"), (
+        "Model has no feature_names_in_ — did you train with a named DataFrame?"
+    )
+
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "wb") as f:
+        pickle.dump(model, f)
+
+    print(f"\nSaved: {output_path}")
+    print(f"Feature columns ({len(model.feature_names_in_)}): {list(model.feature_names_in_)}")
+
+    # Quick round-trip verification
+    with open(output_path, "rb") as f:
+        reloaded = pickle.load(f)
+    assert hasattr(reloaded, "predict_proba")
+    assert hasattr(reloaded, "feature_names_in_")
+    assert list(reloaded.feature_names_in_) == list(model.feature_names_in_)
+    print("Round-trip pickle verification: OK")
+
+
 def parse_args():
     p = argparse.ArgumentParser(description="Train XGBoost BTC/USD 4H classifier")
     p.add_argument("--btc", default="data/BTCUSDT_4h.parquet")
@@ -159,13 +252,34 @@ def parse_args():
     return p.parse_args()
 
 
-if __name__ == "__main__":
+def main():
     args = parse_args()
+
+    # Step 1: Load features
+    print("Step 1: Loading features...")
     feat = prepare_features(args.btc, args.eth, args.sol)
+    print(f"  Feature matrix: {feat.shape[0]} bars x {feat.shape[1]} columns")
+
+    # Step 2: Prepare training data (labels + alignment)
+    print("\nStep 2: Preparing training data...")
     X, y = prepare_training_data(feat, args.horizon, args.threshold)
 
+    # Step 3: Walk-forward CV (optional but recommended)
     if args.cv_only:
-        print("\nRunning walk-forward CV...")
+        print("\nStep 3: Running walk-forward CV (--cv-only mode)...")
         run_walk_forward_cv(X, y)
-    else:
-        print("Data prepared. Use --cv-only for CV, or run 11-02 plan for full training.")
+        print("\nCV complete. Re-run without --cv-only to train and save the final model.")
+        return
+
+    # Step 4: Train final model + evaluate on test
+    print("\nStep 3: Training final model...")
+    model, metrics = train_final_model(X, y, test_cutoff="2024-01-01")
+
+    # Step 5: Save
+    print("\nStep 4: Saving model...")
+    save_model(model, args.output)
+    print(f"\nDone. Model ready for: python scripts/backtest.py --model {args.output}")
+
+
+if __name__ == "__main__":
+    main()
