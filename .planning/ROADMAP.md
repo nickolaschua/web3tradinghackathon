@@ -26,7 +26,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: EC2 Deployment** - systemd service, chrony Amazon Time Sync, deploy script, smoke test with testing keys
 - [x] **Phase 9: Historical Data Download** - one-time script to download BTC/ETH/SOL 4H Binance candles as Parquet, seeding LiveFetcher on startup
 - [x] **Phase 10: Backtest Runner + Feature Prep** - bar-by-bar simulation accepting pre-trained XGBoost model, full feature pipeline, comprehensive stats report
-- [ ] **Phase 11: XGBoost Model Training** - label engineering (N=6, τ=0.00015) and walk-forward CV complete (Mean AP=0.415, Mean F1=0.363); final training + save .pkl pending
+- [x] **Phase 11: XGBoost Model Training** - label engineering (N=6, τ=0.00015), walk-forward CV (Mean AP=0.415, Mean F1=0.363), final training on 2020-2023 train+val (Test AP=0.392, F1=0.170), saved to models/xgb_btc_4h.pkl
 
 ## Phase Details
 
@@ -142,7 +142,7 @@ Plans:
 
 Plans:
 - [x] 11-01: Label engineering + walk-forward CV — create scripts/train_model.py with prepare_features(), prepare_training_data() (forward-return threshold N=6 horizon τ=0.00015), run_walk_forward_cv() (TimeSeriesSplit n_splits=5 gap=24), verify no look-ahead leakage
-- [ ] 11-02: Final training + save — train on full dataset excluding test period, save to models/xgb_btc_4h.pkl, verify model interface (pickle, feature_names_in_, predict_proba)
+- [x] 11-02: Final training + save — train on full dataset excluding test period, save to models/xgb_btc_4h.pkl, verify model interface (pickle, feature_names_in_, predict_proba)
 
 ## Progress
 
@@ -161,4 +161,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. EC2 Deployment | 2/2 | Complete | 2026-03-17 |
 | 9. Historical Data Download | 1/1 | Complete | 2026-03-17 |
 | 10. Backtest Runner + Feature Prep | 3/3 | Complete | 2026-03-18 |
-| 11. XGBoost Model Training | 1/2 | In Progress | 2026-03-18 |
+| 11. XGBoost Model Training | 2/2 | Complete | 2026-03-18 |
