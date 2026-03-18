@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+import quantstats as qs
 import xgboost
 
 # Add project root to path so bot package can be imported
@@ -172,6 +173,57 @@ def run_backtest(
     return returns_series, closed_trades
 
 
+PERIODS_4H = 2190  # 365.25 * 24 / 4 — correct annualization for 4H crypto bars
+
+
+def compute_stats_report(returns: pd.Series, closed_trades: list[dict]) -> dict:
+    """
+    Compute comprehensive backtest statistics.
+
+    Args:
+        returns: Bar-by-bar returns Series with DatetimeIndex (from run_backtest).
+        closed_trades: List of trade dicts with pnl_pct (from run_backtest).
+
+    Returns:
+        Dict of stats suitable for printing or CSV export.
+    """
+    # Guard against NaT index entries (quantstats requirement)
+    returns = returns[returns.index.notna()]
+
+    n_trades = len(closed_trades)
+
+    # Trade-based win rate — quantstats win_rate() is bar-based, not trade-based
+    if n_trades > 0:
+        winners = sum(1 for t in closed_trades if t["pnl_pct"] > 0)
+        trade_win_rate = winners / n_trades
+        avg_trade_pnl = sum(t["pnl_pct"] for t in closed_trades) / n_trades
+        best_trade = max(t["pnl_pct"] for t in closed_trades)
+        worst_trade = min(t["pnl_pct"] for t in closed_trades)
+    else:
+        trade_win_rate = 0.0
+        avg_trade_pnl = 0.0
+        best_trade = 0.0
+        worst_trade = 0.0
+
+    # Financial metrics via quantstats — always pass periods=PERIODS_4H
+    # All handle edge cases (zero std, single period) correctly
+    stats = {
+        "total_return_pct": float((1 + returns).prod() - 1) * 100,
+        "cagr_pct": float(qs.stats.cagr(returns, periods=PERIODS_4H)) * 100,
+        "sharpe": float(qs.stats.sharpe(returns, periods=PERIODS_4H)),
+        "sortino": float(qs.stats.sortino(returns, periods=PERIODS_4H)),
+        "max_drawdown_pct": float(qs.stats.max_drawdown(returns)) * 100,  # negative number
+        "volatility_ann_pct": float(qs.stats.volatility(returns, periods=PERIODS_4H)) * 100,
+        "n_trades": n_trades,
+        "trade_win_rate_pct": trade_win_rate * 100,
+        "avg_trade_pnl_pct": avg_trade_pnl * 100,
+        "best_trade_pct": best_trade * 100,
+        "worst_trade_pct": worst_trade * 100,
+        "n_bars": len(returns),
+    }
+    return stats
+
+
 def parse_args():
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
@@ -240,21 +292,64 @@ def parse_args():
     return parser.parse_args()
 
 
+def print_stats_report(stats: dict, args) -> None:
+    """Print formatted stats report to stdout."""
+    sep = "=" * 55
+    print(sep)
+    print("  BACKTEST RESULTS")
+    print(sep)
+    print(f"  Period bars      : {stats['n_bars']}")
+    print(f"  Total return     : {stats['total_return_pct']:+.2f}%")
+    print(f"  CAGR             : {stats['cagr_pct']:+.2f}%")
+    print(f"  Sharpe (4H ann.) : {stats['sharpe']:.3f}")
+    print(f"  Sortino (4H ann.): {stats['sortino']:.3f}")
+    print(f"  Max drawdown     : {stats['max_drawdown_pct']:.2f}%")
+    print(f"  Volatility (ann.): {stats['volatility_ann_pct']:.2f}%")
+    print(sep)
+    print(f"  # Trades         : {stats['n_trades']}")
+    print(f"  Trade win rate   : {stats['trade_win_rate_pct']:.1f}%")
+    print(f"  Avg trade PnL    : {stats['avg_trade_pnl_pct']:+.2f}%")
+    print(f"  Best trade       : {stats['best_trade_pct']:+.2f}%")
+    print(f"  Worst trade      : {stats['worst_trade_pct']:+.2f}%")
+    print(sep)
+    print(f"  Threshold        : {args.threshold}")
+    print(f"  Fee (bps)        : {args.fee_bps}")
+    print(sep)
+
+
 def main():
     """Load features, run model inference, and print simulation summary."""
     args = parse_args()
+
+    # Step 1: Feature prep
+    print("Loading and preparing features...")
     feat = prepare_features(args.btc, args.eth, args.sol, args.start, args.end)
-    print(f"Feature matrix: {feat.shape[0]} bars × {feat.shape[1]} columns")
-    print(f"Date range: {feat.index[0]} to {feat.index[-1]}")
+    print(f"  Feature matrix: {feat.shape[0]} bars × {feat.shape[1]} columns")
+    print(f"  Date range: {feat.index[0]} to {feat.index[-1]}")
+
+    # Step 2: Load model
+    print(f"Loading model from {args.model}...")
     model = load_model(args.model)
-    print(f"Model loaded. Expects {len(model.feature_names_in_)} features.")
-    returns, trades = run_backtest(
-        feat, model, threshold=args.threshold, fee_bps=args.fee_bps
-    )
-    print(
-        f"Simulation complete. {len(trades)} closed trades. "
-        f"Total return: {(1 + returns).prod() - 1:.2%}"
-    )
+    print(f"  Model expects {len(model.feature_names_in_)} features")
+
+    # Step 3: Run simulation
+    print("Running bar-by-bar simulation...")
+    returns, trades = run_backtest(feat, model, threshold=args.threshold,
+                                   fee_bps=args.fee_bps)
+    print(f"  Simulation complete: {len(trades)} closed trades")
+
+    # Step 4: Compute and print stats
+    stats = compute_stats_report(returns, trades)
+    print_stats_report(stats, args)
+
+    # Step 5: Optional CSV output
+    if args.output:
+        import csv
+        with open(args.output, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=stats.keys())
+            writer.writeheader()
+            writer.writerow(stats)
+        print(f"\nStats saved to {args.output}")
 
 
 if __name__ == "__main__":
