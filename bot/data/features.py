@@ -61,6 +61,7 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
     # All use .ta accessor with append=True — mutates `out` in-place, returns None.
     # Column names are in UPPER_UNDERSCORE format as documented by pandas-ta-classic.
     out.ta.rsi(length=14, append=True)                         # → RSI_14
+    out.ta.rsi(length=7, append=True)                          # → RSI_7  (faster, useful at 15M)
     out.ta.macd(fast=12, slow=26, signal=9, append=True)       # → MACD_12_26_9, MACDs_12_26_9, MACDh_12_26_9
     out.ta.ema(length=20, append=True)                         # → EMA_20
     out.ta.ema(length=50, append=True)                         # → EMA_50
@@ -68,6 +69,27 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
     # --- EMA slope (manual — df.ta.slope(close="EMA_20") kwarg form is unverified) ---
     # Rate of change of EMA_20: (EMA_20[t] - EMA_20[t-1]) / EMA_20[t-1]
     out["ema_slope"] = (out["EMA_20"] - out["EMA_20"].shift(1)) / out["EMA_20"].shift(1)
+
+    # --- Bollinger Band width and position (manual to avoid bbands column-name ambiguity) ---
+    sma20 = out["close"].rolling(20).mean()
+    std20 = out["close"].rolling(20).std()
+    bb_upper = sma20 + 2.0 * std20
+    bb_lower = sma20 - 2.0 * std20
+    # bb_width: normalized band width — high = volatile regime, low = squeeze
+    out["bb_width"] = (bb_upper - bb_lower) / (sma20 + 1e-10)
+    # bb_pos: percent B — 0=at lower band, 0.5=at mid, 1=at upper band, can exceed [0,1]
+    out["bb_pos"] = (out["close"] - bb_lower) / (bb_upper - bb_lower + 1e-10)
+
+    # --- Volume ratio: current bar volume vs 20-bar rolling mean ---
+    # Detects volume spikes that often precede or confirm breakouts.
+    # Safe on Roostoo (volume=0): 0 / 0 → NaN, handled by dropna() downstream.
+    out["volume_ratio"] = out["volume"] / (out["volume"].rolling(20).mean() + 1e-10)
+
+    # --- Candle body ratio: measures directional conviction of each bar ---
+    # +1 = full bullish body (close=high, open=low), -1 = full bearish, 0 = doji.
+    # Normalized by high-low range; NaN when H=L (Roostoo synthetic candles).
+    hl_range = out["high"] - out["low"]
+    out["candle_body"] = (out["close"] - out["open"]) / (hl_range + 1e-10)
 
     # --- Shift all indicator columns 1 bar to prevent look-ahead bias ---
     # CRITICAL: shift AFTER computing indicators, never before.

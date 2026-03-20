@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Historical OHLCV data downloader for all Roostoo-listed coins (4H candles from Binance).
+Historical OHLCV data downloader for all Roostoo-listed coins (Binance klines).
 
 Downloads from Binance public klines API and saves as Parquet with UTC DatetimeIndex.
 No API key required (public endpoint).
 
 Usage:
-  python scripts/download_data.py                          # all 67 pairs, 5yr, skip existing
+  python scripts/download_data.py                          # all coins, 4h, 5yr, skip existing
+  python scripts/download_data.py --interval 15m          # 15-minute candles
   python scripts/download_data.py --start 2022-01-01      # custom start
   python scripts/download_data.py --symbols BTC ETH SOL   # specific coins only
   python scripts/download_data.py --workers 8             # parallel downloads
@@ -23,10 +24,11 @@ import pandas as pd
 import requests
 
 BINANCE_API_BASE = "https://api.binance.com/api/v3"
-INTERVAL = "4h"
 REQUEST_SLEEP = 0.15   # seconds between paginated requests per symbol
 BATCH_SIZE = 1000      # max rows per API call (Binance limit)
 DEFAULT_WORKERS = 5    # parallel symbols (conservative; Binance limit: 1200 weight/min)
+
+VALID_INTERVALS = {"1m", "3m", "5m", "15m", "30m", "1h", "2h", "4h", "6h", "8h", "12h", "1d"}
 
 # All 67 pairs available on Roostoo as of 2026-03-18
 # Binance symbol = coin + "USDT"  (e.g. BTC/USD → BTCUSDT)
@@ -52,7 +54,7 @@ def timestamp_to_ms(date_str: str) -> int:
     return int(dt.replace(tzinfo=timezone.utc).timestamp() * 1000)
 
 
-def download_klines(symbol: str, start_ms: int, end_ms: int, max_retries: int = 3) -> list:
+def download_klines(symbol: str, interval: str, start_ms: int, end_ms: int, max_retries: int = 3) -> list:
     """Download all klines for a symbol between start_ms and end_ms with pagination."""
     all_rows = []
     current_start_ms = start_ms
@@ -60,7 +62,7 @@ def download_klines(symbol: str, start_ms: int, end_ms: int, max_retries: int = 
     while current_start_ms < end_ms:
         params = {
             "symbol": symbol,
-            "interval": INTERVAL,
+            "interval": interval,
             "startTime": current_start_ms,
             "endTime": end_ms,
             "limit": BATCH_SIZE,
@@ -111,6 +113,7 @@ def klines_to_dataframe(rows: list) -> pd.DataFrame:
 
 def download_and_save(
     coin: str,
+    interval: str,
     start_ms: int,
     end_ms: int,
     output_dir: Path,
@@ -122,14 +125,14 @@ def download_and_save(
     status: 'saved' | 'skipped' | 'error:<msg>'
     """
     symbol = coin_to_binance_symbol(coin)
-    output_path = output_dir / f"{symbol}_4h.parquet"
+    output_path = output_dir / f"{symbol}_{interval}.parquet"
 
     if skip_existing and output_path.exists():
         existing = pd.read_parquet(output_path)
         return coin, "skipped", len(existing)
 
     try:
-        rows = download_klines(symbol, start_ms, end_ms)
+        rows = download_klines(symbol, interval, start_ms, end_ms)
         if not rows:
             return coin, "error:no data returned from Binance", 0
 
@@ -148,8 +151,10 @@ def main():
     five_years_ago = (datetime.now(timezone.utc) - timedelta(days=365 * 5)).strftime("%Y-%m-%d")
 
     parser = argparse.ArgumentParser(
-        description="Download Binance 4H OHLCV data for all Roostoo-listed coins."
+        description="Download Binance OHLCV data for all Roostoo-listed coins."
     )
+    parser.add_argument("--interval", default="4h", choices=sorted(VALID_INTERVALS),
+                        help="Candle interval (default: 4h)")
     parser.add_argument("--start", default=five_years_ago,
                         help=f"Start date YYYY-MM-DD (default: 5 years ago = {five_years_ago})")
     parser.add_argument("--end", default=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
@@ -177,7 +182,7 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"Coins: {len(coins)} | Range: {args.start} to {args.end} | Workers: {args.workers}")
+    print(f"Coins: {len(coins)} | Interval: {args.interval} | Range: {args.start} to {args.end} | Workers: {args.workers}")
     print(f"Output: {output_dir} | Skip existing: {args.skip_existing}")
     print()
 
@@ -185,7 +190,7 @@ def main():
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
         futures = {
-            pool.submit(download_and_save, coin, start_ms, end_ms, output_dir, args.skip_existing): coin
+            pool.submit(download_and_save, coin, args.interval, start_ms, end_ms, output_dir, args.skip_existing): coin
             for coin in coins
         }
         for fut in as_completed(futures):

@@ -73,6 +73,12 @@ regime:
   ema_slow: 50
   confirmation_bars: 2
 
+# Portfolio Optimization
+risk_per_trade_pct: 0.02
+expected_win_loss_ratio: 1.5
+cvar_beta: 0.95
+hrp_blend: 0.5
+
 # Logging
 log_level: "INFO"
 log_max_bytes: 10485760

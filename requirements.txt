@@ -7,4 +7,5 @@ pyyaml>=6.0
 pyarrow>=14.0
 xgboost>=2.0
 quantstats>=0.0.62
+PyPortfolioOpt>=1.5
 scikit-learn>=1.5
