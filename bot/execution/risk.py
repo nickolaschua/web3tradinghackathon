@@ -28,6 +28,7 @@ class RiskDecision(Enum):
     BLOCKED_CONCENTRATION = "BLOCKED_CONCENTRATION"
     BLOCKED_INSUFFICIENT_BALANCE = "BLOCKED_INSUFFICIENT_BALANCE"
     BLOCKED_ZERO_REGIME_MULTIPLIER = "BLOCKED_ZERO_REGIME_MULTIPLIER"
+    BLOCKED_NEGATIVE_KELLY = "BLOCKED_NEGATIVE_KELLY"
 
 
 @dataclass
@@ -264,18 +265,27 @@ class RiskManager:
         free_balance_usd: float,
         open_positions: dict,
         regime_multiplier: float,
-        signal_size_pct: float,
+        confidence: float = 0.7,
+        portfolio_weight: float = 1.0,
     ) -> SizingResult:
         """
-        Size a new position through all gate checks.
+        Size a new position through all gate checks using equal dollar risk sizing.
 
         Gates (in order):
         1. Circuit breaker active
         2. Regime multiplier == 0.0 (BEAR regime)
         3. Max positions limit
         4. Insufficient balance
-        5. Concentration check (covered by position % cap)
-        6. Combined multiplier != 0.0
+        5. Combined multiplier == 0.0 (regime × CB)
+        6. Negative Kelly criterion (no edge)
+
+        Sizing formula (equal dollar risk):
+            risk_usd = total_portfolio × risk_per_trade_pct × portfolio_weight
+                       × confidence × effective_multiplier
+            quantity  = risk_usd / stop_distance
+
+        This risks the same dollar amount on every trade regardless of volatility.
+        Stop distance naturally scales quantity: wide stops → smaller position.
 
         Args:
             pair: Trading pair
@@ -284,7 +294,8 @@ class RiskManager:
             free_balance_usd: Free balance in USD (never total wallet)
             open_positions: Dict of open positions {pair: value_usd}
             regime_multiplier: Regime size multiplier (1.0/0.5/0.0)
-            signal_size_pct: Signal size as % of portfolio (e.g., 0.17 for 17%)
+            confidence: Signal confidence in [0, 1] (from strategy, default 0.7)
+            portfolio_weight: Pair weight from PortfolioAllocator (default 1.0)
 
         Returns:
             SizingResult with decision, approved quantity, and stop levels
@@ -293,10 +304,7 @@ class RiskManager:
         if self._circuit_breaker_active:
             return SizingResult(
                 RiskDecision.BLOCKED_CIRCUIT_BREAKER,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
+                0.0, 0.0, 0.0, 0.0,
                 "Circuit breaker active"
             )
 
@@ -304,10 +312,7 @@ class RiskManager:
         if regime_multiplier == 0.0:
             return SizingResult(
                 RiskDecision.BLOCKED_ZERO_REGIME_MULTIPLIER,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
+                0.0, 0.0, 0.0, 0.0,
                 "BEAR regime"
             )
 
@@ -317,10 +322,7 @@ class RiskManager:
         if active_positions >= max_positions:
             return SizingResult(
                 RiskDecision.BLOCKED_MAX_POSITIONS,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
+                0.0, 0.0, 0.0, 0.0,
                 f"Max positions ({max_positions}) reached"
             )
 
@@ -329,14 +331,11 @@ class RiskManager:
         if usable_balance < 100:
             return SizingResult(
                 RiskDecision.BLOCKED_INSUFFICIENT_BALANCE,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
+                0.0, 0.0, 0.0, 0.0,
                 f"Usable balance ${usable_balance:.0f} < $100 minimum"
             )
 
-        # Compute circuit breaker size multiplier
+        # Compute tiered circuit breaker size multiplier
         total_portfolio = free_balance_usd + sum(open_positions.values())
         if self._portfolio_hwm > 0:
             drawdown = max((self._portfolio_hwm - total_portfolio) / self._portfolio_hwm, 0.0)
@@ -349,23 +348,13 @@ class RiskManager:
         if effective_multiplier == 0.0:
             return SizingResult(
                 RiskDecision.BLOCKED_ZERO_REGIME_MULTIPLIER,
-                0.0,
-                0.0,
-                0.0,
-                0.0,
+                0.0, 0.0, 0.0, 0.0,
                 "Combined multiplier is zero"
             )
 
-        # Size the position
-        target_usd = total_portfolio * signal_size_pct * effective_multiplier
-        max_single_pct = self.config.get("max_single_position_pct", 0.40)
-        target_usd = min(target_usd, total_portfolio * max_single_pct)
-        target_usd = min(target_usd, usable_balance)
-
-        quantity = target_usd / current_price
-
-        # Compute stop levels
-        hard_stop = current_price * (1 - self.config.get("hard_stop_pct", 0.08))
+        # Compute stop levels (needed before sizing to get stop_distance)
+        hard_stop_pct = self.config.get("hard_stop_pct", 0.08)
+        hard_stop = current_price * (1 - hard_stop_pct)
         atr_mult = self.config.get("atr_stop_multiplier", 2.0)
         atr_stop = (
             (current_price - atr_mult * current_atr)
@@ -374,13 +363,50 @@ class RiskManager:
         )
         initial_stop = max(hard_stop, atr_stop)
 
+        # Stop distance must be positive; fallback to hard_stop_pct of price
+        stop_distance = current_price - initial_stop
+        if stop_distance <= 0:
+            stop_distance = current_price * hard_stop_pct
+
+        # Gate 6: Half-Kelly criterion — block if no positive edge
+        # p = confidence (win probability proxy), b = avg_win / avg_loss
+        b = self.config.get("expected_win_loss_ratio", 1.5)
+        p = max(min(confidence, 1.0), 0.0)
+        kelly = (p * b - (1.0 - p)) / b  # full Kelly fraction
+        if kelly <= 0:
+            return SizingResult(
+                RiskDecision.BLOCKED_NEGATIVE_KELLY,
+                0.0, 0.0, hard_stop, initial_stop,
+                f"Negative Kelly edge (p={p:.2f}, b={b:.2f}, kelly={kelly:.3f})"
+            )
+
+        # Equal dollar risk sizing
+        # risk_usd = how many dollars we're willing to lose on this trade
+        risk_per_trade_pct = self.config.get("risk_per_trade_pct", 0.02)
+        risk_usd = (
+            total_portfolio
+            * risk_per_trade_pct
+            * portfolio_weight
+            * confidence
+            * effective_multiplier
+        )
+
+        quantity = risk_usd / stop_distance
+        target_usd = quantity * current_price
+
+        # Apply concentration and liquidity caps
+        max_single_pct = self.config.get("max_single_position_pct", 0.40)
+        target_usd = min(target_usd, total_portfolio * max_single_pct, usable_balance)
+        quantity = target_usd / current_price
+
         return SizingResult(
             RiskDecision.APPROVED,
             quantity,
             target_usd,
             hard_stop,
             initial_stop,
-            f"Approved ${target_usd:.0f} USD mult={effective_multiplier:.2f}"
+            f"Approved ${target_usd:.0f} (risk=${risk_usd:.0f}) mult={effective_multiplier:.2f} "
+            f"conf={confidence:.2f} wt={portfolio_weight:.2f}"
         )
 
     def dump_state(self) -> dict:

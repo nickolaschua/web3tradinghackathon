@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from bot.api.client import RoostooClient
 from bot.data.live_fetcher import LiveFetcher
 from bot.execution.order_manager import OrderManager
+from bot.execution.portfolio import PortfolioAllocator
 from bot.execution.regime import RegimeDetector
 from bot.execution.risk import RiskManager
 from bot.monitoring.telegram import TelegramAlerter
@@ -197,6 +198,7 @@ def _run_one_cycle(
     live_fetcher: LiveFetcher,
     risk_manager: RiskManager,
     order_manager: OrderManager,
+    portfolio_allocator: PortfolioAllocator,
     telegram: TelegramAlerter,
     state_manager: StateManager,
     strategy: Any,
@@ -224,7 +226,6 @@ def _run_one_cycle(
     """
     logger = logging.getLogger(__name__)
     warmup_bars = config.get("warmup_bars", 35)
-    base_position_pct = config.get("base_position_pct", 0.25)
 
     # ── Step 1: Poll ticker for all pairs ────────────────────────────────────
     prices: dict[str, float] = {}
@@ -295,6 +296,13 @@ def _run_one_cycle(
             else:
                 logger.warning("Step 4: no live price for %s — epoch candle skipped", fpair)
 
+        # Recompute portfolio weights once per 4H boundary using full price history
+        feature_price_history = {
+            fpair: live_fetcher._to_dataframe(fpair)
+            for fpair in feature_pairs
+        }
+        portfolio_allocator.compute_weights(feature_price_history)
+
         for pair in tradeable_pairs:
             try:
                 df = live_fetcher._to_dataframe(pair)
@@ -348,8 +356,10 @@ def _run_one_cycle(
                         continue
 
                     atr = features_cache[pair].get("atr_proxy", current_price * 0.02)
-                    # Use signal.size if provided; fall back to base_position_pct
-                    size_pct = signal.size if signal.size > 0.0 else base_position_pct
+                    confidence = signal.confidence if signal.confidence > 0.0 else 0.5
+                    portfolio_weight = portfolio_allocator.get_pair_weight(
+                        pair, n_active_pairs=len(feature_pairs)
+                    )
 
                     open_pos = order_manager.get_all_positions()
                     # Build {pair: usd_value} dict as required by size_new_position
@@ -366,7 +376,8 @@ def _run_one_cycle(
                         free_balance_usd=free_usd,
                         open_positions=open_pos_usd,
                         regime_multiplier=regime_mult,
-                        signal_size_pct=size_pct,
+                        confidence=confidence,
+                        portfolio_weight=portfolio_weight,
                     )
 
                     if sizing.decision.name == "APPROVED":
@@ -536,6 +547,7 @@ def main() -> None:
     risk_manager = RiskManager(config=config)
     order_manager = OrderManager(client=client, risk_manager=risk_manager, config=config)
     regime_detector = RegimeDetector(config=config)
+    portfolio_allocator = PortfolioAllocator(config=config)
 
     # Load seed data and initialise LiveFetcher
     seed_dfs = _load_seed_data(config)
@@ -579,6 +591,7 @@ def main() -> None:
                 live_fetcher=live_fetcher,
                 risk_manager=risk_manager,
                 order_manager=order_manager,
+                portfolio_allocator=portfolio_allocator,
                 telegram=telegram,
                 state_manager=state_manager,
                 strategy=strategy,
