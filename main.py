@@ -11,7 +11,6 @@ from typing import Any
 from dotenv import load_dotenv
 
 from bot.api.client import RoostooClient
-from bot.data.features import compute_features
 from bot.data.live_fetcher import LiveFetcher
 from bot.execution.order_manager import OrderManager
 from bot.execution.regime import RegimeDetector
@@ -285,6 +284,17 @@ def _run_one_cycle(
         loop_state["last_signal_epoch"] = current_4h_epoch
         logger.info("Step 4: new 4H candle epoch %d — computing signals", current_4h_epoch)
 
+        # Extend feature buffers with the just-completed 4H candle.
+        # MUST run before the tradeable_pairs loop so get_feature_matrix() sees
+        # the latest bar for cross-asset lag features (eth_return_lag1 etc.).
+        epoch_ts = current_4h_epoch * _CANDLE_4H_SECONDS
+        for fpair in feature_pairs:
+            if fpair in prices:
+                live_fetcher.append_epoch_candle(fpair, prices[fpair], epoch_ts)
+                logger.debug("Step 4: appended epoch candle for %s at epoch %d", fpair, epoch_ts)
+            else:
+                logger.warning("Step 4: no live price for %s — epoch candle skipped", fpair)
+
         for pair in tradeable_pairs:
             try:
                 df = live_fetcher._to_dataframe(pair)
@@ -296,9 +306,12 @@ def _run_one_cycle(
                     )
                     continue
 
-                features_df = compute_features(df).dropna()
+                # Use get_feature_matrix() — computes indicators + cross-asset
+                # lag features (eth_return_lag1/2, sol_return_lag1/2) in the
+                # correct order. Required for XGBoost model inference.
+                features_df = live_fetcher.get_feature_matrix(pair)
                 if features_df.empty:
-                    logger.warning("Step 4: compute_features returned empty DataFrame for %s", pair)
+                    logger.warning("Step 4: get_feature_matrix returned empty DataFrame for %s", pair)
                     continue
 
                 # Update cache — last row as dict; ATR available for step 3 in next cycle

@@ -184,8 +184,10 @@ def run_backtest(
             position = 1
             entry_price = close * (1 + fee_rate)
             entry_bar = idx
+            bar_return -= fee_rate  # entry fee deducted from this bar's return
         elif signal == "SELL" and position == 1:
             exit_price = close * (1 - fee_rate)
+            bar_return -= fee_rate  # exit fee deducted from this bar's return
             pnl_pct = (exit_price - entry_price) / entry_price
             closed_trades.append({
                 "entry_bar": entry_bar,

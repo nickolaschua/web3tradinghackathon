@@ -1,6 +1,45 @@
 # Trading Universe Configuration
+# Coins with 4000+ bars of 4H history on Binance (sufficient for model training)
 tradeable_pairs:
   - BTC/USD
+  - ETH/USD
+  - BNB/USD
+  - SOL/USD
+  - ADA/USD
+  - AVAX/USD
+  - DOGE/USD
+  - LINK/USD
+  - DOT/USD
+  - UNI/USD
+  - XRP/USD
+  - LTC/USD
+  - AAVE/USD
+  - CRV/USD
+  - NEAR/USD
+  - FIL/USD
+  - FET/USD
+  - HBAR/USD
+  - ZEC/USD
+  - ZEN/USD
+  - CAKE/USD
+  - PAXG/USD
+  - XLM/USD
+  - TRX/USD
+  - CFX/USD
+  - SHIB/USD
+  - ICP/USD
+  - APT/USD
+  - ARB/USD
+  - SUI/USD
+  - FLOKI/USD
+  - PEPE/USD
+  - PENDLE/USD
+  - WLD/USD
+  - SEI/USD
+  - BONK/USD
+  - WIF/USD
+  - ENA/USD
+  - TAO/USD
 
 feature_pairs:
   - BTC/USD
@@ -8,7 +47,7 @@ feature_pairs:
   - SOL/USD
 
 candle_interval: "4h"
-max_positions: 1
+max_positions: 5
 
 # Cooldown
 trade_cooldown_seconds: 65

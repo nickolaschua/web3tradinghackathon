@@ -14,7 +14,17 @@ from bot.data.features import compute_features, compute_cross_asset_features
 class LiveFetcher:
     """
     Maintains per-pair OHLCV ring buffers seeded from historical Parquet data
-    and updated via live Roostoo ticker polls.
+    and extended via completed 4H epoch candles.
+
+    IMPORTANT — two distinct data flows:
+    - _buffers: completed 4H candles only (seeded from Parquet, extended via
+      append_epoch_candle() at each 4H boundary). Used for ALL feature computation.
+    - _last_prices: latest live price from ticker polls (updated by poll_ticker()).
+      Used only for current-price lookups (stop checks, position sizing).
+
+    poll_ticker() does NOT write to _buffers. This is intentional: adding 60-second
+    tick "candles" to the feature buffer would cause RSI/MACD/EMA to be computed on
+    minute-scale bars rather than 4H bars, completely invalidating model predictions.
 
     Args:
         seed_dfs: Dict mapping Roostoo pair symbols (e.g. "BTC/USD") to
@@ -30,10 +40,13 @@ class LiveFetcher:
         maxlen: int = 500,
     ) -> None:
         self._maxlen = maxlen
-        # Initialize one deque per pair — O(1) append, auto-drops oldest on overflow
+        # Completed 4H candle buffer — seeded from Parquet, extended at epoch boundaries.
+        # This is the ONLY buffer used for feature computation.
         self._buffers: Dict[str, deque] = {
             pair: deque(maxlen=maxlen) for pair in seed_dfs
         }
+        # Latest live price from ticker polls — separate from feature buffer.
+        self._last_prices: Dict[str, float] = {}
         # Seed each buffer from historical data
         for pair, df in seed_dfs.items():
             self._seed_from_history(pair, df)
@@ -63,7 +76,8 @@ class LiveFetcher:
             )
 
         # Load last maxlen rows only — avoids holding 5000 rows in memory
-        for ts, row in df.tail(self._maxlen).iterrows():
+        tail = df.tail(self._maxlen)
+        for ts, row in tail.iterrows():
             timestamp = (
                 int(ts.timestamp())
                 if hasattr(ts, "timestamp")
@@ -77,6 +91,10 @@ class LiveFetcher:
                 "volume":    float(row["volume"]),
                 "timestamp": timestamp,
             })
+
+        # Seed _last_prices so get_latest_price() works immediately after init
+        if not tail.empty:
+            self._last_prices[symbol] = float(tail.iloc[-1]["close"])
 
     def _to_dataframe(self, pair: str) -> pd.DataFrame:
         """
@@ -97,43 +115,72 @@ class LiveFetcher:
 
     def poll_ticker(self, pair: str, last_price: float) -> None:
         """
-        Append a synthetic candle from a Roostoo ticker poll.
+        Record the latest live price from a Roostoo ticker poll.
 
-        Roostoo /v3/ticker returns only LastPrice — no OHLCV. All four price
-        fields are set to last_price; volume is 0. This is intentional and
-        expected. Do NOT try to synthesize H/L from multiple polls — that adds
-        complexity without improving feature quality for the close-to-close ATR proxy.
+        IMPORTANT: this method does NOT write to _buffers. Writing 60-second
+        tick prices into the feature buffer would corrupt RSI/MACD/EMA — those
+        indicators are trained on 4H bars and must only ever see 4H candles.
+
+        Use append_epoch_candle() at 4H boundaries to extend _buffers.
 
         Args:
-            pair: Roostoo pair symbol (e.g. "BTC/USD"). Created in buffer if absent.
+            pair: Roostoo pair symbol (e.g. "BTC/USD").
             last_price: The LastPrice field from /v3/ticker response.
+        """
+        self._last_prices[pair] = float(last_price)
+
+    def append_epoch_candle(
+        self,
+        pair: str,
+        price: float,
+        timestamp: int | None = None,
+    ) -> None:
+        """
+        Append a completed 4H epoch candle to the feature buffer for `pair`.
+
+        Called by main.py exactly once per 4H boundary, after all feature pairs
+        have been polled. Uses the last known ticker price as a close-price proxy
+        (O=H=L=C=price, volume=0 — same limitation as Roostoo has no OHLCV).
+
+        Args:
+            pair: Roostoo pair symbol (e.g. "BTC/USD").
+            price: Close price for this completed 4H bar (from _last_prices).
+            timestamp: Unix seconds for the candle. Defaults to now if omitted.
         """
         if pair not in self._buffers:
             self._buffers[pair] = deque(maxlen=self._maxlen)
 
+        ts = timestamp if timestamp is not None else int(time.time())
         self._buffers[pair].append({
-            "open":      last_price,
-            "high":      last_price,   # H = L = O = C — Roostoo has no OHLCV
-            "low":       last_price,
-            "close":     last_price,
-            "volume":    0.0,          # Roostoo provides no volume
-            "timestamp": int(time.time()),
+            "open":      price,
+            "high":      price,
+            "low":       price,
+            "close":     price,
+            "volume":    0.0,
+            "timestamp": ts,
         })
 
     def get_latest_price(self, pair: str) -> float:
         """
-        Return the most recent close price for `pair`.
+        Return the most recent live price for `pair`.
 
-        Required by main.py for position sizing and stop-loss calculations.
+        Reads from _last_prices (updated by poll_ticker every 60 s), NOT from
+        the 4H candle buffer. This gives a sub-4H current price for stop-loss
+        and position sizing without polluting the feature buffer.
+
+        Falls back to the last candle close if poll_ticker has not yet been
+        called (e.g. immediately after seeding from history).
 
         Raises:
-            KeyError: If pair has no buffer.
-            ValueError: If buffer is empty (not yet seeded or polled).
+            KeyError: If pair is unknown (never seeded or polled).
         """
-        if pair not in self._buffers:
-            raise KeyError(f"No buffer for pair '{pair}'. Known pairs: {list(self._buffers)}")
-        if not self._buffers[pair]:
-            raise ValueError(f"Buffer for '{pair}' is empty — not yet seeded or polled.")
+        if pair in self._last_prices:
+            return self._last_prices[pair]
+        # Fallback: use last historical close (seeded in _seed_from_history)
+        if pair not in self._buffers or not self._buffers[pair]:
+            raise KeyError(
+                f"No price data for pair '{pair}'. Known pairs: {list(self._buffers)}"
+            )
         return float(self._buffers[pair][-1]["close"])
 
     def get_candle_boundaries(self) -> Dict[str, int]:
