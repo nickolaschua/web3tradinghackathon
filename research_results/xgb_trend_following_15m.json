@@ -1,0 +1,3636 @@
+{
+  "strategy": "trend_following",
+  "total_return": -0.30010728235271367,
+  "sharpe": -2.1021669137200307,
+  "sortino": -0.7683960340074786,
+  "calmar": -0.9415774595385914,
+  "max_drawdown": -0.31872819311092854,
+  "composite_score": -1.220481725580578,
+  "num_trades": 517,
+  "win_rate": 0.3617021276595745,
+  "avg_win": 0.008869530177990168,
+  "avg_loss": -0.006138347950138483,
+  "daily_coverage_pct": 0.1379746835443038,
+  "avg_utilization": 0.033185537309629205,
+  "trades": [
+    {
+      "ts": "2024-01-01 04:45:00+00:00",
+      "entry_price": 42344.49219,
+      "exit_price": 42399.99,
+      "pnl_pct": 0.0013106264151422986,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-01 14:15:00+00:00",
+      "entry_price": 42726.834149999995,
+      "exit_price": 42621.09,
+      "pnl_pct": -0.0024748884887835446,
+      "exit_reason": "ATR TRAILING STOP: price=42621.0900 <= stop=42646.7803"
+    },
+    {
+      "ts": "2024-01-01 21:30:00+00:00",
+      "entry_price": 42663.71108999999,
+      "exit_price": 43483.76,
+      "pnl_pct": 0.01922122780810375,
+      "exit_reason": "ATR TRAILING STOP: price=43483.7600 <= stop=43573.8994"
+    },
+    {
+      "ts": "2024-01-02 11:00:00+00:00",
+      "entry_price": 43527.24376,
+      "exit_price": 45560.0,
+      "pnl_pct": 0.0467007801184975,
+      "exit_reason": "ATR TRAILING STOP: price=45560.0000 <= stop=45577.5560"
+    },
+    {
+      "ts": "2024-01-02 11:30:00+00:00",
+      "entry_price": 45605.56,
+      "exit_price": 45245.99,
+      "pnl_pct": -0.00788434568065823,
+      "exit_reason": "ATR TRAILING STOP: price=45245.9900 <= stop=45310.2253"
+    },
+    {
+      "ts": "2024-01-02 14:45:00+00:00",
+      "entry_price": 45291.235989999994,
+      "exit_price": 45258.73,
+      "pnl_pct": -0.0007177103757373208,
+      "exit_reason": "ATR TRAILING STOP: price=45258.7300 <= stop=45464.0406"
+    },
+    {
+      "ts": "2024-01-02 17:30:00+00:00",
+      "entry_price": 45303.98873,
+      "exit_price": 45069.27,
+      "pnl_pct": -0.005180972726239695,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-03 05:45:00+00:00",
+      "entry_price": 45333.30801999999,
+      "exit_price": 45172.13,
+      "pnl_pct": -0.003555399485272157,
+      "exit_reason": "ATR TRAILING STOP: price=45172.1300 <= stop=45175.3937"
+    },
+    {
+      "ts": "2024-01-03 07:30:00+00:00",
+      "entry_price": 45217.30212999999,
+      "exit_price": 45150.27,
+      "pnl_pct": -0.0014824442601036785,
+      "exit_reason": "ATR TRAILING STOP: price=45150.2700 <= stop=45231.9837"
+    },
+    {
+      "ts": "2024-01-03 07:45:00+00:00",
+      "entry_price": 45195.420269999995,
+      "exit_price": 45011.77,
+      "pnl_pct": -0.0040634707875900076,
+      "exit_reason": "ATR TRAILING STOP: price=45011.7700 <= stop=45027.7570"
+    },
+    {
+      "ts": "2024-01-03 10:30:00+00:00",
+      "entry_price": 45056.781769999994,
+      "exit_price": 45070.27,
+      "pnl_pct": 0.0002993607059832995,
+      "exit_reason": "ATR TRAILING STOP: price=45070.2700 <= stop=45158.6069"
+    },
+    {
+      "ts": "2024-01-03 11:00:00+00:00",
+      "entry_price": 45115.34026999999,
+      "exit_price": 44736.81,
+      "pnl_pct": -0.008390278511358233,
+      "exit_reason": "ATR TRAILING STOP: price=44736.8100 <= stop=44859.2732"
+    },
+    {
+      "ts": "2024-01-03 11:15:00+00:00",
+      "entry_price": 44781.54680999999,
+      "exit_price": 44358.36,
+      "pnl_pct": -0.009450026632521138,
+      "exit_reason": "ATR TRAILING STOP: price=44358.3600 <= stop=44436.0966"
+    },
+    {
+      "ts": "2024-01-03 11:45:00+00:00",
+      "entry_price": 44402.71836,
+      "exit_price": 43702.88,
+      "pnl_pct": -0.015761160258837847,
+      "exit_reason": "ATR TRAILING STOP: price=43702.8800 <= stop=44058.1533"
+    },
+    {
+      "ts": "2024-01-04 07:30:00+00:00",
+      "entry_price": 43145.902799999996,
+      "exit_price": 42989.58,
+      "pnl_pct": -0.003623120385836369,
+      "exit_reason": "ATR TRAILING STOP: price=42989.5800 <= stop=43014.9385"
+    },
+    {
+      "ts": "2024-01-04 07:45:00+00:00",
+      "entry_price": 43032.569579999996,
+      "exit_price": 42763.08,
+      "pnl_pct": -0.006262456149614713,
+      "exit_reason": "ATR TRAILING STOP: price=42763.0800 <= stop=42813.7084"
+    },
+    {
+      "ts": "2024-01-04 16:00:00+00:00",
+      "entry_price": 42805.84308,
+      "exit_price": 43928.01,
+      "pnl_pct": 0.0262152743470741,
+      "exit_reason": "ATR TRAILING STOP: price=43928.0100 <= stop=43929.4661"
+    },
+    {
+      "ts": "2024-01-04 17:30:00+00:00",
+      "entry_price": 43971.93801,
+      "exit_price": 43830.29,
+      "pnl_pct": -0.003221327428592842,
+      "exit_reason": "ATR TRAILING STOP: price=43830.2900 <= stop=43843.9560"
+    },
+    {
+      "ts": "2024-01-04 19:45:00+00:00",
+      "entry_price": 43874.12029,
+      "exit_price": 43956.48,
+      "pnl_pct": 0.0018771820256593518,
+      "exit_reason": "ATR TRAILING STOP: price=43956.4800 <= stop=44057.2257"
+    },
+    {
+      "ts": "2024-01-04 23:30:00+00:00",
+      "entry_price": 44000.43648,
+      "exit_price": 44155.21,
+      "pnl_pct": 0.003517545105952605,
+      "exit_reason": "ATR TRAILING STOP: price=44155.2100 <= stop=44195.2812"
+    },
+    {
+      "ts": "2024-01-05 01:15:00+00:00",
+      "entry_price": 44199.365209999996,
+      "exit_price": 43897.89,
+      "pnl_pct": -0.0068208040673803354,
+      "exit_reason": "ATR TRAILING STOP: price=43897.8900 <= stop=43909.9168"
+    },
+    {
+      "ts": "2024-01-05 01:45:00+00:00",
+      "entry_price": 43941.78788999999,
+      "exit_price": 43376.0,
+      "pnl_pct": -0.012875850464171735,
+      "exit_reason": "ATR TRAILING STOP: price=43376.0000 <= stop=43628.9060"
+    },
+    {
+      "ts": "2024-01-05 03:00:00+00:00",
+      "entry_price": 43419.376,
+      "exit_price": 43609.25,
+      "pnl_pct": 0.004373024614632957,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-05 10:45:00+00:00",
+      "entry_price": 44051.847839999995,
+      "exit_price": 43628.18,
+      "pnl_pct": -0.009617481689730513,
+      "exit_reason": "ATR TRAILING STOP: price=43628.1800 <= stop=43816.1355"
+    },
+    {
+      "ts": "2024-01-05 14:30:00+00:00",
+      "entry_price": 43671.80817999999,
+      "exit_price": 43617.83,
+      "pnl_pct": -0.0012359959948878621,
+      "exit_reason": "ATR TRAILING STOP: price=43617.8300 <= stop=43697.9139"
+    },
+    {
+      "ts": "2024-01-05 15:30:00+00:00",
+      "entry_price": 43661.44783,
+      "exit_price": 43532.97,
+      "pnl_pct": -0.0029425920665809534,
+      "exit_reason": "ATR TRAILING STOP: price=43532.9700 <= stop=43542.6728"
+    },
+    {
+      "ts": "2024-01-05 16:45:00+00:00",
+      "entry_price": 43576.502969999994,
+      "exit_price": 43225.99,
+      "pnl_pct": -0.008043623193933319,
+      "exit_reason": "ATR TRAILING STOP: price=43225.9900 <= stop=43254.4796"
+    },
+    {
+      "ts": "2024-01-06 02:00:00+00:00",
+      "entry_price": 43978.404469999994,
+      "exit_price": 43889.33,
+      "pnl_pct": -0.0020254138610407003,
+      "exit_reason": "ATR TRAILING STOP: price=43889.3300 <= stop=43900.7940"
+    },
+    {
+      "ts": "2024-01-06 04:45:00+00:00",
+      "entry_price": 43933.21933,
+      "exit_price": 43850.0,
+      "pnl_pct": -0.0018942233523773023,
+      "exit_reason": "ATR TRAILING STOP: price=43850.0000 <= stop=43883.5368"
+    },
+    {
+      "ts": "2024-01-06 05:15:00+00:00",
+      "entry_price": 43893.85,
+      "exit_price": 43673.99,
+      "pnl_pct": -0.005008902158275034,
+      "exit_reason": "ATR TRAILING STOP: price=43673.9900 <= stop=43744.8986"
+    },
+    {
+      "ts": "2024-01-06 06:15:00+00:00",
+      "entry_price": 43717.663989999994,
+      "exit_price": 43582.29,
+      "pnl_pct": -0.0030965513168992355,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-06 19:15:00+00:00",
+      "entry_price": 43846.53273,
+      "exit_price": 43881.73,
+      "pnl_pct": 0.0008027378177595802,
+      "exit_reason": "ATR TRAILING STOP: price=43881.7300 <= stop=43898.4329"
+    },
+    {
+      "ts": "2024-01-07 01:45:00+00:00",
+      "entry_price": 43925.61173,
+      "exit_price": 43967.72,
+      "pnl_pct": 0.0009586268316269222,
+      "exit_reason": "ATR TRAILING STOP: price=43967.7200 <= stop=44050.7142"
+    },
+    {
+      "ts": "2024-01-07 05:45:00+00:00",
+      "entry_price": 44011.687719999994,
+      "exit_price": 43885.47,
+      "pnl_pct": -0.002867822765693142,
+      "exit_reason": "ATR TRAILING STOP: price=43885.4700 <= stop=43894.6904"
+    },
+    {
+      "ts": "2024-01-07 09:00:00+00:00",
+      "entry_price": 43929.355469999995,
+      "exit_price": 43988.01,
+      "pnl_pct": 0.0013352012423688555,
+      "exit_reason": "ATR TRAILING STOP: price=43988.0100 <= stop=44010.2510"
+    },
+    {
+      "ts": "2024-01-07 15:15:00+00:00",
+      "entry_price": 44031.998009999996,
+      "exit_price": 44174.46,
+      "pnl_pct": 0.0032354196138828233,
+      "exit_reason": "ATR TRAILING STOP: price=44174.4600 <= stop=44266.2554"
+    },
+    {
+      "ts": "2024-01-07 16:45:00+00:00",
+      "entry_price": 44218.634459999994,
+      "exit_price": 43922.0,
+      "pnl_pct": -0.006708358673272198,
+      "exit_reason": "ATR TRAILING STOP: price=43922.0000 <= stop=44015.2988"
+    },
+    {
+      "ts": "2024-01-07 22:15:00+00:00",
+      "entry_price": 43965.922,
+      "exit_price": 43977.0,
+      "pnl_pct": 0.0002519678763930241,
+      "exit_reason": "ATR TRAILING STOP: price=43977.0000 <= stop=44123.3937"
+    },
+    {
+      "ts": "2024-01-07 23:15:00+00:00",
+      "entry_price": 44020.97699999999,
+      "exit_price": 43756.7,
+      "pnl_pct": -0.006003433317711114,
+      "exit_reason": "ATR TRAILING STOP: price=43756.7000 <= stop=43844.0896"
+    },
+    {
+      "ts": "2024-01-08 12:15:00+00:00",
+      "entry_price": 44044.05005,
+      "exit_price": 44518.16,
+      "pnl_pct": 0.010764449442360161,
+      "exit_reason": "ATR TRAILING STOP: price=44518.1600 <= stop=44811.1443"
+    },
+    {
+      "ts": "2024-01-09 00:30:00+00:00",
+      "entry_price": 44562.678159999996,
+      "exit_price": 46670.0,
+      "pnl_pct": 0.047288940589113024,
+      "exit_reason": "ATR TRAILING STOP: price=46670.0000 <= stop=46808.4192"
+    },
+    {
+      "ts": "2024-01-09 01:30:00+00:00",
+      "entry_price": 46716.67,
+      "exit_price": 46347.45,
+      "pnl_pct": -0.007903388661905935,
+      "exit_reason": "ATR TRAILING STOP: price=46347.4500 <= stop=46392.8355"
+    },
+    {
+      "ts": "2024-01-09 08:30:00+00:00",
+      "entry_price": 46393.79744999999,
+      "exit_price": 46678.0,
+      "pnl_pct": 0.006125873837042609,
+      "exit_reason": "ATR TRAILING STOP: price=46678.0000 <= stop=46712.3514"
+    },
+    {
+      "ts": "2024-01-09 10:45:00+00:00",
+      "entry_price": 46724.67799999999,
+      "exit_price": 46441.89,
+      "pnl_pct": -0.006052219343277084,
+      "exit_reason": "ATR TRAILING STOP: price=46441.8900 <= stop=46489.8088"
+    },
+    {
+      "ts": "2024-01-09 20:45:00+00:00",
+      "entry_price": 46688.22158,
+      "exit_price": 46642.54,
+      "pnl_pct": -0.0009784390678004651,
+      "exit_reason": "ATR TRAILING STOP: price=46642.5400 <= stop=46701.3761"
+    },
+    {
+      "ts": "2024-01-09 21:15:00+00:00",
+      "entry_price": 46689.182539999994,
+      "exit_price": 45887.67,
+      "pnl_pct": -0.017166985935410557,
+      "exit_reason": "ATR TRAILING STOP: price=45887.6700 <= stop=47749.3984"
+    },
+    {
+      "ts": "2024-01-09 22:30:00+00:00",
+      "entry_price": 45933.557669999995,
+      "exit_price": 46015.43,
+      "pnl_pct": 0.0017824077679373363,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-10 20:00:00+00:00",
+      "entry_price": 46311.82555999999,
+      "exit_price": 45548.56,
+      "pnl_pct": -0.016481007836996887,
+      "exit_reason": "ATR TRAILING STOP: price=45548.5600 <= stop=45945.9514"
+    },
+    {
+      "ts": "2024-01-11 00:15:00+00:00",
+      "entry_price": 45594.10855999999,
+      "exit_price": 46376.99,
+      "pnl_pct": 0.017170671052155004,
+      "exit_reason": "ATR TRAILING STOP: price=46376.9900 <= stop=46427.7487"
+    },
+    {
+      "ts": "2024-01-11 05:00:00+00:00",
+      "entry_price": 46423.366989999995,
+      "exit_price": 46280.12,
+      "pnl_pct": -0.0030856656741603647,
+      "exit_reason": "ATR TRAILING STOP: price=46280.1200 <= stop=46289.5035"
+    },
+    {
+      "ts": "2024-01-11 05:30:00+00:00",
+      "entry_price": 46326.40012,
+      "exit_price": 46026.46,
+      "pnl_pct": -0.006474496598549849,
+      "exit_reason": "ATR TRAILING STOP: price=46026.4600 <= stop=46142.2823"
+    },
+    {
+      "ts": "2024-01-11 06:00:00+00:00",
+      "entry_price": 46072.48645999999,
+      "exit_price": 45715.99,
+      "pnl_pct": -0.007737729985758509,
+      "exit_reason": "ATR TRAILING STOP: price=45715.9900 <= stop=45850.3769"
+    },
+    {
+      "ts": "2024-01-11 07:00:00+00:00",
+      "entry_price": 45761.705989999995,
+      "exit_price": 46100.99,
+      "pnl_pct": 0.0074141468867909895,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-11 13:00:00+00:00",
+      "entry_price": 46906.769909999995,
+      "exit_price": 47171.76,
+      "pnl_pct": 0.0056492930659783865,
+      "exit_reason": "ATR TRAILING STOP: price=47171.7600 <= stop=47173.9045"
+    },
+    {
+      "ts": "2024-01-11 15:00:00+00:00",
+      "entry_price": 47218.93176,
+      "exit_price": 48038.63,
+      "pnl_pct": 0.017359525288845667,
+      "exit_reason": "ATR TRAILING STOP: price=48038.6300 <= stop=48065.7378"
+    },
+    {
+      "ts": "2024-01-11 15:30:00+00:00",
+      "entry_price": 48086.66862999999,
+      "exit_price": 47218.69,
+      "pnl_pct": -0.018050296573434946,
+      "exit_reason": "ATR TRAILING STOP: price=47218.6900 <= stop=47433.1807"
+    },
+    {
+      "ts": "2024-01-11 16:00:00+00:00",
+      "entry_price": 47265.90869,
+      "exit_price": 46088.0,
+      "pnl_pct": -0.024920893782566917,
+      "exit_reason": "ATR TRAILING STOP: price=46088.0000 <= stop=46465.5613"
+    },
+    {
+      "ts": "2024-01-11 18:15:00+00:00",
+      "entry_price": 46134.087999999996,
+      "exit_price": 46452.17,
+      "pnl_pct": 0.00689472825386734,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-13 09:00:00+00:00",
+      "entry_price": 43291.01776999999,
+      "exit_price": 43038.17,
+      "pnl_pct": -0.0058406520110786736,
+      "exit_reason": "ATR TRAILING STOP: price=43038.1700 <= stop=43076.8796"
+    },
+    {
+      "ts": "2024-01-13 10:00:00+00:00",
+      "entry_price": 43081.20816999999,
+      "exit_price": 42700.0,
+      "pnl_pct": -0.008848595157678255,
+      "exit_reason": "ATR TRAILING STOP: price=42700.0000 <= stop=42816.3432"
+    },
+    {
+      "ts": "2024-01-13 12:30:00+00:00",
+      "entry_price": 42742.7,
+      "exit_price": 42704.52,
+      "pnl_pct": -0.0008932519471161226,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-13 19:45:00+00:00",
+      "entry_price": 43005.83287,
+      "exit_price": 42786.25,
+      "pnl_pct": -0.005105885768187853,
+      "exit_reason": "ATR TRAILING STOP: price=42786.2500 <= stop=42804.9602"
+    },
+    {
+      "ts": "2024-01-14 00:15:00+00:00",
+      "entry_price": 42866.82399999999,
+      "exit_price": 42738.75,
+      "pnl_pct": -0.002987718427658491,
+      "exit_reason": "ATR TRAILING STOP: price=42738.7500 <= stop=42801.0907"
+    },
+    {
+      "ts": "2024-01-14 11:00:00+00:00",
+      "entry_price": 42934.331439999994,
+      "exit_price": 42797.25,
+      "pnl_pct": -0.003192816457187961,
+      "exit_reason": "ATR TRAILING STOP: price=42797.2500 <= stop=42862.7450"
+    },
+    {
+      "ts": "2024-01-14 18:15:00+00:00",
+      "entry_price": 42840.047249999996,
+      "exit_price": 42889.48,
+      "pnl_pct": 0.0011538911176155909,
+      "exit_reason": "ATR TRAILING STOP: price=42889.4800 <= stop=42916.4184"
+    },
+    {
+      "ts": "2024-01-14 19:15:00+00:00",
+      "entry_price": 42910.867999999995,
+      "exit_price": 42750.01,
+      "pnl_pct": -0.003748654070572353,
+      "exit_reason": "ATR TRAILING STOP: price=42750.0100 <= stop=42794.8948"
+    },
+    {
+      "ts": "2024-01-14 20:45:00+00:00",
+      "entry_price": 42792.76001,
+      "exit_price": 42507.92,
+      "pnl_pct": -0.006656266385562353,
+      "exit_reason": "ATR TRAILING STOP: price=42507.9200 <= stop=42636.3347"
+    },
+    {
+      "ts": "2024-01-15 10:15:00+00:00",
+      "entry_price": 42686.42378,
+      "exit_price": 42620.0,
+      "pnl_pct": -0.0015560867863360127,
+      "exit_reason": "ATR TRAILING STOP: price=42620.0000 <= stop=42637.7933"
+    },
+    {
+      "ts": "2024-01-15 14:00:00+00:00",
+      "entry_price": 42662.619999999995,
+      "exit_price": 42626.46,
+      "pnl_pct": -0.0008475803877023076,
+      "exit_reason": "ATR TRAILING STOP: price=42626.4600 <= stop=42704.5515"
+    },
+    {
+      "ts": "2024-01-15 14:15:00+00:00",
+      "entry_price": 42669.08645999999,
+      "exit_price": 42440.67,
+      "pnl_pct": -0.005353207179959698,
+      "exit_reason": "ATR TRAILING STOP: price=42440.6700 <= stop=42473.7758"
+    },
+    {
+      "ts": "2024-01-15 14:45:00+00:00",
+      "entry_price": 42483.110669999995,
+      "exit_price": 42199.0,
+      "pnl_pct": -0.00668761457245698,
+      "exit_reason": "ATR TRAILING STOP: price=42199.0000 <= stop=42223.8552"
+    },
+    {
+      "ts": "2024-01-15 16:15:00+00:00",
+      "entry_price": 42241.19899999999,
+      "exit_price": 42429.99,
+      "pnl_pct": 0.004469357036953538,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-15 22:00:00+00:00",
+      "entry_price": 43058.83581999999,
+      "exit_price": 42486.0,
+      "pnl_pct": -0.013303560328352441,
+      "exit_reason": "ATR TRAILING STOP: price=42486.0000 <= stop=42677.1820"
+    },
+    {
+      "ts": "2024-01-16 01:00:00+00:00",
+      "entry_price": 42528.486,
+      "exit_price": 42676.02,
+      "pnl_pct": 0.0034690630651653025,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-16 06:00:00+00:00",
+      "entry_price": 42932.04916,
+      "exit_price": 42737.59,
+      "pnl_pct": -0.004529463741068859,
+      "exit_reason": "ATR TRAILING STOP: price=42737.5900 <= stop=42752.5533"
+    },
+    {
+      "ts": "2024-01-16 10:15:00+00:00",
+      "entry_price": 42780.32758999999,
+      "exit_price": 42868.0,
+      "pnl_pct": 0.0020493627547747,
+      "exit_reason": "ATR TRAILING STOP: price=42868.0000 <= stop=42870.1570"
+    },
+    {
+      "ts": "2024-01-16 13:45:00+00:00",
+      "entry_price": 42910.867999999995,
+      "exit_price": 42805.83,
+      "pnl_pct": -0.002447818114515726,
+      "exit_reason": "ATR TRAILING STOP: price=42805.8300 <= stop=42975.1568"
+    },
+    {
+      "ts": "2024-01-16 14:30:00+00:00",
+      "entry_price": 42848.63583,
+      "exit_price": 42096.0,
+      "pnl_pct": -0.017564989302951146,
+      "exit_reason": "ATR TRAILING STOP: price=42096.0000 <= stop=42640.9220"
+    },
+    {
+      "ts": "2024-01-16 22:45:00+00:00",
+      "entry_price": 42138.096,
+      "exit_price": 43206.0,
+      "pnl_pct": 0.025342958068157666,
+      "exit_reason": "ATR TRAILING STOP: price=43206.0000 <= stop=43243.2883"
+    },
+    {
+      "ts": "2024-01-17 01:45:00+00:00",
+      "entry_price": 43249.206,
+      "exit_price": 42970.0,
+      "pnl_pct": -0.006455748574898655,
+      "exit_reason": "ATR TRAILING STOP: price=42970.0000 <= stop=43095.6554"
+    },
+    {
+      "ts": "2024-01-17 03:00:00+00:00",
+      "entry_price": 43012.969999999994,
+      "exit_price": 42994.83,
+      "pnl_pct": -0.0004217332585960036,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-18 01:00:00+00:00",
+      "entry_price": 42608.59602999999,
+      "exit_price": 42600.0,
+      "pnl_pct": -0.00020174403291629264,
+      "exit_reason": "ATR TRAILING STOP: price=42600.0000 <= stop=42630.2017"
+    },
+    {
+      "ts": "2024-01-18 06:30:00+00:00",
+      "entry_price": 42642.6,
+      "exit_price": 42789.05,
+      "pnl_pct": 0.0034343590681619874,
+      "exit_reason": "ATR TRAILING STOP: price=42789.0500 <= stop=42789.7022"
+    },
+    {
+      "ts": "2024-01-18 08:45:00+00:00",
+      "entry_price": 42923.15026999999,
+      "exit_price": 42742.0,
+      "pnl_pct": -0.004220339580401237,
+      "exit_reason": "ATR TRAILING STOP: price=42742.0000 <= stop=42811.2205"
+    },
+    {
+      "ts": "2024-01-18 10:30:00+00:00",
+      "entry_price": 42784.742,
+      "exit_price": 42580.3,
+      "pnl_pct": -0.004778385715169101,
+      "exit_reason": "ATR TRAILING STOP: price=42580.3000 <= stop=42679.8836"
+    },
+    {
+      "ts": "2024-01-18 10:45:00+00:00",
+      "entry_price": 42622.8803,
+      "exit_price": 42447.66,
+      "pnl_pct": -0.004110944609250013,
+      "exit_reason": "ATR TRAILING STOP: price=42447.6600 <= stop=42461.7497"
+    },
+    {
+      "ts": "2024-01-18 11:45:00+00:00",
+      "entry_price": 42490.10766,
+      "exit_price": 42544.59,
+      "pnl_pct": 0.0012822358661916137,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-19 12:30:00+00:00",
+      "entry_price": 41241.330129999995,
+      "exit_price": 41310.97,
+      "pnl_pct": 0.001688594179200552,
+      "exit_reason": "ATR TRAILING STOP: price=41310.9700 <= stop=41321.4619"
+    },
+    {
+      "ts": "2024-01-19 14:15:00+00:00",
+      "entry_price": 41352.28097,
+      "exit_price": 41057.6,
+      "pnl_pct": -0.007126111621600381,
+      "exit_reason": "ATR TRAILING STOP: price=41057.6000 <= stop=41224.3918"
+    },
+    {
+      "ts": "2024-01-19 15:15:00+00:00",
+      "entry_price": 41098.65759999999,
+      "exit_price": 40826.02,
+      "pnl_pct": -0.006633734917901421,
+      "exit_reason": "ATR TRAILING STOP: price=40826.0200 <= stop=40867.7720"
+    },
+    {
+      "ts": "2024-01-19 20:45:00+00:00",
+      "entry_price": 41856.08426999999,
+      "exit_price": 41620.0,
+      "pnl_pct": -0.0056403811803581345,
+      "exit_reason": "ATR TRAILING STOP: price=41620.0000 <= stop=41692.5603"
+    },
+    {
+      "ts": "2024-01-20 07:45:00+00:00",
+      "entry_price": 41661.619999999995,
+      "exit_price": 41650.95,
+      "pnl_pct": -0.0002561110201667207,
+      "exit_reason": "ATR TRAILING STOP: price=41650.9500 <= stop=41663.7754"
+    },
+    {
+      "ts": "2024-01-20 08:30:00+00:00",
+      "entry_price": 41692.60094999999,
+      "exit_price": 41550.0,
+      "pnl_pct": -0.0034202939310744238,
+      "exit_reason": "ATR TRAILING STOP: price=41550.0000 <= stop=41583.3295"
+    },
+    {
+      "ts": "2024-01-20 11:00:00+00:00",
+      "entry_price": 41557.70619,
+      "exit_price": 41527.37,
+      "pnl_pct": -0.0007299774886828164,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-20 22:15:00+00:00",
+      "entry_price": 41879.837999999996,
+      "exit_price": 41717.9,
+      "pnl_pct": -0.0038667293794210633,
+      "exit_reason": "ATR TRAILING STOP: price=41717.9000 <= stop=41724.4799"
+    },
+    {
+      "ts": "2024-01-21 00:30:00+00:00",
+      "entry_price": 41853.09127999999,
+      "exit_price": 41641.52,
+      "pnl_pct": -0.0050550932686087725,
+      "exit_reason": "ATR TRAILING STOP: price=41641.5200 <= stop=41693.8806"
+    },
+    {
+      "ts": "2024-01-21 05:15:00+00:00",
+      "entry_price": 41683.161519999994,
+      "exit_price": 41656.1,
+      "pnl_pct": -0.0006492194692816491,
+      "exit_reason": "ATR TRAILING STOP: price=41656.1000 <= stop=41658.5870"
+    },
+    {
+      "ts": "2024-01-21 15:15:00+00:00",
+      "entry_price": 41766.394669999994,
+      "exit_price": 41736.53,
+      "pnl_pct": -0.000715040650167648,
+      "exit_reason": "ATR TRAILING STOP: price=41736.5300 <= stop=41767.7196"
+    },
+    {
+      "ts": "2024-01-21 15:30:00+00:00",
+      "entry_price": 41778.26652999999,
+      "exit_price": 41626.36,
+      "pnl_pct": -0.003636018021257833,
+      "exit_reason": "ATR TRAILING STOP: price=41626.3600 <= stop=41631.4343"
+    },
+    {
+      "ts": "2024-01-21 17:30:00+00:00",
+      "entry_price": 41697.936279999994,
+      "exit_price": 41652.68,
+      "pnl_pct": -0.001085336206955184,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-23 07:00:00+00:00",
+      "entry_price": 40061.58155999999,
+      "exit_price": 39938.85,
+      "pnl_pct": -0.0030635725106403643,
+      "exit_reason": "ATR TRAILING STOP: price=39938.8500 <= stop=39952.8637"
+    },
+    {
+      "ts": "2024-01-23 07:15:00+00:00",
+      "entry_price": 39978.78885,
+      "exit_price": 39803.08,
+      "pnl_pct": -0.004395051852602469,
+      "exit_reason": "ATR TRAILING STOP: price=39803.0800 <= stop=39805.9008"
+    },
+    {
+      "ts": "2024-01-23 08:30:00+00:00",
+      "entry_price": 39842.88308,
+      "exit_price": 39530.82,
+      "pnl_pct": -0.00783234183564007,
+      "exit_reason": "ATR TRAILING STOP: price=39530.8200 <= stop=39659.6205"
+    },
+    {
+      "ts": "2024-01-23 18:45:00+00:00",
+      "entry_price": 39480.55110999999,
+      "exit_price": 39092.54,
+      "pnl_pct": -0.009827905110010311,
+      "exit_reason": "ATR TRAILING STOP: price=39092.5400 <= stop=39092.9275"
+    },
+    {
+      "ts": "2024-01-24 01:30:00+00:00",
+      "entry_price": 39131.63254,
+      "exit_price": 39875.76,
+      "pnl_pct": 0.01901600857667676,
+      "exit_reason": "ATR TRAILING STOP: price=39875.7600 <= stop=39917.3642"
+    },
+    {
+      "ts": "2024-01-24 08:15:00+00:00",
+      "entry_price": 39915.63576,
+      "exit_price": 39948.41,
+      "pnl_pct": 0.0008210877611236651,
+      "exit_reason": "ATR TRAILING STOP: price=39948.4100 <= stop=39953.0815"
+    },
+    {
+      "ts": "2024-01-24 12:45:00+00:00",
+      "entry_price": 39988.35841,
+      "exit_price": 40029.66,
+      "pnl_pct": 0.0010328403475966235,
+      "exit_reason": "ATR TRAILING STOP: price=40029.6600 <= stop=40106.9642"
+    },
+    {
+      "ts": "2024-01-24 18:00:00+00:00",
+      "entry_price": 40069.68966,
+      "exit_price": 39886.45,
+      "pnl_pct": -0.004573024187480051,
+      "exit_reason": "ATR TRAILING STOP: price=39886.4500 <= stop=39959.9471"
+    },
+    {
+      "ts": "2024-01-24 20:15:00+00:00",
+      "entry_price": 39805.776009999994,
+      "exit_price": 39869.45,
+      "pnl_pct": 0.0015996168491730146,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-25 05:00:00+00:00",
+      "entry_price": 40128.53844999999,
+      "exit_price": 39836.15,
+      "pnl_pct": -0.007286297016880048,
+      "exit_reason": "ATR TRAILING STOP: price=39836.1500 <= stop=39918.6807"
+    },
+    {
+      "ts": "2024-01-25 12:00:00+00:00",
+      "entry_price": 39875.98615,
+      "exit_price": 40132.72,
+      "pnl_pct": 0.0064383072316821985,
+      "exit_reason": "ATR TRAILING STOP: price=40132.7200 <= stop=40164.0850"
+    },
+    {
+      "ts": "2024-01-25 12:15:00+00:00",
+      "entry_price": 40172.852719999995,
+      "exit_price": 39999.99,
+      "pnl_pct": -0.004302973483233315,
+      "exit_reason": "ATR TRAILING STOP: price=39999.9900 <= stop=40014.9473"
+    },
+    {
+      "ts": "2024-01-25 12:45:00+00:00",
+      "entry_price": 40039.989989999995,
+      "exit_price": 39859.81,
+      "pnl_pct": -0.004500000875249892,
+      "exit_reason": "ATR TRAILING STOP: price=39859.8100 <= stop=39878.3576"
+    },
+    {
+      "ts": "2024-01-25 15:15:00+00:00",
+      "entry_price": 39899.66980999999,
+      "exit_price": 39863.36,
+      "pnl_pct": -0.00091002783163111,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-26 06:45:00+00:00",
+      "entry_price": 39938.678779999995,
+      "exit_price": 40002.83,
+      "pnl_pct": 0.0016062429193860034,
+      "exit_reason": "ATR TRAILING STOP: price=40002.8300 <= stop=40050.2879"
+    },
+    {
+      "ts": "2024-01-26 09:45:00+00:00",
+      "entry_price": 40042.83283,
+      "exit_price": 40079.82,
+      "pnl_pct": 0.0009236901434278553,
+      "exit_reason": "ATR TRAILING STOP: price=40079.8200 <= stop=40173.4127"
+    },
+    {
+      "ts": "2024-01-26 13:45:00+00:00",
+      "entry_price": 40164.26413999999,
+      "exit_price": 41021.65,
+      "pnl_pct": 0.021346982905286947,
+      "exit_reason": "ATR TRAILING STOP: price=41021.6500 <= stop=41115.9708"
+    },
+    {
+      "ts": "2024-01-26 20:30:00+00:00",
+      "entry_price": 41062.67165,
+      "exit_price": 41979.32,
+      "pnl_pct": 0.022323154173043272,
+      "exit_reason": "ATR TRAILING STOP: price=41979.3200 <= stop=41987.0978"
+    },
+    {
+      "ts": "2024-01-27 00:15:00+00:00",
+      "entry_price": 42021.29932,
+      "exit_price": 41784.02,
+      "pnl_pct": -0.005646644055270052,
+      "exit_reason": "ATR TRAILING STOP: price=41784.0200 <= stop=41791.1945"
+    },
+    {
+      "ts": "2024-01-27 05:30:00+00:00",
+      "entry_price": 41825.80401999999,
+      "exit_price": 41777.61,
+      "pnl_pct": -0.0011522556739600985,
+      "exit_reason": "ATR TRAILING STOP: price=41777.6100 <= stop=41787.8421"
+    },
+    {
+      "ts": "2024-01-27 16:45:00+00:00",
+      "entry_price": 41807.765999999996,
+      "exit_price": 41810.18,
+      "pnl_pct": 5.774046860108018e-05,
+      "exit_reason": "ATR TRAILING STOP: price=41810.1800 <= stop=41813.0961"
+    },
+    {
+      "ts": "2024-01-28 00:15:00+00:00",
+      "entry_price": 42014.07209999999,
+      "exit_price": 41971.91,
+      "pnl_pct": -0.00100352329332978,
+      "exit_reason": "ATR TRAILING STOP: price=41971.9100 <= stop=42099.9514"
+    },
+    {
+      "ts": "2024-01-28 05:30:00+00:00",
+      "entry_price": 42013.88191,
+      "exit_price": 42483.92,
+      "pnl_pct": 0.011187685322839093,
+      "exit_reason": "ATR TRAILING STOP: price=42483.9200 <= stop=42577.1278"
+    },
+    {
+      "ts": "2024-01-28 06:30:00+00:00",
+      "entry_price": 42526.40392,
+      "exit_price": 42321.64,
+      "pnl_pct": -0.004814983189860028,
+      "exit_reason": "ATR TRAILING STOP: price=42321.6400 <= stop=42334.9004"
+    },
+    {
+      "ts": "2024-01-28 11:30:00+00:00",
+      "entry_price": 42363.961639999994,
+      "exit_price": 42405.62,
+      "pnl_pct": 0.0009833442951821289,
+      "exit_reason": "ATR TRAILING STOP: price=42405.6200 <= stop=42448.7754"
+    },
+    {
+      "ts": "2024-01-28 14:45:00+00:00",
+      "entry_price": 42448.02562,
+      "exit_price": 42288.0,
+      "pnl_pct": -0.0037699190401120084,
+      "exit_reason": "ATR TRAILING STOP: price=42288.0000 <= stop=42328.4716"
+    },
+    {
+      "ts": "2024-01-28 16:15:00+00:00",
+      "entry_price": 42330.28799999999,
+      "exit_price": 42282.91,
+      "pnl_pct": -0.0011192458695293947,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-29 04:15:00+00:00",
+      "entry_price": 42279.79755999999,
+      "exit_price": 42236.01,
+      "pnl_pct": -0.0010356615340423537,
+      "exit_reason": "ATR TRAILING STOP: price=42236.0100 <= stop=42290.3177"
+    },
+    {
+      "ts": "2024-01-29 07:30:00+00:00",
+      "entry_price": 42278.246009999995,
+      "exit_price": 42103.79,
+      "pnl_pct": -0.004126377663792643,
+      "exit_reason": "ATR TRAILING STOP: price=42103.7900 <= stop=42116.7371"
+    },
+    {
+      "ts": "2024-01-29 08:00:00+00:00",
+      "entry_price": 42145.893789999995,
+      "exit_price": 41989.8,
+      "pnl_pct": -0.0037036535700905758,
+      "exit_reason": "ATR TRAILING STOP: price=41989.8000 <= stop=42003.2246"
+    },
+    {
+      "ts": "2024-01-29 12:30:00+00:00",
+      "entry_price": 42031.7898,
+      "exit_price": 42036.83,
+      "pnl_pct": 0.0001199139989989933,
+      "exit_reason": "ATR TRAILING STOP: price=42036.8300 <= stop=42200.8204"
+    },
+    {
+      "ts": "2024-01-29 15:15:00+00:00",
+      "entry_price": 42078.86683,
+      "exit_price": 42061.1,
+      "pnl_pct": -0.0004222269119503398,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-30 04:15:00+00:00",
+      "entry_price": 43235.60241,
+      "exit_price": 43453.13,
+      "pnl_pct": 0.005031214505517928,
+      "exit_reason": "ATR TRAILING STOP: price=43453.1300 <= stop=43482.9526"
+    },
+    {
+      "ts": "2024-01-30 09:45:00+00:00",
+      "entry_price": 43496.58312999999,
+      "exit_price": 43324.4,
+      "pnl_pct": -0.003958543812174388,
+      "exit_reason": "ATR TRAILING STOP: price=43324.4000 <= stop=43346.1649"
+    },
+    {
+      "ts": "2024-01-30 12:15:00+00:00",
+      "entry_price": 43367.7244,
+      "exit_price": 43416.92,
+      "pnl_pct": 0.0011343827853692759,
+      "exit_reason": "ATR TRAILING STOP: price=43416.9200 <= stop=43544.0557"
+    },
+    {
+      "ts": "2024-01-30 13:15:00+00:00",
+      "entry_price": 43394.45109999999,
+      "exit_price": 43177.43,
+      "pnl_pct": -0.0050011255932210855,
+      "exit_reason": "ATR TRAILING STOP: price=43177.4300 <= stop=43190.0331"
+    },
+    {
+      "ts": "2024-01-30 22:15:00+00:00",
+      "entry_price": 43220.60743,
+      "exit_price": 43486.69,
+      "pnl_pct": 0.0061563820089977385,
+      "exit_reason": "ATR TRAILING STOP: price=43486.6900 <= stop=43498.0595"
+    },
+    {
+      "ts": "2024-01-30 23:00:00+00:00",
+      "entry_price": 43530.17669,
+      "exit_price": 43193.5,
+      "pnl_pct": -0.007734328587674755,
+      "exit_reason": "ATR TRAILING STOP: price=43193.5000 <= stop=43261.2060"
+    },
+    {
+      "ts": "2024-01-30 23:15:00+00:00",
+      "entry_price": 43236.693499999994,
+      "exit_price": 42901.87,
+      "pnl_pct": -0.007743966360424656,
+      "exit_reason": "ATR TRAILING STOP: price=42901.8700 <= stop=42954.7537"
+    },
+    {
+      "ts": "2024-01-31 00:15:00+00:00",
+      "entry_price": 42944.77187,
+      "exit_price": 43038.01,
+      "pnl_pct": 0.002171117133472042,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-01-31 19:00:00+00:00",
+      "entry_price": 43552.39889,
+      "exit_price": 43388.9,
+      "pnl_pct": -0.003754073120356547,
+      "exit_reason": "ATR TRAILING STOP: price=43388.9000 <= stop=43428.9480"
+    },
+    {
+      "ts": "2024-01-31 20:00:00+00:00",
+      "entry_price": 43432.2889,
+      "exit_price": 42908.52,
+      "pnl_pct": -0.01205943580836705,
+      "exit_reason": "ATR TRAILING STOP: price=42908.5200 <= stop=43083.9319"
+    },
+    {
+      "ts": "2024-01-31 20:45:00+00:00",
+      "entry_price": 42951.428519999994,
+      "exit_price": 42541.18,
+      "pnl_pct": -0.009551452283105433,
+      "exit_reason": "ATR TRAILING STOP: price=42541.1800 <= stop=42602.8173"
+    },
+    {
+      "ts": "2024-01-31 22:15:00+00:00",
+      "entry_price": 42583.72117999999,
+      "exit_price": 42586.0,
+      "pnl_pct": 5.351387659087659e-05,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-01 15:45:00+00:00",
+      "entry_price": 42948.14523999999,
+      "exit_price": 42516.12,
+      "pnl_pct": -0.010059229277207973,
+      "exit_reason": "ATR TRAILING STOP: price=42516.1200 <= stop=42646.5608"
+    },
+    {
+      "ts": "2024-02-01 22:30:00+00:00",
+      "entry_price": 42558.636119999996,
+      "exit_price": 42900.0,
+      "pnl_pct": 0.008021024899329045,
+      "exit_reason": "ATR TRAILING STOP: price=42900.0000 <= stop=42945.0019"
+    },
+    {
+      "ts": "2024-02-02 01:45:00+00:00",
+      "entry_price": 42942.899999999994,
+      "exit_price": 43121.1,
+      "pnl_pct": 0.004149696457388868,
+      "exit_reason": "ATR TRAILING STOP: price=43121.1000 <= stop=43122.9104"
+    },
+    {
+      "ts": "2024-02-02 04:30:00+00:00",
+      "entry_price": 43164.221099999995,
+      "exit_price": 42993.19,
+      "pnl_pct": -0.003962334907046264,
+      "exit_reason": "ATR TRAILING STOP: price=42993.1900 <= stop=42997.5495"
+    },
+    {
+      "ts": "2024-02-02 07:45:00+00:00",
+      "entry_price": 43036.183189999996,
+      "exit_price": 43086.89,
+      "pnl_pct": 0.0011782366892560698,
+      "exit_reason": "ATR TRAILING STOP: price=43086.8900 <= stop=43119.1639"
+    },
+    {
+      "ts": "2024-02-02 13:00:00+00:00",
+      "entry_price": 43065.14212,
+      "exit_price": 43068.89,
+      "pnl_pct": 8.702815816929723e-05,
+      "exit_reason": "ATR TRAILING STOP: price=43068.8900 <= stop=43106.6273"
+    },
+    {
+      "ts": "2024-02-02 13:30:00+00:00",
+      "entry_price": 43129.085999999996,
+      "exit_price": 42845.99,
+      "pnl_pct": -0.00656392301010037,
+      "exit_reason": "ATR TRAILING STOP: price=42845.9900 <= stop=42968.2586"
+    },
+    {
+      "ts": "2024-02-02 13:45:00+00:00",
+      "entry_price": 42888.83598999999,
+      "exit_price": 42694.01,
+      "pnl_pct": -0.004542580499163375,
+      "exit_reason": "ATR TRAILING STOP: price=42694.0100 <= stop=42735.9455"
+    },
+    {
+      "ts": "2024-02-02 15:15:00+00:00",
+      "entry_price": 42736.704009999994,
+      "exit_price": 43029.16,
+      "pnl_pct": 0.006843204144418285,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-02 18:15:00+00:00",
+      "entry_price": 43279.62639,
+      "exit_price": 42907.74,
+      "pnl_pct": -0.008592643260107396,
+      "exit_reason": "ATR TRAILING STOP: price=42907.7400 <= stop=42918.7818"
+    },
+    {
+      "ts": "2024-02-03 00:45:00+00:00",
+      "entry_price": 42950.64773999999,
+      "exit_price": 43229.07,
+      "pnl_pct": 0.006482376277196668,
+      "exit_reason": "ATR TRAILING STOP: price=43229.0700 <= stop=43230.4242"
+    },
+    {
+      "ts": "2024-02-03 05:15:00+00:00",
+      "entry_price": 43314.61133999999,
+      "exit_price": 43111.2,
+      "pnl_pct": -0.004696136793270636,
+      "exit_reason": "ATR TRAILING STOP: price=43111.2000 <= stop=43131.9135"
+    },
+    {
+      "ts": "2024-02-03 23:30:00+00:00",
+      "entry_price": 43113.42034999999,
+      "exit_price": 42962.62,
+      "pnl_pct": -0.003497758906061612,
+      "exit_reason": "ATR TRAILING STOP: price=42962.6200 <= stop=43003.1015"
+    },
+    {
+      "ts": "2024-02-04 14:45:00+00:00",
+      "entry_price": 43023.12013999999,
+      "exit_price": 42874.0,
+      "pnl_pct": -0.00346604661667367,
+      "exit_reason": "ATR TRAILING STOP: price=42874.0000 <= stop=42934.8728"
+    },
+    {
+      "ts": "2024-02-04 18:15:00+00:00",
+      "entry_price": 42964.942019999995,
+      "exit_price": 42819.47,
+      "pnl_pct": -0.0033858307066323328,
+      "exit_reason": "ATR TRAILING STOP: price=42819.4700 <= stop=42861.6903"
+    },
+    {
+      "ts": "2024-02-05 14:30:00+00:00",
+      "entry_price": 42779.23649999999,
+      "exit_price": 43296.77,
+      "pnl_pct": 0.012097773180220388,
+      "exit_reason": "ATR TRAILING STOP: price=43296.7700 <= stop=43328.6037"
+    },
+    {
+      "ts": "2024-02-05 15:00:00+00:00",
+      "entry_price": 43340.06676999999,
+      "exit_price": 43035.63,
+      "pnl_pct": -0.007024372426918461,
+      "exit_reason": "ATR TRAILING STOP: price=43035.6300 <= stop=43167.9845"
+    },
+    {
+      "ts": "2024-02-05 15:15:00+00:00",
+      "entry_price": 43078.665629999996,
+      "exit_price": 42856.42,
+      "pnl_pct": -0.005159064858434838,
+      "exit_reason": "ATR TRAILING STOP: price=42856.4200 <= stop=42876.4045"
+    },
+    {
+      "ts": "2024-02-05 15:45:00+00:00",
+      "entry_price": 42899.276419999995,
+      "exit_price": 42644.03,
+      "pnl_pct": -0.0059499003549858915,
+      "exit_reason": "ATR TRAILING STOP: price=42644.0300 <= stop=42665.8923"
+    },
+    {
+      "ts": "2024-02-05 17:15:00+00:00",
+      "entry_price": 42686.674029999995,
+      "exit_price": 42668.54,
+      "pnl_pct": -0.0004248171217848757,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-06 06:15:00+00:00",
+      "entry_price": 42944.33143,
+      "exit_price": 42694.8,
+      "pnl_pct": -0.005810578991239763,
+      "exit_reason": "ATR TRAILING STOP: price=42694.8000 <= stop=42725.9734"
+    },
+    {
+      "ts": "2024-02-06 10:00:00+00:00",
+      "entry_price": 42737.4948,
+      "exit_price": 42916.8,
+      "pnl_pct": 0.004195500949204035,
+      "exit_reason": "ATR TRAILING STOP: price=42916.8000 <= stop=42941.7571"
+    },
+    {
+      "ts": "2024-02-06 11:00:00+00:00",
+      "entry_price": 42982.939999999995,
+      "exit_price": 42752.17,
+      "pnl_pct": -0.005368874255692999,
+      "exit_reason": "ATR TRAILING STOP: price=42752.1700 <= stop=42788.5606"
+    },
+    {
+      "ts": "2024-02-06 17:00:00+00:00",
+      "entry_price": 42794.92216999999,
+      "exit_price": 43134.02,
+      "pnl_pct": 0.007923786580402282,
+      "exit_reason": "ATR TRAILING STOP: price=43134.0200 <= stop=43136.9382"
+    },
+    {
+      "ts": "2024-02-07 00:30:00+00:00",
+      "entry_price": 43177.154019999994,
+      "exit_price": 43062.8,
+      "pnl_pct": -0.0026484844264404715,
+      "exit_reason": "ATR TRAILING STOP: price=43062.8000 <= stop=43065.5084"
+    },
+    {
+      "ts": "2024-02-07 03:00:00+00:00",
+      "entry_price": 43139.56647,
+      "exit_price": 42991.14,
+      "pnl_pct": -0.003440611071119986,
+      "exit_reason": "ATR TRAILING STOP: price=42991.1400 <= stop=43041.9821"
+    },
+    {
+      "ts": "2024-02-07 16:15:00+00:00",
+      "entry_price": 43071.6286,
+      "exit_price": 43052.13,
+      "pnl_pct": -0.0004527017118641989,
+      "exit_reason": "ATR TRAILING STOP: price=43052.1300 <= stop=43064.2820"
+    },
+    {
+      "ts": "2024-02-08 06:45:00+00:00",
+      "entry_price": 43095.182129999994,
+      "exit_price": 44463.99,
+      "pnl_pct": 0.031762433811531134,
+      "exit_reason": "ATR TRAILING STOP: price=44463.9900 <= stop=44470.4143"
+    },
+    {
+      "ts": "2024-02-08 11:45:00+00:00",
+      "entry_price": 44508.453989999995,
+      "exit_price": 44698.97,
+      "pnl_pct": 0.004280445464199029,
+      "exit_reason": "ATR TRAILING STOP: price=44698.9700 <= stop=44739.6743"
+    },
+    {
+      "ts": "2024-02-08 12:30:00+00:00",
+      "entry_price": 44743.66897,
+      "exit_price": 44663.9,
+      "pnl_pct": -0.00178279903808249,
+      "exit_reason": "ATR TRAILING STOP: price=44663.9000 <= stop=44678.8041"
+    },
+    {
+      "ts": "2024-02-08 16:45:00+00:00",
+      "entry_price": 44708.563899999994,
+      "exit_price": 45066.01,
+      "pnl_pct": 0.007995025311023429,
+      "exit_reason": "ATR TRAILING STOP: price=45066.0100 <= stop=45100.2717"
+    },
+    {
+      "ts": "2024-02-09 04:00:00+00:00",
+      "entry_price": 45111.07601,
+      "exit_price": 46029.34,
+      "pnl_pct": 0.020355621528434464,
+      "exit_reason": "ATR TRAILING STOP: price=46029.3400 <= stop=46042.6262"
+    },
+    {
+      "ts": "2024-02-09 14:15:00+00:00",
+      "entry_price": 46075.36933999999,
+      "exit_price": 46930.81,
+      "pnl_pct": 0.0185661161755976,
+      "exit_reason": "ATR TRAILING STOP: price=46930.8100 <= stop=47270.1680"
+    },
+    {
+      "ts": "2024-02-09 18:45:00+00:00",
+      "entry_price": 46977.740809999996,
+      "exit_price": 47602.0,
+      "pnl_pct": 0.01328840381074946,
+      "exit_reason": "ATR TRAILING STOP: price=47602.0000 <= stop=47720.7605"
+    },
+    {
+      "ts": "2024-02-09 22:30:00+00:00",
+      "entry_price": 47649.60199999999,
+      "exit_price": 47231.1,
+      "pnl_pct": -0.008782906518295644,
+      "exit_reason": "ATR TRAILING STOP: price=47231.1000 <= stop=47258.8028"
+    },
+    {
+      "ts": "2024-02-10 01:30:00+00:00",
+      "entry_price": 47278.331099999996,
+      "exit_price": 47324.16,
+      "pnl_pct": 0.0009693425917059858,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-10 07:45:00+00:00",
+      "entry_price": 47415.49812999999,
+      "exit_price": 47151.72,
+      "pnl_pct": -0.00556312050707104,
+      "exit_reason": "ATR TRAILING STOP: price=47151.7200 <= stop=47258.9525"
+    },
+    {
+      "ts": "2024-02-10 17:15:00+00:00",
+      "entry_price": 47357.11980999999,
+      "exit_price": 47184.0,
+      "pnl_pct": -0.00365562370968838,
+      "exit_reason": "ATR TRAILING STOP: price=47184.0000 <= stop=47185.8756"
+    },
+    {
+      "ts": "2024-02-10 20:00:00+00:00",
+      "entry_price": 47231.183999999994,
+      "exit_price": 47511.27,
+      "pnl_pct": 0.005930107532345643,
+      "exit_reason": "ATR TRAILING STOP: price=47511.2700 <= stop=47516.6272"
+    },
+    {
+      "ts": "2024-02-10 22:00:00+00:00",
+      "entry_price": 47558.78126999999,
+      "exit_price": 47794.54,
+      "pnl_pct": 0.004957207138289831,
+      "exit_reason": "ATR TRAILING STOP: price=47794.5400 <= stop=47823.1155"
+    },
+    {
+      "ts": "2024-02-11 05:00:00+00:00",
+      "entry_price": 47842.334539999996,
+      "exit_price": 48249.72,
+      "pnl_pct": 0.008515166826974096,
+      "exit_reason": "ATR TRAILING STOP: price=48249.7200 <= stop=48291.6460"
+    },
+    {
+      "ts": "2024-02-11 13:15:00+00:00",
+      "entry_price": 48297.969719999994,
+      "exit_price": 48129.21,
+      "pnl_pct": -0.0034941369373982577,
+      "exit_reason": "ATR TRAILING STOP: price=48129.2100 <= stop=48234.9577"
+    },
+    {
+      "ts": "2024-02-11 18:15:00+00:00",
+      "entry_price": 48177.33920999999,
+      "exit_price": 48105.99,
+      "pnl_pct": -0.0014809703310718196,
+      "exit_reason": "ATR TRAILING STOP: price=48105.9900 <= stop=48147.0326"
+    },
+    {
+      "ts": "2024-02-11 20:45:00+00:00",
+      "entry_price": 48330.502219999995,
+      "exit_price": 48034.55,
+      "pnl_pct": -0.006123508062316841,
+      "exit_reason": "ATR TRAILING STOP: price=48034.5500 <= stop=48100.2439"
+    },
+    {
+      "ts": "2024-02-12 01:00:00+00:00",
+      "entry_price": 48082.58455,
+      "exit_price": 48458.01,
+      "pnl_pct": 0.007807929908792776,
+      "exit_reason": "ATR TRAILING STOP: price=48458.0100 <= stop=48505.2152"
+    },
+    {
+      "ts": "2024-02-12 02:30:00+00:00",
+      "entry_price": 48506.46801,
+      "exit_price": 48128.38,
+      "pnl_pct": -0.007794589577663202,
+      "exit_reason": "ATR TRAILING STOP: price=48128.3800 <= stop=48131.1297"
+    },
+    {
+      "ts": "2024-02-12 05:45:00+00:00",
+      "entry_price": 48176.50837999999,
+      "exit_price": 48073.18,
+      "pnl_pct": -0.002144787645982404,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-12 21:45:00+00:00",
+      "entry_price": 49143.78469,
+      "exit_price": 49816.3,
+      "pnl_pct": 0.013684646273017896,
+      "exit_reason": "ATR TRAILING STOP: price=49816.3000 <= stop=49888.6699"
+    },
+    {
+      "ts": "2024-02-13 03:00:00+00:00",
+      "entry_price": 49866.116299999994,
+      "exit_price": 49907.02,
+      "pnl_pct": 0.0008202704167680004,
+      "exit_reason": "ATR TRAILING STOP: price=49907.0200 <= stop=49907.4760"
+    },
+    {
+      "ts": "2024-02-13 07:30:00+00:00",
+      "entry_price": 49956.92701999999,
+      "exit_price": 49914.3,
+      "pnl_pct": -0.0008532754623381828,
+      "exit_reason": "ATR TRAILING STOP: price=49914.3000 <= stop=49931.6688"
+    },
+    {
+      "ts": "2024-02-13 10:30:00+00:00",
+      "entry_price": 49964.2143,
+      "exit_price": 49945.46,
+      "pnl_pct": -0.0003753546465755294,
+      "exit_reason": "ATR TRAILING STOP: price=49945.4600 <= stop=50019.8706"
+    },
+    {
+      "ts": "2024-02-13 11:00:00+00:00",
+      "entry_price": 49995.405459999994,
+      "exit_price": 49716.68,
+      "pnl_pct": -0.005575021493184911,
+      "exit_reason": "ATR TRAILING STOP: price=49716.6800 <= stop=49744.6142"
+    },
+    {
+      "ts": "2024-02-13 13:15:00+00:00",
+      "entry_price": 49766.39668,
+      "exit_price": 49757.12,
+      "pnl_pct": -0.000186404494173947,
+      "exit_reason": "ATR TRAILING STOP: price=49757.1200 <= stop=49760.9562"
+    },
+    {
+      "ts": "2024-02-14 01:30:00+00:00",
+      "entry_price": 49574.524999999994,
+      "exit_price": 49361.67,
+      "pnl_pct": -0.0042936367015114305,
+      "exit_reason": "ATR TRAILING STOP: price=49361.6700 <= stop=49410.2087"
+    },
+    {
+      "ts": "2024-02-14 04:15:00+00:00",
+      "entry_price": 49411.03166999999,
+      "exit_price": 49391.1,
+      "pnl_pct": -0.00040338502003171893,
+      "exit_reason": "ATR TRAILING STOP: price=49391.1000 <= stop=49442.9680"
+    },
+    {
+      "ts": "2024-02-14 15:00:00+00:00",
+      "entry_price": 49440.49109999999,
+      "exit_price": 51515.03,
+      "pnl_pct": 0.04196032146614351,
+      "exit_reason": "ATR TRAILING STOP: price=51515.0300 <= stop=51602.5103"
+    },
+    {
+      "ts": "2024-02-14 19:00:00+00:00",
+      "entry_price": 51566.545029999994,
+      "exit_price": 51350.34,
+      "pnl_pct": -0.004192738332075869,
+      "exit_reason": "ATR TRAILING STOP: price=51350.3400 <= stop=51436.0897"
+    },
+    {
+      "ts": "2024-02-14 21:15:00+00:00",
+      "entry_price": 51401.690339999994,
+      "exit_price": 51485.36,
+      "pnl_pct": 0.0016277608663561093,
+      "exit_reason": "ATR TRAILING STOP: price=51485.3600 <= stop=51497.0844"
+    },
+    {
+      "ts": "2024-02-15 01:15:00+00:00",
+      "entry_price": 51536.84535999999,
+      "exit_price": 51938.21,
+      "pnl_pct": 0.007787916338230585,
+      "exit_reason": "ATR TRAILING STOP: price=51938.2100 <= stop=52071.7746"
+    },
+    {
+      "ts": "2024-02-15 05:30:00+00:00",
+      "entry_price": 51990.14820999999,
+      "exit_price": 52033.99,
+      "pnl_pct": 0.0008432711101903178,
+      "exit_reason": "ATR TRAILING STOP: price=52033.9900 <= stop=52053.2602"
+    },
+    {
+      "ts": "2024-02-15 07:30:00+00:00",
+      "entry_price": 52086.023989999994,
+      "exit_price": 51727.99,
+      "pnl_pct": -0.0068738974982758385,
+      "exit_reason": "ATR TRAILING STOP: price=51727.9900 <= stop=51835.2558"
+    },
+    {
+      "ts": "2024-02-15 13:15:00+00:00",
+      "entry_price": 51779.71798999999,
+      "exit_price": 52151.3,
+      "pnl_pct": 0.007176207681775613,
+      "exit_reason": "ATR TRAILING STOP: price=52151.3000 <= stop=52206.9112"
+    },
+    {
+      "ts": "2024-02-15 15:15:00+00:00",
+      "entry_price": 52203.4513,
+      "exit_price": 52221.37,
+      "pnl_pct": 0.0003432474205015252,
+      "exit_reason": "ATR TRAILING STOP: price=52221.3700 <= stop=52363.3558"
+    },
+    {
+      "ts": "2024-02-15 16:00:00+00:00",
+      "entry_price": 52273.591369999995,
+      "exit_price": 51757.25,
+      "pnl_pct": -0.009877671620938692,
+      "exit_reason": "ATR TRAILING STOP: price=51757.2500 <= stop=51944.0116"
+    },
+    {
+      "ts": "2024-02-15 17:45:00+00:00",
+      "entry_price": 51809.007249999995,
+      "exit_price": 51875.59,
+      "pnl_pct": 0.0012851578042928319,
+      "exit_reason": "ATR TRAILING STOP: price=51875.5900 <= stop=51928.4027"
+    },
+    {
+      "ts": "2024-02-15 20:00:00+00:00",
+      "entry_price": 51927.46558999999,
+      "exit_price": 51852.54,
+      "pnl_pct": -0.0014428894063803596,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-16 05:45:00+00:00",
+      "entry_price": 52323.39112,
+      "exit_price": 52064.38,
+      "pnl_pct": -0.004950197501648529,
+      "exit_reason": "ATR TRAILING STOP: price=52064.3800 <= stop=52076.8029"
+    },
+    {
+      "ts": "2024-02-16 06:45:00+00:00",
+      "entry_price": 52116.44437999999,
+      "exit_price": 51897.95,
+      "pnl_pct": -0.004192426835700346,
+      "exit_reason": "ATR TRAILING STOP: price=51897.9500 <= stop=51957.1236"
+    },
+    {
+      "ts": "2024-02-16 07:45:00+00:00",
+      "entry_price": 51949.84794999999,
+      "exit_price": 51731.99,
+      "pnl_pct": -0.0041936205512992375,
+      "exit_reason": "ATR TRAILING STOP: price=51731.9900 <= stop=51793.3736"
+    },
+    {
+      "ts": "2024-02-16 09:45:00+00:00",
+      "entry_price": 51783.72198999999,
+      "exit_price": 51827.99,
+      "pnl_pct": 0.000854863426166155,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-16 14:00:00+00:00",
+      "entry_price": 52266.07386,
+      "exit_price": 52196.0,
+      "pnl_pct": -0.0013407140583717224,
+      "exit_reason": "ATR TRAILING STOP: price=52196.0000 <= stop=52230.4689"
+    },
+    {
+      "ts": "2024-02-16 14:45:00+00:00",
+      "entry_price": 52248.195999999996,
+      "exit_price": 51920.31,
+      "pnl_pct": -0.006275546815051732,
+      "exit_reason": "ATR TRAILING STOP: price=51920.3100 <= stop=51980.4530"
+    },
+    {
+      "ts": "2024-02-16 15:00:00+00:00",
+      "entry_price": 51972.23030999999,
+      "exit_price": 51645.0,
+      "pnl_pct": -0.006296252980642804,
+      "exit_reason": "ATR TRAILING STOP: price=51645.0000 <= stop=51645.8878"
+    },
+    {
+      "ts": "2024-02-16 19:15:00+00:00",
+      "entry_price": 51696.645,
+      "exit_price": 51893.09,
+      "pnl_pct": 0.0037999564575225283,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-17 05:15:00+00:00",
+      "entry_price": 51981.92999999999,
+      "exit_price": 51871.09,
+      "pnl_pct": -0.002132279428639847,
+      "exit_reason": "ATR TRAILING STOP: price=51871.0900 <= stop=51902.5760"
+    },
+    {
+      "ts": "2024-02-18 00:30:00+00:00",
+      "entry_price": 51897.856009999996,
+      "exit_price": 51558.39,
+      "pnl_pct": -0.00654104111612214,
+      "exit_reason": "ATR TRAILING STOP: price=51558.3900 <= stop=51589.4031"
+    },
+    {
+      "ts": "2024-02-18 02:00:00+00:00",
+      "entry_price": 51609.94838999999,
+      "exit_price": 51467.53,
+      "pnl_pct": -0.00275951428828762,
+      "exit_reason": "ATR TRAILING STOP: price=51467.5300 <= stop=51493.9965"
+    },
+    {
+      "ts": "2024-02-18 02:45:00+00:00",
+      "entry_price": 51518.99752999999,
+      "exit_price": 51277.99,
+      "pnl_pct": -0.004678032212479569,
+      "exit_reason": "ATR TRAILING STOP: price=51277.9900 <= stop=51315.4353"
+    },
+    {
+      "ts": "2024-02-18 10:30:00+00:00",
+      "entry_price": 51329.26798999999,
+      "exit_price": 51827.08,
+      "pnl_pct": 0.009698404623595896,
+      "exit_reason": "ATR TRAILING STOP: price=51827.0800 <= stop=51843.0749"
+    },
+    {
+      "ts": "2024-02-18 12:45:00+00:00",
+      "entry_price": 51878.90708,
+      "exit_price": 51554.06,
+      "pnl_pct": -0.00626164077626131,
+      "exit_reason": "ATR TRAILING STOP: price=51554.0600 <= stop=51686.6915"
+    },
+    {
+      "ts": "2024-02-18 18:15:00+00:00",
+      "entry_price": 51605.61405999999,
+      "exit_price": 51716.97,
+      "pnl_pct": 0.002157826082071982,
+      "exit_reason": "ATR TRAILING STOP: price=51716.9700 <= stop=51766.9339"
+    },
+    {
+      "ts": "2024-02-18 20:15:00+00:00",
+      "entry_price": 51768.686969999995,
+      "exit_price": 51666.3,
+      "pnl_pct": -0.0019777779965585306,
+      "exit_reason": "ATR TRAILING STOP: price=51666.3000 <= stop=51670.1466"
+    },
+    {
+      "ts": "2024-02-19 01:15:00+00:00",
+      "entry_price": 51717.9663,
+      "exit_price": 52032.38,
+      "pnl_pct": 0.006079390248568172,
+      "exit_reason": "ATR TRAILING STOP: price=52032.3800 <= stop=52052.0419"
+    },
+    {
+      "ts": "2024-02-19 03:30:00+00:00",
+      "entry_price": 52084.412379999994,
+      "exit_price": 51982.0,
+      "pnl_pct": -0.001966276959271597,
+      "exit_reason": "ATR TRAILING STOP: price=51982.0000 <= stop=52038.2046"
+    },
+    {
+      "ts": "2024-02-19 08:30:00+00:00",
+      "entry_price": 52033.981999999996,
+      "exit_price": 52219.24,
+      "pnl_pct": 0.003560327172346749,
+      "exit_reason": "ATR TRAILING STOP: price=52219.2400 <= stop=52247.5495"
+    },
+    {
+      "ts": "2024-02-19 13:30:00+00:00",
+      "entry_price": 52271.45923999999,
+      "exit_price": 52174.97,
+      "pnl_pct": -0.0018459258915456303,
+      "exit_reason": "ATR TRAILING STOP: price=52174.9700 <= stop=52220.1007"
+    },
+    {
+      "ts": "2024-02-19 16:00:00+00:00",
+      "entry_price": 52227.144969999994,
+      "exit_price": 52085.68,
+      "pnl_pct": -0.0027086483490769615,
+      "exit_reason": "ATR TRAILING STOP: price=52085.6800 <= stop=52116.3604"
+    },
+    {
+      "ts": "2024-02-20 08:00:00+00:00",
+      "entry_price": 52016.31434999999,
+      "exit_price": 51779.67,
+      "pnl_pct": -0.004549425559213905,
+      "exit_reason": "ATR TRAILING STOP: price=51779.6700 <= stop=51800.1323"
+    },
+    {
+      "ts": "2024-02-20 09:15:00+00:00",
+      "entry_price": 51831.449669999995,
+      "exit_price": 51615.08,
+      "pnl_pct": -0.004174486173502251,
+      "exit_reason": "ATR TRAILING STOP: price=51615.0800 <= stop=51665.1922"
+    },
+    {
+      "ts": "2024-02-20 14:00:00+00:00",
+      "entry_price": 51666.69508,
+      "exit_price": 52242.13,
+      "pnl_pct": 0.011137443939640501,
+      "exit_reason": "ATR TRAILING STOP: price=52242.1300 <= stop=52641.3611"
+    },
+    {
+      "ts": "2024-02-20 15:15:00+00:00",
+      "entry_price": 52294.37212999999,
+      "exit_price": 51485.74,
+      "pnl_pct": -0.015463081342477742,
+      "exit_reason": "ATR TRAILING STOP: price=51485.7400 <= stop=51808.2590"
+    },
+    {
+      "ts": "2024-02-20 17:15:00+00:00",
+      "entry_price": 51537.225739999994,
+      "exit_price": 50958.0,
+      "pnl_pct": -0.011238977878284111,
+      "exit_reason": "ATR TRAILING STOP: price=50958.0000 <= stop=51038.3384"
+    },
+    {
+      "ts": "2024-02-21 01:30:00+00:00",
+      "entry_price": 52163.76164999999,
+      "exit_price": 52084.9,
+      "pnl_pct": -0.0015118091085747389,
+      "exit_reason": "ATR TRAILING STOP: price=52084.9000 <= stop=52095.0659"
+    },
+    {
+      "ts": "2024-02-21 05:15:00+00:00",
+      "entry_price": 52136.984899999996,
+      "exit_price": 51939.9,
+      "pnl_pct": -0.0037801361236751226,
+      "exit_reason": "ATR TRAILING STOP: price=51939.9000 <= stop=51965.6992"
+    },
+    {
+      "ts": "2024-02-22 00:30:00+00:00",
+      "entry_price": 51676.47484999999,
+      "exit_price": 51543.34,
+      "pnl_pct": -0.0025763144716516,
+      "exit_reason": "ATR TRAILING STOP: price=51543.3400 <= stop=51619.5411"
+    },
+    {
+      "ts": "2024-02-22 01:45:00+00:00",
+      "entry_price": 51594.88333999999,
+      "exit_price": 51238.81,
+      "pnl_pct": -0.006901330460494368,
+      "exit_reason": "ATR TRAILING STOP: price=51238.8100 <= stop=51362.1845"
+    },
+    {
+      "ts": "2024-02-22 10:30:00+00:00",
+      "entry_price": 51290.04880999999,
+      "exit_price": 51732.31,
+      "pnl_pct": 0.008622748471898067,
+      "exit_reason": "ATR TRAILING STOP: price=51732.3100 <= stop=51772.5916"
+    },
+    {
+      "ts": "2024-02-22 11:30:00+00:00",
+      "entry_price": 51784.04230999999,
+      "exit_price": 51559.73,
+      "pnl_pct": -0.0043316879099001854,
+      "exit_reason": "ATR TRAILING STOP: price=51559.7300 <= stop=51568.4031"
+    },
+    {
+      "ts": "2024-02-22 12:30:00+00:00",
+      "entry_price": 51611.28973,
+      "exit_price": 51491.99,
+      "pnl_pct": -0.002311504529805495,
+      "exit_reason": "ATR TRAILING STOP: price=51491.9900 <= stop=51498.2513"
+    },
+    {
+      "ts": "2024-02-22 13:15:00+00:00",
+      "entry_price": 51543.48198999999,
+      "exit_price": 51265.75,
+      "pnl_pct": -0.005388304772538961,
+      "exit_reason": "ATR TRAILING STOP: price=51265.7500 <= stop=51324.8442"
+    },
+    {
+      "ts": "2024-02-22 13:30:00+00:00",
+      "entry_price": 51317.01574999999,
+      "exit_price": 51073.24,
+      "pnl_pct": -0.004750388276426489,
+      "exit_reason": "ATR TRAILING STOP: price=51073.2400 <= stop=51079.8881"
+    },
+    {
+      "ts": "2024-02-22 14:00:00+00:00",
+      "entry_price": 51124.313239999996,
+      "exit_price": 51228.19,
+      "pnl_pct": 0.0020318465602141844,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-22 21:15:00+00:00",
+      "entry_price": 51659.4078,
+      "exit_price": 51713.1,
+      "pnl_pct": 0.001039349893592812,
+      "exit_reason": "ATR TRAILING STOP: price=51713.1000 <= stop=51724.2613"
+    },
+    {
+      "ts": "2024-02-22 22:15:00+00:00",
+      "entry_price": 51764.81309999999,
+      "exit_price": 51208.99,
+      "pnl_pct": -0.010737469464561715,
+      "exit_reason": "ATR TRAILING STOP: price=51208.9900 <= stop=51393.1860"
+    },
+    {
+      "ts": "2024-02-23 00:45:00+00:00",
+      "entry_price": 51260.19898999999,
+      "exit_price": 51455.85,
+      "pnl_pct": 0.0038168211176506928,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-23 22:30:00+00:00",
+      "entry_price": 51150.18908999999,
+      "exit_price": 50834.71,
+      "pnl_pct": -0.006167701344073242,
+      "exit_reason": "ATR TRAILING STOP: price=50834.7100 <= stop=50946.9041"
+    },
+    {
+      "ts": "2024-02-23 23:00:00+00:00",
+      "entry_price": 50885.544709999995,
+      "exit_price": 50653.4,
+      "pnl_pct": -0.00456209541084803,
+      "exit_reason": "ATR TRAILING STOP: price=50653.4000 <= stop=50676.4736"
+    },
+    {
+      "ts": "2024-02-24 12:15:00+00:00",
+      "entry_price": 51058.147139999994,
+      "exit_price": 51052.38,
+      "pnl_pct": -0.00011295239492696344,
+      "exit_reason": "ATR TRAILING STOP: price=51052.3800 <= stop=51056.5041"
+    },
+    {
+      "ts": "2024-02-24 14:00:00+00:00",
+      "entry_price": 51103.43237999999,
+      "exit_price": 51088.0,
+      "pnl_pct": -0.00030198323833196703,
+      "exit_reason": "ATR TRAILING STOP: price=51088.0000 <= stop=51089.2438"
+    },
+    {
+      "ts": "2024-02-24 18:45:00+00:00",
+      "entry_price": 51205.354199999994,
+      "exit_price": 51434.96,
+      "pnl_pct": 0.004484019368427781,
+      "exit_reason": "ATR TRAILING STOP: price=51434.9600 <= stop=51485.9980"
+    },
+    {
+      "ts": "2024-02-25 00:15:00+00:00",
+      "entry_price": 51486.39495999999,
+      "exit_price": 51489.23,
+      "pnl_pct": 5.506386691504083e-05,
+      "exit_reason": "ATR TRAILING STOP: price=51489.2300 <= stop=51495.0695"
+    },
+    {
+      "ts": "2024-02-25 02:45:00+00:00",
+      "entry_price": 51540.719229999995,
+      "exit_price": 51602.05,
+      "pnl_pct": 0.001189947888121618,
+      "exit_reason": "ATR TRAILING STOP: price=51602.0500 <= stop=51677.9956"
+    },
+    {
+      "ts": "2024-02-25 08:30:00+00:00",
+      "entry_price": 51653.65205,
+      "exit_price": 51666.67,
+      "pnl_pct": 0.0002520238063206083,
+      "exit_reason": "ATR TRAILING STOP: price=51666.6700 <= stop=51686.5722"
+    },
+    {
+      "ts": "2024-02-25 10:15:00+00:00",
+      "entry_price": 51718.33666999999,
+      "exit_price": 51573.92,
+      "pnl_pct": -0.0027923688056998653,
+      "exit_reason": "ATR TRAILING STOP: price=51573.9200 <= stop=51578.2527"
+    },
+    {
+      "ts": "2024-02-25 13:00:00+00:00",
+      "entry_price": 51625.49391999999,
+      "exit_price": 51578.75,
+      "pnl_pct": -0.0009054425720832605,
+      "exit_reason": "ATR TRAILING STOP: price=51578.7500 <= stop=51581.7788"
+    },
+    {
+      "ts": "2024-02-25 16:30:00+00:00",
+      "entry_price": 51606.665109999994,
+      "exit_price": 51364.13,
+      "pnl_pct": -0.0046996857766924425,
+      "exit_reason": "ATR TRAILING STOP: price=51364.1300 <= stop=51423.8341"
+    },
+    {
+      "ts": "2024-02-25 17:30:00+00:00",
+      "entry_price": 51415.49412999999,
+      "exit_price": 51500.0,
+      "pnl_pct": 0.0016435876272304563,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-26 00:00:00+00:00",
+      "entry_price": 51726.31464,
+      "exit_price": 51643.38,
+      "pnl_pct": -0.0016033355667652005,
+      "exit_reason": "ATR TRAILING STOP: price=51643.3800 <= stop=51648.7772"
+    },
+    {
+      "ts": "2024-02-26 01:15:00+00:00",
+      "entry_price": 51695.02337999999,
+      "exit_price": 51535.3,
+      "pnl_pct": -0.0030897244948685535,
+      "exit_reason": "ATR TRAILING STOP: price=51535.3000 <= stop=51546.0528"
+    },
+    {
+      "ts": "2024-02-26 02:30:00+00:00",
+      "entry_price": 51586.8353,
+      "exit_price": 51510.78,
+      "pnl_pct": -0.0014743160645095822,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-02-27 03:45:00+00:00",
+      "entry_price": 52594.96241999999,
+      "exit_price": 55667.6,
+      "pnl_pct": 0.05842075816051149,
+      "exit_reason": "ATR TRAILING STOP: price=55667.6000 <= stop=55903.6390"
+    },
+    {
+      "ts": "2024-02-27 12:45:00+00:00",
+      "entry_price": 55723.26759999999,
+      "exit_price": 56786.95,
+      "pnl_pct": 0.019088658038424244,
+      "exit_reason": "ATR TRAILING STOP: price=56786.9500 <= stop=57046.3691"
+    },
+    {
+      "ts": "2024-02-27 16:00:00+00:00",
+      "entry_price": 56843.73694999999,
+      "exit_price": 56473.52,
+      "pnl_pct": -0.006512889015823134,
+      "exit_reason": "ATR TRAILING STOP: price=56473.5200 <= stop=56558.0741"
+    },
+    {
+      "ts": "2024-02-27 20:30:00+00:00",
+      "entry_price": 56529.99351999999,
+      "exit_price": 56860.0,
+      "pnl_pct": 0.005837723648124186,
+      "exit_reason": "ATR TRAILING STOP: price=56860.0000 <= stop=56941.9272"
+    },
+    {
+      "ts": "2024-02-28 01:30:00+00:00",
+      "entry_price": 56916.85999999999,
+      "exit_price": 56778.77,
+      "pnl_pct": -0.0024261703825544227,
+      "exit_reason": "ATR TRAILING STOP: price=56778.7700 <= stop=56810.5619"
+    },
+    {
+      "ts": "2024-02-28 11:45:00+00:00",
+      "entry_price": 56835.548769999994,
+      "exit_price": 58941.11,
+      "pnl_pct": 0.037046554059339064,
+      "exit_reason": "ATR TRAILING STOP: price=58941.1100 <= stop=59050.8150"
+    },
+    {
+      "ts": "2024-02-28 17:15:00+00:00",
+      "entry_price": 59000.05110999999,
+      "exit_price": 61790.47,
+      "pnl_pct": 0.047295194453264744,
+      "exit_reason": "ATR TRAILING STOP: price=61790.4700 <= stop=62956.1759"
+    },
+    {
+      "ts": "2024-02-28 18:00:00+00:00",
+      "entry_price": 61852.260469999994,
+      "exit_price": 60729.01,
+      "pnl_pct": -0.018160216966440514,
+      "exit_reason": "ATR TRAILING STOP: price=60729.0100 <= stop=60744.0576"
+    },
+    {
+      "ts": "2024-02-29 00:45:00+00:00",
+      "entry_price": 60789.73901,
+      "exit_price": 61359.99,
+      "pnl_pct": 0.009380711272772423,
+      "exit_reason": "ATR TRAILING STOP: price=61359.9900 <= stop=61535.7851"
+    },
+    {
+      "ts": "2024-02-29 07:15:00+00:00",
+      "entry_price": 61421.34998999999,
+      "exit_price": 62660.7,
+      "pnl_pct": 0.02017783735137355,
+      "exit_reason": "ATR TRAILING STOP: price=62660.7000 <= stop=62731.7403"
+    },
+    {
+      "ts": "2024-02-29 13:15:00+00:00",
+      "entry_price": 62723.36069999999,
+      "exit_price": 62233.21,
+      "pnl_pct": -0.007814484022058964,
+      "exit_reason": "ATR TRAILING STOP: price=62233.2100 <= stop=62349.6029"
+    },
+    {
+      "ts": "2024-02-29 16:15:00+00:00",
+      "entry_price": 62295.44320999999,
+      "exit_price": 62223.15,
+      "pnl_pct": -0.0011604895362295781,
+      "exit_reason": "ATR TRAILING STOP: price=62223.1500 <= stop=62592.0702"
+    },
+    {
+      "ts": "2024-02-29 17:30:00+00:00",
+      "entry_price": 62285.37314999999,
+      "exit_price": 60960.32,
+      "pnl_pct": -0.021273905621612105,
+      "exit_reason": "ATR TRAILING STOP: price=60960.3200 <= stop=61439.5746"
+    },
+    {
+      "ts": "2024-03-01 14:30:00+00:00",
+      "entry_price": 61774.03231999999,
+      "exit_price": 61889.56,
+      "pnl_pct": 0.0018701657583489691,
+      "exit_reason": "ATR TRAILING STOP: price=61889.5600 <= stop=62186.9976"
+    },
+    {
+      "ts": "2024-03-01 15:45:00+00:00",
+      "entry_price": 61951.449559999994,
+      "exit_price": 61263.99,
+      "pnl_pct": -0.01109674696690012,
+      "exit_reason": "ATR TRAILING STOP: price=61263.9900 <= stop=61481.4645"
+    },
+    {
+      "ts": "2024-03-01 22:15:00+00:00",
+      "entry_price": 61325.25398999999,
+      "exit_price": 62368.95,
+      "pnl_pct": 0.01701902466103438,
+      "exit_reason": "ATR TRAILING STOP: price=62368.9500 <= stop=62448.6861"
+    },
+    {
+      "ts": "2024-03-02 00:30:00+00:00",
+      "entry_price": 62431.31894999999,
+      "exit_price": 62175.49,
+      "pnl_pct": -0.00409776622218864,
+      "exit_reason": "ATR TRAILING STOP: price=62175.4900 <= stop=62292.4264"
+    },
+    {
+      "ts": "2024-03-02 01:00:00+00:00",
+      "entry_price": 62237.66548999999,
+      "exit_price": 62042.92,
+      "pnl_pct": -0.003129061613522193,
+      "exit_reason": "ATR TRAILING STOP: price=62042.9200 <= stop=62055.1980"
+    },
+    {
+      "ts": "2024-03-02 03:30:00+00:00",
+      "entry_price": 62104.96291999999,
+      "exit_price": 62337.08,
+      "pnl_pct": 0.003737496475104746,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-02 22:45:00+00:00",
+      "entry_price": 61984.963039999995,
+      "exit_price": 61685.02,
+      "pnl_pct": -0.004838964569623761,
+      "exit_reason": "ATR TRAILING STOP: price=61685.0200 <= stop=61695.8646"
+    },
+    {
+      "ts": "2024-03-03 00:45:00+00:00",
+      "entry_price": 61971.909999999996,
+      "exit_price": 61736.9,
+      "pnl_pct": -0.0037922019831242056,
+      "exit_reason": "ATR TRAILING STOP: price=61736.9000 <= stop=61775.7068"
+    },
+    {
+      "ts": "2024-03-03 05:45:00+00:00",
+      "entry_price": 61942.15026999999,
+      "exit_price": 61900.0,
+      "pnl_pct": -0.0006804779914204132,
+      "exit_reason": "ATR TRAILING STOP: price=61900.0000 <= stop=61907.0315"
+    },
+    {
+      "ts": "2024-03-03 07:15:00+00:00",
+      "entry_price": 61961.899999999994,
+      "exit_price": 61592.01,
+      "pnl_pct": -0.005969636179652208,
+      "exit_reason": "ATR TRAILING STOP: price=61592.0100 <= stop=61863.1977"
+    },
+    {
+      "ts": "2024-03-03 09:00:00+00:00",
+      "entry_price": 61653.602009999995,
+      "exit_price": 61826.24,
+      "pnl_pct": 0.002800128206167121,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-03 22:45:00+00:00",
+      "entry_price": 62430.327959999995,
+      "exit_price": 62827.43,
+      "pnl_pct": 0.006360723273061039,
+      "exit_reason": "ATR TRAILING STOP: price=62827.4300 <= stop=62909.4346"
+    },
+    {
+      "ts": "2024-03-04 00:45:00+00:00",
+      "entry_price": 62890.25742999999,
+      "exit_price": 63459.3,
+      "pnl_pct": 0.009048183188523044,
+      "exit_reason": "ATR TRAILING STOP: price=63459.3000 <= stop=63736.5068"
+    },
+    {
+      "ts": "2024-03-04 11:15:00+00:00",
+      "entry_price": 63522.7593,
+      "exit_price": 64846.66,
+      "pnl_pct": 0.020841360082417038,
+      "exit_reason": "ATR TRAILING STOP: price=64846.6600 <= stop=64871.8320"
+    },
+    {
+      "ts": "2024-03-04 13:45:00+00:00",
+      "entry_price": 64911.50666,
+      "exit_price": 65111.21,
+      "pnl_pct": 0.0030765475995808604,
+      "exit_reason": "ATR TRAILING STOP: price=65111.2100 <= stop=65149.4463"
+    },
+    {
+      "ts": "2024-03-04 18:15:00+00:00",
+      "entry_price": 65176.321209999995,
+      "exit_price": 66137.65,
+      "pnl_pct": 0.014749663254275588,
+      "exit_reason": "ATR TRAILING STOP: price=66137.6500 <= stop=66557.5535"
+    },
+    {
+      "ts": "2024-03-04 23:30:00+00:00",
+      "entry_price": 66203.78764999998,
+      "exit_price": 67796.0,
+      "pnl_pct": 0.024050170035853177,
+      "exit_reason": "ATR TRAILING STOP: price=67796.0000 <= stop=67819.9384"
+    },
+    {
+      "ts": "2024-03-05 03:00:00+00:00",
+      "entry_price": 67863.79599999999,
+      "exit_price": 67642.45,
+      "pnl_pct": -0.0032616212626831323,
+      "exit_reason": "ATR TRAILING STOP: price=67642.4500 <= stop=67802.5383"
+    },
+    {
+      "ts": "2024-03-05 04:45:00+00:00",
+      "entry_price": 67710.09245,
+      "exit_price": 67326.17,
+      "pnl_pct": -0.005670091948013553,
+      "exit_reason": "ATR TRAILING STOP: price=67326.1700 <= stop=67560.0260"
+    },
+    {
+      "ts": "2024-03-05 05:00:00+00:00",
+      "entry_price": 67393.49616999998,
+      "exit_price": 66545.63,
+      "pnl_pct": -0.0125808307653492,
+      "exit_reason": "ATR TRAILING STOP: price=66545.6300 <= stop=66672.3110"
+    },
+    {
+      "ts": "2024-03-05 06:15:00+00:00",
+      "entry_price": 66612.17563,
+      "exit_price": 67310.36,
+      "pnl_pct": 0.010481332630210066,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-05 15:15:00+00:00",
+      "entry_price": 67837.78000999999,
+      "exit_price": 67170.01,
+      "pnl_pct": -0.009843630052480443,
+      "exit_reason": "ATR TRAILING STOP: price=67170.0100 <= stop=67952.9089"
+    },
+    {
+      "ts": "2024-03-05 16:00:00+00:00",
+      "entry_price": 67237.18000999998,
+      "exit_price": 65385.39,
+      "pnl_pct": -0.027541161151085923,
+      "exit_reason": "ATR TRAILING STOP: price=65385.3900 <= stop=66372.4609"
+    },
+    {
+      "ts": "2024-03-05 17:00:00+00:00",
+      "entry_price": 65450.775389999995,
+      "exit_price": 64199.99,
+      "pnl_pct": -0.019110321956416435,
+      "exit_reason": "ATR TRAILING STOP: price=64199.9900 <= stop=64415.7410"
+    },
+    {
+      "ts": "2024-03-05 17:15:00+00:00",
+      "entry_price": 64264.18998999999,
+      "exit_price": 64413.63,
+      "pnl_pct": 0.002325400974061289,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-06 09:45:00+00:00",
+      "entry_price": 66095.22919999999,
+      "exit_price": 66120.14,
+      "pnl_pct": 0.00037689255792780263,
+      "exit_reason": "ATR TRAILING STOP: price=66120.1400 <= stop=66323.7974"
+    },
+    {
+      "ts": "2024-03-06 12:30:00+00:00",
+      "entry_price": 66186.26014,
+      "exit_price": 65980.0,
+      "pnl_pct": -0.003116358887232913,
+      "exit_reason": "ATR TRAILING STOP: price=65980.0000 <= stop=66627.4376"
+    },
+    {
+      "ts": "2024-03-06 14:45:00+00:00",
+      "entry_price": 66045.98,
+      "exit_price": 65896.75,
+      "pnl_pct": -0.0022594864971342077,
+      "exit_reason": "ATR TRAILING STOP: price=65896.7500 <= stop=65974.2436"
+    },
+    {
+      "ts": "2024-03-06 21:15:00+00:00",
+      "entry_price": 65962.64675,
+      "exit_price": 66481.11,
+      "pnl_pct": 0.00785995219332221,
+      "exit_reason": "ATR TRAILING STOP: price=66481.1100 <= stop=66629.5200"
+    },
+    {
+      "ts": "2024-03-06 22:45:00+00:00",
+      "entry_price": 66547.59111,
+      "exit_price": 65916.53,
+      "pnl_pct": -0.009482854292304603,
+      "exit_reason": "ATR TRAILING STOP: price=65916.5300 <= stop=65935.5224"
+    },
+    {
+      "ts": "2024-03-06 23:45:00+00:00",
+      "entry_price": 65982.44652999999,
+      "exit_price": 66074.04,
+      "pnl_pct": 0.001388149042917992,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-07 13:00:00+00:00",
+      "entry_price": 66881.36455,
+      "exit_price": 66638.47,
+      "pnl_pct": -0.0036317224033072942,
+      "exit_reason": "ATR TRAILING STOP: price=66638.4700 <= stop=66649.9068"
+    },
+    {
+      "ts": "2024-03-07 19:15:00+00:00",
+      "entry_price": 66705.10846999999,
+      "exit_price": 67333.53,
+      "pnl_pct": 0.009420890609639495,
+      "exit_reason": "ATR TRAILING STOP: price=67333.5300 <= stop=67476.7703"
+    },
+    {
+      "ts": "2024-03-07 21:00:00+00:00",
+      "entry_price": 67400.86352999999,
+      "exit_price": 67189.12,
+      "pnl_pct": -0.0031415551509328342,
+      "exit_reason": "ATR TRAILING STOP: price=67189.1200 <= stop=67321.7822"
+    },
+    {
+      "ts": "2024-03-07 23:45:00+00:00",
+      "entry_price": 67256.30911999999,
+      "exit_price": 66823.17,
+      "pnl_pct": -0.006440126222614706,
+      "exit_reason": "ATR TRAILING STOP: price=66823.1700 <= stop=66986.6253"
+    },
+    {
+      "ts": "2024-03-08 00:45:00+00:00",
+      "entry_price": 66889.99316999999,
+      "exit_price": 67072.65,
+      "pnl_pct": 0.0027307048684515095,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-08 15:30:00+00:00",
+      "entry_price": 67290.24302,
+      "exit_price": 68223.99,
+      "pnl_pct": 0.013876409685762061,
+      "exit_reason": "ATR TRAILING STOP: price=68223.9900 <= stop=69053.0648"
+    },
+    {
+      "ts": "2024-03-08 16:00:00+00:00",
+      "entry_price": 68292.21399,
+      "exit_price": 66410.57,
+      "pnl_pct": -0.02755283333288221,
+      "exit_reason": "ATR TRAILING STOP: price=66410.5700 <= stop=67600.9002"
+    },
+    {
+      "ts": "2024-03-08 21:45:00+00:00",
+      "entry_price": 66476.98057,
+      "exit_price": 68182.39,
+      "pnl_pct": 0.02565413494080421,
+      "exit_reason": "ATR TRAILING STOP: price=68182.3900 <= stop=68577.8870"
+    },
+    {
+      "ts": "2024-03-09 02:30:00+00:00",
+      "entry_price": 68250.57238999999,
+      "exit_price": 68168.22,
+      "pnl_pct": -0.0012066183054026908,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-09 10:00:00+00:00",
+      "entry_price": 68449.47108999999,
+      "exit_price": 68196.82,
+      "pnl_pct": -0.003691059784345002,
+      "exit_reason": "ATR TRAILING STOP: price=68196.8200 <= stop=68223.6363"
+    },
+    {
+      "ts": "2024-03-09 14:30:00+00:00",
+      "entry_price": 68265.01682,
+      "exit_price": 68227.99,
+      "pnl_pct": -0.000542398167096784,
+      "exit_reason": "ATR TRAILING STOP: price=68227.9900 <= stop=68266.8282"
+    },
+    {
+      "ts": "2024-03-09 16:30:00+00:00",
+      "entry_price": 68296.21799,
+      "exit_price": 68081.22,
+      "pnl_pct": -0.0031480219011758995,
+      "exit_reason": "ATR TRAILING STOP: price=68081.2200 <= stop=68110.8406"
+    },
+    {
+      "ts": "2024-03-10 01:30:00+00:00",
+      "entry_price": 68418.62027,
+      "exit_price": 68715.08,
+      "pnl_pct": 0.004333027015600213,
+      "exit_reason": "ATR TRAILING STOP: price=68715.0800 <= stop=68751.0437"
+    },
+    {
+      "ts": "2024-03-10 09:15:00+00:00",
+      "entry_price": 68783.79508,
+      "exit_price": 69364.09,
+      "pnl_pct": 0.008436506292289918,
+      "exit_reason": "ATR TRAILING STOP: price=69364.0900 <= stop=69445.8234"
+    },
+    {
+      "ts": "2024-03-10 13:45:00+00:00",
+      "entry_price": 69433.45408999998,
+      "exit_price": 69313.56,
+      "pnl_pct": -0.0017267481730720141,
+      "exit_reason": "ATR TRAILING STOP: price=69313.5600 <= stop=69561.0106"
+    },
+    {
+      "ts": "2024-03-10 14:30:00+00:00",
+      "entry_price": 69382.87355999999,
+      "exit_price": 68888.69,
+      "pnl_pct": -0.00712255827185706,
+      "exit_reason": "ATR TRAILING STOP: price=68888.6900 <= stop=69086.5897"
+    },
+    {
+      "ts": "2024-03-10 20:30:00+00:00",
+      "entry_price": 68957.57869,
+      "exit_price": 69299.99,
+      "pnl_pct": 0.004965535572809574,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-11 11:45:00+00:00",
+      "entry_price": 70687.13652,
+      "exit_price": 71487.2,
+      "pnl_pct": 0.01131837445096718,
+      "exit_reason": "ATR TRAILING STOP: price=71487.2000 <= stop=71574.7052"
+    },
+    {
+      "ts": "2024-03-11 13:45:00+00:00",
+      "entry_price": 71558.68719999999,
+      "exit_price": 71503.97,
+      "pnl_pct": -0.0007646479014777761,
+      "exit_reason": "ATR TRAILING STOP: price=71503.9700 <= stop=71600.6387"
+    },
+    {
+      "ts": "2024-03-11 19:45:00+00:00",
+      "entry_price": 71575.47396999999,
+      "exit_price": 71970.0,
+      "pnl_pct": 0.005512028186713358,
+      "exit_reason": "ATR TRAILING STOP: price=71970.0000 <= stop=72128.4149"
+    },
+    {
+      "ts": "2024-03-11 23:30:00+00:00",
+      "entry_price": 72041.96999999999,
+      "exit_price": 72162.74,
+      "pnl_pct": 0.0016763839189852616,
+      "exit_reason": "ATR TRAILING STOP: price=72162.7400 <= stop=72252.8495"
+    },
+    {
+      "ts": "2024-03-12 03:15:00+00:00",
+      "entry_price": 72234.90273999999,
+      "exit_price": 71669.19,
+      "pnl_pct": -0.007831570591798214,
+      "exit_reason": "ATR TRAILING STOP: price=71669.1900 <= stop=72072.0742"
+    },
+    {
+      "ts": "2024-03-12 05:15:00+00:00",
+      "entry_price": 71740.85918999999,
+      "exit_price": 71899.67,
+      "pnl_pct": 0.002213673097772806,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-12 14:00:00+00:00",
+      "entry_price": 72142.05999,
+      "exit_price": 71765.92,
+      "pnl_pct": -0.005213879255071658,
+      "exit_reason": "ATR TRAILING STOP: price=71765.9200 <= stop=71810.6427"
+    },
+    {
+      "ts": "2024-03-12 16:15:00+00:00",
+      "entry_price": 71837.68591999999,
+      "exit_price": 70606.97,
+      "pnl_pct": -0.01713189817069748,
+      "exit_reason": "ATR TRAILING STOP: price=70606.9700 <= stop=71351.4913"
+    },
+    {
+      "ts": "2024-03-12 16:45:00+00:00",
+      "entry_price": 70677.57697,
+      "exit_price": 70507.37,
+      "pnl_pct": -0.0024082173908175405,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-13 10:30:00+00:00",
+      "entry_price": 71482.09067999998,
+      "exit_price": 73147.0,
+      "pnl_pct": 0.023291279034537902,
+      "exit_reason": "ATR TRAILING STOP: price=73147.0000 <= stop=73235.4929"
+    },
+    {
+      "ts": "2024-03-13 12:15:00+00:00",
+      "entry_price": 73220.147,
+      "exit_price": 72995.5,
+      "pnl_pct": -0.0030681036463911663,
+      "exit_reason": "ATR TRAILING STOP: price=72995.5000 <= stop=73062.9304"
+    },
+    {
+      "ts": "2024-03-13 13:30:00+00:00",
+      "entry_price": 73068.49549999999,
+      "exit_price": 72549.99,
+      "pnl_pct": -0.007096156783466067,
+      "exit_reason": "ATR TRAILING STOP: price=72549.9900 <= stop=72653.2722"
+    },
+    {
+      "ts": "2024-03-13 22:30:00+00:00",
+      "entry_price": 72622.53998999999,
+      "exit_price": 72873.39,
+      "pnl_pct": 0.0034541618901590453,
+      "exit_reason": "ATR TRAILING STOP: price=72873.3900 <= stop=72936.1118"
+    },
+    {
+      "ts": "2024-03-14 01:00:00+00:00",
+      "entry_price": 72946.26339,
+      "exit_price": 72692.0,
+      "pnl_pct": -0.00348562596881212,
+      "exit_reason": "ATR TRAILING STOP: price=72692.0000 <= stop=72814.9068"
+    },
+    {
+      "ts": "2024-03-14 04:30:00+00:00",
+      "entry_price": 72764.692,
+      "exit_price": 72935.84,
+      "pnl_pct": 0.0023520748222228584,
+      "exit_reason": "ATR TRAILING STOP: price=72935.8400 <= stop=73233.9080"
+    },
+    {
+      "ts": "2024-03-14 10:00:00+00:00",
+      "entry_price": 73008.77583999999,
+      "exit_price": 73109.05,
+      "pnl_pct": 0.0013734535176944751,
+      "exit_reason": "ATR TRAILING STOP: price=73109.0500 <= stop=73173.4128"
+    },
+    {
+      "ts": "2024-03-14 11:00:00+00:00",
+      "entry_price": 73182.15905,
+      "exit_price": 72710.01,
+      "pnl_pct": -0.006451696098190031,
+      "exit_reason": "ATR TRAILING STOP: price=72710.0100 <= stop=72924.1586"
+    },
+    {
+      "ts": "2024-03-14 13:00:00+00:00",
+      "entry_price": 72782.72000999999,
+      "exit_price": 72529.99,
+      "pnl_pct": -0.0034723902866677816,
+      "exit_reason": "ATR TRAILING STOP: price=72529.9900 <= stop=72573.8526"
+    },
+    {
+      "ts": "2024-03-15 02:00:00+00:00",
+      "entry_price": 71460.32893999999,
+      "exit_price": 71500.01,
+      "pnl_pct": 0.0005552879561094646,
+      "exit_reason": "ATR TRAILING STOP: price=71500.0100 <= stop=71614.7437"
+    },
+    {
+      "ts": "2024-03-15 02:15:00+00:00",
+      "entry_price": 71571.51000999998,
+      "exit_price": 70690.01,
+      "pnl_pct": -0.012316353390850989,
+      "exit_reason": "ATR TRAILING STOP: price=70690.0100 <= stop=70878.2210"
+    },
+    {
+      "ts": "2024-03-15 02:30:00+00:00",
+      "entry_price": 70760.70000999999,
+      "exit_price": 69680.0,
+      "pnl_pct": -0.015272602021281024,
+      "exit_reason": "ATR TRAILING STOP: price=69680.0000 <= stop=70071.3264"
+    },
+    {
+      "ts": "2024-03-15 03:15:00+00:00",
+      "entry_price": 69749.68,
+      "exit_price": 67439.25,
+      "pnl_pct": -0.03312459641391893,
+      "exit_reason": "ATR TRAILING STOP: price=67439.2500 <= stop=68872.3805"
+    },
+    {
+      "ts": "2024-03-15 16:00:00+00:00",
+      "entry_price": 68495.00658,
+      "exit_price": 67667.99,
+      "pnl_pct": -0.012074114906961381,
+      "exit_reason": "ATR TRAILING STOP: price=67667.9900 <= stop=67736.0070"
+    },
+    {
+      "ts": "2024-03-15 19:45:00+00:00",
+      "entry_price": 67735.65798999999,
+      "exit_price": 68964.0,
+      "pnl_pct": 0.018134348236217786,
+      "exit_reason": "ATR TRAILING STOP: price=68964.0000 <= stop=69339.0541"
+    },
+    {
+      "ts": "2024-03-15 20:00:00+00:00",
+      "entry_price": 69032.96399999999,
+      "exit_price": 67915.92,
+      "pnl_pct": -0.016181313031843666,
+      "exit_reason": "ATR TRAILING STOP: price=67915.9200 <= stop=67916.1565"
+    },
+    {
+      "ts": "2024-03-16 01:45:00+00:00",
+      "entry_price": 67983.83592,
+      "exit_price": 69286.2,
+      "pnl_pct": 0.0191569666873837,
+      "exit_reason": "ATR TRAILING STOP: price=69286.2000 <= stop=69351.7011"
+    },
+    {
+      "ts": "2024-03-16 05:00:00+00:00",
+      "entry_price": 69355.48619999998,
+      "exit_price": 68772.2,
+      "pnl_pct": -0.00841009460041804,
+      "exit_reason": "ATR TRAILING STOP: price=68772.2000 <= stop=68873.9368"
+    },
+    {
+      "ts": "2024-03-16 08:45:00+00:00",
+      "entry_price": 68840.97219999999,
+      "exit_price": 69021.96,
+      "pnl_pct": 0.0026290709473742323,
+      "exit_reason": "ATR TRAILING STOP: price=69021.9600 <= stop=69108.1455"
+    },
+    {
+      "ts": "2024-03-16 10:00:00+00:00",
+      "entry_price": 69090.98196,
+      "exit_price": 68721.1,
+      "pnl_pct": -0.005353549037906868,
+      "exit_reason": "ATR TRAILING STOP: price=68721.1000 <= stop=68831.2986"
+    },
+    {
+      "ts": "2024-03-16 10:45:00+00:00",
+      "entry_price": 68789.8211,
+      "exit_price": 68427.54,
+      "pnl_pct": -0.005266492835812993,
+      "exit_reason": "ATR TRAILING STOP: price=68427.5400 <= stop=68434.3176"
+    },
+    {
+      "ts": "2024-03-17 12:30:00+00:00",
+      "entry_price": 67127.11004999999,
+      "exit_price": 66781.82,
+      "pnl_pct": -0.005143824153055155,
+      "exit_reason": "ATR TRAILING STOP: price=66781.8200 <= stop=66799.3479"
+    },
+    {
+      "ts": "2024-03-17 21:30:00+00:00",
+      "entry_price": 66848.60182,
+      "exit_price": 68168.99,
+      "pnl_pct": 0.019751919173348675,
+      "exit_reason": "ATR TRAILING STOP: price=68168.9900 <= stop=68237.2242"
+    },
+    {
+      "ts": "2024-03-17 22:45:00+00:00",
+      "entry_price": 68237.15899,
+      "exit_price": 68228.01,
+      "pnl_pct": -0.00013407636155166232,
+      "exit_reason": "ATR TRAILING STOP: price=68228.0100 <= stop=68409.1835"
+    },
+    {
+      "ts": "2024-03-18 00:30:00+00:00",
+      "entry_price": 68296.23800999999,
+      "exit_price": 67485.72,
+      "pnl_pct": -0.011867681641283207,
+      "exit_reason": "ATR TRAILING STOP: price=67485.7200 <= stop=67859.9985"
+    },
+    {
+      "ts": "2024-03-18 02:15:00+00:00",
+      "entry_price": 67553.20572,
+      "exit_price": 67444.0,
+      "pnl_pct": -0.0016165882704759094,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-18 07:30:00+00:00",
+      "entry_price": 68748.66999,
+      "exit_price": 68156.0,
+      "pnl_pct": -0.008620821174958049,
+      "exit_reason": "ATR TRAILING STOP: price=68156.0000 <= stop=68164.5998"
+    },
+    {
+      "ts": "2024-03-18 08:15:00+00:00",
+      "entry_price": 68224.15599999999,
+      "exit_price": 67521.54,
+      "pnl_pct": -0.01029863967829803,
+      "exit_reason": "ATR TRAILING STOP: price=67521.5400 <= stop=67739.9154"
+    },
+    {
+      "ts": "2024-03-18 13:15:00+00:00",
+      "entry_price": 67589.06153999998,
+      "exit_price": 67972.21,
+      "pnl_pct": 0.005668793903482062,
+      "exit_reason": "ATR TRAILING STOP: price=67972.2100 <= stop=68140.4071"
+    },
+    {
+      "ts": "2024-03-18 13:45:00+00:00",
+      "entry_price": 68040.18221,
+      "exit_price": 67552.39,
+      "pnl_pct": -0.007169178478894605,
+      "exit_reason": "ATR TRAILING STOP: price=67552.3900 <= stop=67577.9306"
+    },
+    {
+      "ts": "2024-03-18 14:30:00+00:00",
+      "entry_price": 67619.94239,
+      "exit_price": 66923.8,
+      "pnl_pct": -0.010294927286169101,
+      "exit_reason": "ATR TRAILING STOP: price=66923.8000 <= stop=67240.0827"
+    },
+    {
+      "ts": "2024-03-19 00:30:00+00:00",
+      "entry_price": 67904.85702,
+      "exit_price": 67429.99,
+      "pnl_pct": -0.006993123037725094,
+      "exit_reason": "ATR TRAILING STOP: price=67429.9900 <= stop=67546.0209"
+    },
+    {
+      "ts": "2024-03-19 01:00:00+00:00",
+      "entry_price": 67497.41999,
+      "exit_price": 66809.44,
+      "pnl_pct": -0.010192685736757337,
+      "exit_reason": "ATR TRAILING STOP: price=66809.4400 <= stop=67048.3358"
+    },
+    {
+      "ts": "2024-03-19 01:30:00+00:00",
+      "entry_price": 66876.24944,
+      "exit_price": 66094.72,
+      "pnl_pct": -0.011686203196863943,
+      "exit_reason": "ATR TRAILING STOP: price=66094.7200 <= stop=66307.6457"
+    },
+    {
+      "ts": "2024-03-19 02:15:00+00:00",
+      "entry_price": 66160.81472,
+      "exit_price": 66158.94,
+      "pnl_pct": -2.833580583804095e-05,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-19 18:00:00+00:00",
+      "entry_price": 65609.544,
+      "exit_price": 64352.27,
+      "pnl_pct": -0.019162974216068288,
+      "exit_reason": "ATR TRAILING STOP: price=64352.2700 <= stop=64445.3822"
+    },
+    {
+      "ts": "2024-03-19 20:00:00+00:00",
+      "entry_price": 64416.62226999999,
+      "exit_price": 63790.72,
+      "pnl_pct": -0.009716471431497047,
+      "exit_reason": "ATR TRAILING STOP: price=63790.7200 <= stop=63999.3620"
+    },
+    {
+      "ts": "2024-03-19 22:15:00+00:00",
+      "entry_price": 63854.51071999999,
+      "exit_price": 63013.19,
+      "pnl_pct": -0.013175587918747879,
+      "exit_reason": "ATR TRAILING STOP: price=63013.1900 <= stop=63361.5970"
+    },
+    {
+      "ts": "2024-03-19 22:45:00+00:00",
+      "entry_price": 63076.20318999999,
+      "exit_price": 62633.96,
+      "pnl_pct": -0.007011252542703876,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-20 16:15:00+00:00",
+      "entry_price": 63165.632529999995,
+      "exit_price": 62632.85,
+      "pnl_pct": -0.008434690015127389,
+      "exit_reason": "ATR TRAILING STOP: price=62632.8500 <= stop=63495.0279"
+    },
+    {
+      "ts": "2024-03-21 02:45:00+00:00",
+      "entry_price": 62695.48284999999,
+      "exit_price": 67531.96,
+      "pnl_pct": 0.07714235428366294,
+      "exit_reason": "ATR TRAILING STOP: price=67531.9600 <= stop=67544.6641"
+    },
+    {
+      "ts": "2024-03-21 03:30:00+00:00",
+      "entry_price": 67599.49196,
+      "exit_price": 66969.07,
+      "pnl_pct": -0.009325838726318031,
+      "exit_reason": "ATR TRAILING STOP: price=66969.0700 <= stop=67063.8897"
+    },
+    {
+      "ts": "2024-03-21 09:30:00+00:00",
+      "entry_price": 67036.03907,
+      "exit_price": 66750.0,
+      "pnl_pct": -0.004266944675852832,
+      "exit_reason": "ATR TRAILING STOP: price=66750.0000 <= stop=66893.5657"
+    },
+    {
+      "ts": "2024-03-21 13:30:00+00:00",
+      "entry_price": 66816.74999999999,
+      "exit_price": 67035.99,
+      "pnl_pct": 0.003281213168853915,
+      "exit_reason": "ATR TRAILING STOP: price=67035.9900 <= stop=67142.4822"
+    },
+    {
+      "ts": "2024-03-21 15:00:00+00:00",
+      "entry_price": 67103.02599,
+      "exit_price": 66316.0,
+      "pnl_pct": -0.011728621450205255,
+      "exit_reason": "ATR TRAILING STOP: price=66316.0000 <= stop=66589.5593"
+    },
+    {
+      "ts": "2024-03-21 16:15:00+00:00",
+      "entry_price": 66382.31599999999,
+      "exit_price": 66672.01,
+      "pnl_pct": 0.004364023695708405,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-22 08:30:00+00:00",
+      "entry_price": 65991.4255,
+      "exit_price": 65932.0,
+      "pnl_pct": -0.0009005033540304044,
+      "exit_reason": "ATR TRAILING STOP: price=65932.0000 <= stop=66166.2748"
+    },
+    {
+      "ts": "2024-03-22 09:30:00+00:00",
+      "entry_price": 65997.93199999999,
+      "exit_price": 65440.85,
+      "pnl_pct": -0.008440900845195994,
+      "exit_reason": "ATR TRAILING STOP: price=65440.8500 <= stop=65647.9639"
+    },
+    {
+      "ts": "2024-03-22 10:15:00+00:00",
+      "entry_price": 65506.29084999999,
+      "exit_price": 64851.62,
+      "pnl_pct": -0.009994014948870943,
+      "exit_reason": "ATR TRAILING STOP: price=64851.6200 <= stop=65141.4112"
+    },
+    {
+      "ts": "2024-03-22 10:45:00+00:00",
+      "entry_price": 64916.47162,
+      "exit_price": 64656.37,
+      "pnl_pct": -0.0040067122181646694,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-23 03:15:00+00:00",
+      "entry_price": 64175.74162999999,
+      "exit_price": 63443.99,
+      "pnl_pct": -0.011402308900750162,
+      "exit_reason": "ATR TRAILING STOP: price=63443.9900 <= stop=63756.6193"
+    },
+    {
+      "ts": "2024-03-23 09:00:00+00:00",
+      "entry_price": 63507.43398999999,
+      "exit_price": 64200.0,
+      "pnl_pct": 0.010905274650351366,
+      "exit_reason": "ATR TRAILING STOP: price=64200.0000 <= stop=64355.1444"
+    },
+    {
+      "ts": "2024-03-23 13:30:00+00:00",
+      "entry_price": 64264.19999999999,
+      "exit_price": 64347.04,
+      "pnl_pct": 0.0012890536255023958,
+      "exit_reason": "ATR TRAILING STOP: price=64347.0400 <= stop=64441.3275"
+    },
+    {
+      "ts": "2024-03-23 15:15:00+00:00",
+      "entry_price": 64411.387039999994,
+      "exit_price": 64818.93,
+      "pnl_pct": 0.006327188075408447,
+      "exit_reason": "ATR TRAILING STOP: price=64818.9300 <= stop=64882.5049"
+    },
+    {
+      "ts": "2024-03-23 19:15:00+00:00",
+      "entry_price": 64883.748929999994,
+      "exit_price": 65121.98,
+      "pnl_pct": 0.0036716600678703866,
+      "exit_reason": "ATR TRAILING STOP: price=65121.9800 <= stop=65247.2909"
+    },
+    {
+      "ts": "2024-03-23 22:45:00+00:00",
+      "entry_price": 65187.10198,
+      "exit_price": 64747.86,
+      "pnl_pct": -0.006738173145582731,
+      "exit_reason": "ATR TRAILING STOP: price=64747.8600 <= stop=64764.5894"
+    },
+    {
+      "ts": "2024-03-24 16:45:00+00:00",
+      "entry_price": 64948.88399999999,
+      "exit_price": 65249.04,
+      "pnl_pct": 0.004621418899207106,
+      "exit_reason": "ATR TRAILING STOP: price=65249.0400 <= stop=65444.4310"
+    },
+    {
+      "ts": "2024-03-24 17:00:00+00:00",
+      "entry_price": 65314.289039999996,
+      "exit_price": 64869.86,
+      "pnl_pct": -0.006804468769886123,
+      "exit_reason": "ATR TRAILING STOP: price=64869.8600 <= stop=64924.2935"
+    },
+    {
+      "ts": "2024-03-25 00:00:00+00:00",
+      "entry_price": 64934.72985999999,
+      "exit_price": 66863.93,
+      "pnl_pct": 0.029709835463385743,
+      "exit_reason": "ATR TRAILING STOP: price=66863.9300 <= stop=67117.3475"
+    },
+    {
+      "ts": "2024-03-25 06:00:00+00:00",
+      "entry_price": 66930.79392999999,
+      "exit_price": 67174.97,
+      "pnl_pct": 0.003648187264226823,
+      "exit_reason": "ATR TRAILING STOP: price=67174.9700 <= stop=67214.7102"
+    },
+    {
+      "ts": "2024-03-25 07:45:00+00:00",
+      "entry_price": 67242.14497,
+      "exit_price": 66821.19,
+      "pnl_pct": -0.006260284679910199,
+      "exit_reason": "ATR TRAILING STOP: price=66821.1900 <= stop=66822.3680"
+    },
+    {
+      "ts": "2024-03-25 10:30:00+00:00",
+      "entry_price": 66888.01118999999,
+      "exit_price": 66960.01,
+      "pnl_pct": 0.0010764082937895557,
+      "exit_reason": "ATR TRAILING STOP: price=66960.0100 <= stop=66968.8571"
+    },
+    {
+      "ts": "2024-03-25 21:00:00+00:00",
+      "entry_price": 67026.97000999999,
+      "exit_price": 70385.99,
+      "pnl_pct": 0.0501144537713531,
+      "exit_reason": "ATR TRAILING STOP: price=70385.9900 <= stop=70533.5760"
+    },
+    {
+      "ts": "2024-03-25 21:15:00+00:00",
+      "entry_price": 70456.37599,
+      "exit_price": 69810.0,
+      "pnl_pct": -0.009174130529957171,
+      "exit_reason": "ATR TRAILING STOP: price=69810.0000 <= stop=70020.4887"
+    },
+    {
+      "ts": "2024-03-26 05:45:00+00:00",
+      "entry_price": 69879.81,
+      "exit_price": 70300.0,
+      "pnl_pct": 0.0060130386731160595,
+      "exit_reason": "ATR TRAILING STOP: price=70300.0000 <= stop=70300.8614"
+    },
+    {
+      "ts": "2024-03-26 07:30:00+00:00",
+      "entry_price": 70370.29999999999,
+      "exit_price": 71144.0,
+      "pnl_pct": 0.010994695205221689,
+      "exit_reason": "ATR TRAILING STOP: price=71144.0000 <= stop=71191.9904"
+    },
+    {
+      "ts": "2024-03-26 07:45:00+00:00",
+      "entry_price": 71215.14399999999,
+      "exit_price": 70486.38,
+      "pnl_pct": -0.010233272855559783,
+      "exit_reason": "ATR TRAILING STOP: price=70486.3800 <= stop=70638.8423"
+    },
+    {
+      "ts": "2024-03-26 13:30:00+00:00",
+      "entry_price": 70556.86637999999,
+      "exit_price": 70554.01,
+      "pnl_pct": -4.0483373859232375e-05,
+      "exit_reason": "ATR TRAILING STOP: price=70554.0100 <= stop=70753.4421"
+    },
+    {
+      "ts": "2024-03-26 14:15:00+00:00",
+      "entry_price": 70624.56400999999,
+      "exit_price": 69586.35,
+      "pnl_pct": -0.014700466113362159,
+      "exit_reason": "ATR TRAILING STOP: price=69586.3500 <= stop=70258.5455"
+    },
+    {
+      "ts": "2024-03-26 15:30:00+00:00",
+      "entry_price": 69655.93635,
+      "exit_price": 70281.22,
+      "pnl_pct": 0.008976746028624702,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-27 07:00:00+00:00",
+      "entry_price": 70536.60613999999,
+      "exit_price": 70054.0,
+      "pnl_pct": -0.006841924589370228,
+      "exit_reason": "ATR TRAILING STOP: price=70054.0000 <= stop=70200.0093"
+    },
+    {
+      "ts": "2024-03-27 07:15:00+00:00",
+      "entry_price": 70124.05399999999,
+      "exit_price": 69815.99,
+      "pnl_pct": -0.004393128782885028,
+      "exit_reason": "ATR TRAILING STOP: price=69815.9900 <= stop=69830.7835"
+    },
+    {
+      "ts": "2024-03-27 08:30:00+00:00",
+      "entry_price": 69885.80599,
+      "exit_price": 69684.0,
+      "pnl_pct": -0.002887653467556345,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-27 13:30:00+00:00",
+      "entry_price": 71729.658,
+      "exit_price": 70567.31,
+      "pnl_pct": -0.016204566317603218,
+      "exit_reason": "ATR TRAILING STOP: price=70567.3100 <= stop=70911.6779"
+    },
+    {
+      "ts": "2024-03-27 14:00:00+00:00",
+      "entry_price": 70637.87731,
+      "exit_price": 69196.0,
+      "pnl_pct": -0.02041224007443205,
+      "exit_reason": "ATR TRAILING STOP: price=69196.0000 <= stop=69788.0667"
+    },
+    {
+      "ts": "2024-03-27 16:00:00+00:00",
+      "entry_price": 69265.196,
+      "exit_price": 68648.07,
+      "pnl_pct": -0.00890961169011908,
+      "exit_reason": "ATR TRAILING STOP: price=68648.0700 <= stop=68710.6895"
+    },
+    {
+      "ts": "2024-03-28 02:30:00+00:00",
+      "entry_price": 69664.90530999999,
+      "exit_price": 68980.0,
+      "pnl_pct": -0.009831425262867231,
+      "exit_reason": "ATR TRAILING STOP: price=68980.0000 <= stop=69247.0085"
+    },
+    {
+      "ts": "2024-03-28 10:15:00+00:00",
+      "entry_price": 69048.98,
+      "exit_price": 70349.19,
+      "pnl_pct": 0.018830256435359457,
+      "exit_reason": "ATR TRAILING STOP: price=70349.1900 <= stop=70448.7918"
+    },
+    {
+      "ts": "2024-03-28 15:15:00+00:00",
+      "entry_price": 70419.53919,
+      "exit_price": 71063.98,
+      "pnl_pct": 0.009151448836681888,
+      "exit_reason": "ATR TRAILING STOP: price=71063.9800 <= stop=71124.9345"
+    },
+    {
+      "ts": "2024-03-28 16:00:00+00:00",
+      "entry_price": 71135.04397999999,
+      "exit_price": 70796.01,
+      "pnl_pct": -0.004766061297372842,
+      "exit_reason": "ATR TRAILING STOP: price=70796.0100 <= stop=70812.5567"
+    },
+    {
+      "ts": "2024-03-28 23:30:00+00:00",
+      "entry_price": 70866.80600999999,
+      "exit_price": 70728.4,
+      "pnl_pct": -0.0019530442783107947,
+      "exit_reason": "ATR TRAILING STOP: price=70728.4000 <= stop=70778.0379"
+    },
+    {
+      "ts": "2024-03-29 03:15:00+00:00",
+      "entry_price": 70787.31659999999,
+      "exit_price": 70304.97,
+      "pnl_pct": -0.00681402577704139,
+      "exit_reason": "ATR TRAILING STOP: price=70304.9700 <= stop=70616.3197"
+    },
+    {
+      "ts": "2024-03-29 15:30:00+00:00",
+      "entry_price": 70131.89183,
+      "exit_price": 69386.0,
+      "pnl_pct": -0.01063555838202737,
+      "exit_reason": "ATR TRAILING STOP: price=69386.0000 <= stop=69768.6663"
+    },
+    {
+      "ts": "2024-03-29 16:30:00+00:00",
+      "entry_price": 69455.386,
+      "exit_price": 69334.96,
+      "pnl_pct": -0.0017338612156009355,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-03-30 03:15:00+00:00",
+      "entry_price": 70002.83289999998,
+      "exit_price": 69882.05,
+      "pnl_pct": -0.0017254001730546613,
+      "exit_reason": "ATR TRAILING STOP: price=69882.0500 <= stop=69925.1805"
+    },
+    {
+      "ts": "2024-03-30 07:45:00+00:00",
+      "entry_price": 69951.93204999999,
+      "exit_price": 69852.18,
+      "pnl_pct": -0.001426008504364041,
+      "exit_reason": "ATR TRAILING STOP: price=69852.1800 <= stop=69920.6369"
+    },
+    {
+      "ts": "2024-03-30 14:30:00+00:00",
+      "entry_price": 69922.03217999998,
+      "exit_price": 70034.1,
+      "pnl_pct": 0.001602754046271567,
+      "exit_reason": "ATR TRAILING STOP: price=70034.1000 <= stop=70099.3531"
+    },
+    {
+      "ts": "2024-03-31 12:30:00+00:00",
+      "entry_price": 69989.90999,
+      "exit_price": 70411.96,
+      "pnl_pct": 0.006030155061784018,
+      "exit_reason": "ATR TRAILING STOP: price=70411.9600 <= stop=70413.5565"
+    },
+    {
+      "ts": "2024-03-31 15:00:00+00:00",
+      "entry_price": 70482.37196,
+      "exit_price": 70405.98,
+      "pnl_pct": -0.0010838449086725103,
+      "exit_reason": "ATR TRAILING STOP: price=70405.9800 <= stop=70492.5262"
+    },
+    {
+      "ts": "2024-03-31 20:30:00+00:00",
+      "entry_price": 70476.38597999999,
+      "exit_price": 70759.99,
+      "pnl_pct": 0.004024099931578436,
+      "exit_reason": "ATR TRAILING STOP: price=70759.9900 <= stop=70825.9092"
+    },
+    {
+      "ts": "2024-04-01 00:30:00+00:00",
+      "entry_price": 70830.74999,
+      "exit_price": 70919.74,
+      "pnl_pct": 0.0012563753738675982,
+      "exit_reason": "ATR TRAILING STOP: price=70919.7400 <= stop=71043.8707"
+    },
+    {
+      "ts": "2024-04-01 01:30:00+00:00",
+      "entry_price": 70990.65974,
+      "exit_price": 70844.2,
+      "pnl_pct": -0.002063084644323742,
+      "exit_reason": "ATR TRAILING STOP: price=70844.2000 <= stop=70893.1590"
+    },
+    {
+      "ts": "2024-04-01 03:30:00+00:00",
+      "entry_price": 70915.04419999999,
+      "exit_price": 70562.41,
+      "pnl_pct": -0.004972628924907106,
+      "exit_reason": "ATR TRAILING STOP: price=70562.4100 <= stop=70583.3522"
+    },
+    {
+      "ts": "2024-04-01 04:45:00+00:00",
+      "entry_price": 70632.97241,
+      "exit_price": 70429.99,
+      "pnl_pct": -0.0028737628203122207,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-02 00:15:00+00:00",
+      "entry_price": 69807.3376,
+      "exit_price": 69410.81,
+      "pnl_pct": -0.005680314041943941,
+      "exit_reason": "ATR TRAILING STOP: price=69410.8100 <= stop=69511.6112"
+    },
+    {
+      "ts": "2024-04-02 00:30:00+00:00",
+      "entry_price": 69480.22080999998,
+      "exit_price": 69149.25,
+      "pnl_pct": -0.004763525592485583,
+      "exit_reason": "ATR TRAILING STOP: price=69149.2500 <= stop=69179.3817"
+    },
+    {
+      "ts": "2024-04-02 02:15:00+00:00",
+      "entry_price": 69218.39924999999,
+      "exit_price": 68447.76,
+      "pnl_pct": -0.011133445129475355,
+      "exit_reason": "ATR TRAILING STOP: price=68447.7600 <= stop=69194.0937"
+    },
+    {
+      "ts": "2024-04-02 02:30:00+00:00",
+      "entry_price": 68516.20775999999,
+      "exit_price": 66696.0,
+      "pnl_pct": -0.02656609026547196,
+      "exit_reason": "ATR TRAILING STOP: price=66696.0000 <= stop=68118.1275"
+    },
+    {
+      "ts": "2024-04-02 03:00:00+00:00",
+      "entry_price": 66762.696,
+      "exit_price": 67018.99,
+      "pnl_pct": 0.003838880323227345,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-03 00:15:00+00:00",
+      "entry_price": 65716.08042999999,
+      "exit_price": 65100.0,
+      "pnl_pct": -0.009374880941906283,
+      "exit_reason": "ATR TRAILING STOP: price=65100.0000 <= stop=65340.8419"
+    },
+    {
+      "ts": "2024-04-03 01:30:00+00:00",
+      "entry_price": 65165.09999999999,
+      "exit_price": 65452.0,
+      "pnl_pct": 0.004402663388838639,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-03 05:30:00+00:00",
+      "entry_price": 66281.01479999999,
+      "exit_price": 66003.31,
+      "pnl_pct": -0.004189809115595983,
+      "exit_reason": "ATR TRAILING STOP: price=66003.3100 <= stop=66003.5920"
+    },
+    {
+      "ts": "2024-04-03 07:45:00+00:00",
+      "entry_price": 66069.31330999998,
+      "exit_price": 66135.99,
+      "pnl_pct": 0.0010091930225938968,
+      "exit_reason": "ATR TRAILING STOP: price=66135.9900 <= stop=66142.0540"
+    },
+    {
+      "ts": "2024-04-03 10:30:00+00:00",
+      "entry_price": 66202.12599,
+      "exit_price": 66116.0,
+      "pnl_pct": -0.0013009550480751933,
+      "exit_reason": "ATR TRAILING STOP: price=66116.0000 <= stop=66277.4090"
+    },
+    {
+      "ts": "2024-04-03 11:00:00+00:00",
+      "entry_price": 66182.116,
+      "exit_price": 65668.76,
+      "pnl_pct": -0.007756717842022455,
+      "exit_reason": "ATR TRAILING STOP: price=65668.7600 <= stop=65833.3234"
+    },
+    {
+      "ts": "2024-04-03 14:15:00+00:00",
+      "entry_price": 65734.42875999998,
+      "exit_price": 66764.88,
+      "pnl_pct": 0.015675974667130037,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-03 18:00:00+00:00",
+      "entry_price": 66524.458,
+      "exit_price": 65768.01,
+      "pnl_pct": -0.011370975769543346,
+      "exit_reason": "ATR TRAILING STOP: price=65768.0100 <= stop=65782.7876"
+    },
+    {
+      "ts": "2024-04-03 20:15:00+00:00",
+      "entry_price": 65833.77801,
+      "exit_price": 65727.99,
+      "pnl_pct": -0.0016068956271037696,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-08 17:15:00+00:00",
+      "entry_price": 71929.84799,
+      "exit_price": 71337.62,
+      "pnl_pct": -0.00823341083776979,
+      "exit_reason": "ATR TRAILING STOP: price=71337.6200 <= stop=71386.6827"
+    },
+    {
+      "ts": "2024-04-08 20:00:00+00:00",
+      "entry_price": 71408.95761999999,
+      "exit_price": 71628.0,
+      "pnl_pct": 0.003067435617330239,
+      "exit_reason": "ATR TRAILING STOP: price=71628.0000 <= stop=71638.0087"
+    },
+    {
+      "ts": "2024-04-08 23:45:00+00:00",
+      "entry_price": 71699.628,
+      "exit_price": 71620.0,
+      "pnl_pct": -0.0011105775890496528,
+      "exit_reason": "ATR TRAILING STOP: price=71620.0000 <= stop=71671.4844"
+    },
+    {
+      "ts": "2024-04-09 01:00:00+00:00",
+      "entry_price": 71691.62,
+      "exit_price": 71073.41,
+      "pnl_pct": -0.00862318357431443,
+      "exit_reason": "ATR TRAILING STOP: price=71073.4100 <= stop=71395.5618"
+    },
+    {
+      "ts": "2024-04-10 08:00:00+00:00",
+      "entry_price": 69438.61924999999,
+      "exit_price": 69030.03,
+      "pnl_pct": -0.005884178781391741,
+      "exit_reason": "ATR TRAILING STOP: price=69030.0300 <= stop=69211.6347"
+    },
+    {
+      "ts": "2024-04-10 10:30:00+00:00",
+      "entry_price": 69099.06003,
+      "exit_price": 68806.76,
+      "pnl_pct": -0.0042301592796355515,
+      "exit_reason": "ATR TRAILING STOP: price=68806.7600 <= stop=68828.0383"
+    },
+    {
+      "ts": "2024-04-11 00:15:00+00:00",
+      "entry_price": 69371.94264,
+      "exit_price": 70364.03,
+      "pnl_pct": 0.0143009885876825,
+      "exit_reason": "ATR TRAILING STOP: price=70364.0300 <= stop=70364.5574"
+    },
+    {
+      "ts": "2024-04-11 04:00:00+00:00",
+      "entry_price": 70434.39403,
+      "exit_price": 70597.76,
+      "pnl_pct": 0.0023194061970692437,
+      "exit_reason": "ATR TRAILING STOP: price=70597.7600 <= stop=70719.5913"
+    },
+    {
+      "ts": "2024-04-11 09:30:00+00:00",
+      "entry_price": 70668.35775999998,
+      "exit_price": 70751.95,
+      "pnl_pct": 0.0011828807495980604,
+      "exit_reason": "ATR TRAILING STOP: price=70751.9500 <= stop=70839.4908"
+    },
+    {
+      "ts": "2024-04-11 11:30:00+00:00",
+      "entry_price": 70822.70194999999,
+      "exit_price": 70324.01,
+      "pnl_pct": -0.007041413787800187,
+      "exit_reason": "ATR TRAILING STOP: price=70324.0100 <= stop=70406.1964"
+    },
+    {
+      "ts": "2024-04-11 11:45:00+00:00",
+      "entry_price": 70394.33400999999,
+      "exit_price": 69983.16,
+      "pnl_pct": -0.005841010015686459,
+      "exit_reason": "ATR TRAILING STOP: price=69983.1600 <= stop=70025.3439"
+    },
+    {
+      "ts": "2024-04-11 12:30:00+00:00",
+      "entry_price": 70053.14315999999,
+      "exit_price": 70824.01,
+      "pnl_pct": 0.011004029301574061,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-11 21:15:00+00:00",
+      "entry_price": 70594.51398999999,
+      "exit_price": 70203.98,
+      "pnl_pct": -0.005532072790462401,
+      "exit_reason": "ATR TRAILING STOP: price=70203.9800 <= stop=70226.6137"
+    },
+    {
+      "ts": "2024-04-12 06:15:00+00:00",
+      "entry_price": 70274.18397999999,
+      "exit_price": 70809.33,
+      "pnl_pct": 0.0076151153907716256,
+      "exit_reason": "ATR TRAILING STOP: price=70809.3300 <= stop=70826.4317"
+    },
+    {
+      "ts": "2024-04-12 09:30:00+00:00",
+      "entry_price": 70880.13932999999,
+      "exit_price": 70608.0,
+      "pnl_pct": -0.003839429952768279,
+      "exit_reason": "ATR TRAILING STOP: price=70608.0000 <= stop=70618.5495"
+    },
+    {
+      "ts": "2024-04-12 12:30:00+00:00",
+      "entry_price": 70678.608,
+      "exit_price": 70396.69,
+      "pnl_pct": -0.003988731639989155,
+      "exit_reason": "ATR TRAILING STOP: price=70396.6900 <= stop=70797.1057"
+    },
+    {
+      "ts": "2024-04-12 13:15:00+00:00",
+      "entry_price": 70467.08669,
+      "exit_price": 70147.98,
+      "pnl_pct": -0.004528450160055858,
+      "exit_reason": "ATR TRAILING STOP: price=70147.9800 <= stop=70257.5415"
+    },
+    {
+      "ts": "2024-04-12 14:00:00+00:00",
+      "entry_price": 70218.12797999999,
+      "exit_price": 69776.06,
+      "pnl_pct": -0.006295638928538587,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-13 12:00:00+00:00",
+      "entry_price": 67412.82547999998,
+      "exit_price": 67227.98,
+      "pnl_pct": -0.002741992768940221,
+      "exit_reason": "ATR TRAILING STOP: price=67227.9800 <= stop=67291.4242"
+    },
+    {
+      "ts": "2024-04-13 16:00:00+00:00",
+      "entry_price": 67295.20797999999,
+      "exit_price": 67489.01,
+      "pnl_pct": 0.002879878461146898,
+      "exit_reason": "ATR TRAILING STOP: price=67489.0100 <= stop=67579.4602"
+    },
+    {
+      "ts": "2024-04-13 17:00:00+00:00",
+      "entry_price": 67556.49900999998,
+      "exit_price": 67047.24,
+      "pnl_pct": -0.007538268226785955,
+      "exit_reason": "ATR TRAILING STOP: price=67047.2400 <= stop=67128.1136"
+    },
+    {
+      "ts": "2024-04-13 18:15:00+00:00",
+      "entry_price": 67114.28724,
+      "exit_price": 66875.29,
+      "pnl_pct": -0.003561048620621714,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-14 09:15:00+00:00",
+      "entry_price": 64714.609959999994,
+      "exit_price": 64340.76,
+      "pnl_pct": -0.005776902004525229,
+      "exit_reason": "ATR TRAILING STOP: price=64340.7600 <= stop=64349.8533"
+    },
+    {
+      "ts": "2024-04-14 11:15:00+00:00",
+      "entry_price": 64405.100759999994,
+      "exit_price": 64110.13,
+      "pnl_pct": -0.004579928554093555,
+      "exit_reason": "ATR TRAILING STOP: price=64110.1300 <= stop=64167.1518"
+    },
+    {
+      "ts": "2024-04-14 14:00:00+00:00",
+      "entry_price": 64174.24012999999,
+      "exit_price": 64036.56,
+      "pnl_pct": -0.0021454111450496327,
+      "exit_reason": "ATR TRAILING STOP: price=64036.5600 <= stop=64238.2301"
+    },
+    {
+      "ts": "2024-04-14 17:00:00+00:00",
+      "entry_price": 64100.59655999999,
+      "exit_price": 63757.0,
+      "pnl_pct": -0.005360270862352657,
+      "exit_reason": "ATR TRAILING STOP: price=63757.0000 <= stop=64186.1152"
+    },
+    {
+      "ts": "2024-04-15 04:00:00+00:00",
+      "entry_price": 65395.6303,
+      "exit_price": 64791.83,
+      "pnl_pct": -0.009233037394548903,
+      "exit_reason": "ATR TRAILING STOP: price=64791.8300 <= stop=64996.2591"
+    },
+    {
+      "ts": "2024-04-15 11:30:00+00:00",
+      "entry_price": 64856.62183,
+      "exit_price": 65999.99,
+      "pnl_pct": 0.01762916627074668,
+      "exit_reason": "ATR TRAILING STOP: price=65999.9900 <= stop=66138.6232"
+    },
+    {
+      "ts": "2024-04-15 13:45:00+00:00",
+      "entry_price": 66065.98999,
+      "exit_price": 65865.77,
+      "pnl_pct": -0.003030606065697401,
+      "exit_reason": "ATR TRAILING STOP: price=65865.7700 <= stop=65905.1678"
+    },
+    {
+      "ts": "2024-04-15 14:00:00+00:00",
+      "entry_price": 65931.63577,
+      "exit_price": 65205.43,
+      "pnl_pct": -0.011014526812793397,
+      "exit_reason": "ATR TRAILING STOP: price=65205.4300 <= stop=65533.4525"
+    },
+    {
+      "ts": "2024-04-15 14:45:00+00:00",
+      "entry_price": 65270.635429999995,
+      "exit_price": 64235.24,
+      "pnl_pct": -0.015863112457521804,
+      "exit_reason": "ATR TRAILING STOP: price=64235.2400 <= stop=64804.4645"
+    },
+    {
+      "ts": "2024-04-15 15:15:00+00:00",
+      "entry_price": 64299.47523999999,
+      "exit_price": 64656.65,
+      "pnl_pct": 0.00555486275225174,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-16 10:15:00+00:00",
+      "entry_price": 63394.34101,
+      "exit_price": 61899.99,
+      "pnl_pct": -0.02357230923442008,
+      "exit_reason": "ATR TRAILING STOP: price=61899.9900 <= stop=63025.8152"
+    },
+    {
+      "ts": "2024-04-16 11:45:00+00:00",
+      "entry_price": 61961.88998999999,
+      "exit_price": 63094.77,
+      "pnl_pct": 0.018283496681312388,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-17 06:00:00+00:00",
+      "entry_price": 62763.94123999999,
+      "exit_price": 63899.53,
+      "pnl_pct": 0.018093012286428654,
+      "exit_reason": "ATR TRAILING STOP: price=63899.5300 <= stop=63918.8071"
+    },
+    {
+      "ts": "2024-04-17 07:00:00+00:00",
+      "entry_price": 63963.429529999994,
+      "exit_price": 63524.91,
+      "pnl_pct": -0.006855785145077579,
+      "exit_reason": "ATR TRAILING STOP: price=63524.9100 <= stop=63620.5758"
+    },
+    {
+      "ts": "2024-04-17 09:45:00+00:00",
+      "entry_price": 63588.434909999996,
+      "exit_price": 63320.16,
+      "pnl_pct": -0.00421892613617077,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-18 04:45:00+00:00",
+      "entry_price": 61669.14753999999,
+      "exit_price": 61640.06,
+      "pnl_pct": -0.00047167086234046514,
+      "exit_reason": "ATR TRAILING STOP: price=61640.0600 <= stop=61759.2030"
+    },
+    {
+      "ts": "2024-04-18 05:45:00+00:00",
+      "entry_price": 61701.70005999999,
+      "exit_price": 61072.02,
+      "pnl_pct": -0.010205230315982831,
+      "exit_reason": "ATR TRAILING STOP: price=61072.0200 <= stop=61291.0004"
+    },
+    {
+      "ts": "2024-04-18 07:45:00+00:00",
+      "entry_price": 61133.09201999999,
+      "exit_price": 61178.08,
+      "pnl_pct": 0.0007359022505404205,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-18 12:15:00+00:00",
+      "entry_price": 62996.27333999999,
+      "exit_price": 62120.19,
+      "pnl_pct": -0.013906907401833783,
+      "exit_reason": "ATR TRAILING STOP: price=62120.1900 <= stop=62412.1441"
+    },
+    {
+      "ts": "2024-04-18 17:30:00+00:00",
+      "entry_price": 62182.31019,
+      "exit_price": 63197.55,
+      "pnl_pct": 0.016326826824186964,
+      "exit_reason": "ATR TRAILING STOP: price=63197.5500 <= stop=63218.2332"
+    },
+    {
+      "ts": "2024-04-18 18:00:00+00:00",
+      "entry_price": 63260.74754999999,
+      "exit_price": 62386.55,
+      "pnl_pct": -0.013818956997133841,
+      "exit_reason": "ATR TRAILING STOP: price=62386.5500 <= stop=62542.6967"
+    },
+    {
+      "ts": "2024-04-19 00:00:00+00:00",
+      "entry_price": 62448.93655,
+      "exit_price": 62913.99,
+      "pnl_pct": 0.007446939462734525,
+      "exit_reason": "ATR TRAILING STOP: price=62913.9900 <= stop=63323.3041"
+    },
+    {
+      "ts": "2024-04-19 01:00:00+00:00",
+      "entry_price": 62976.90398999999,
+      "exit_price": 62133.99,
+      "pnl_pct": -0.01338449394295151,
+      "exit_reason": "ATR TRAILING STOP: price=62133.9900 <= stop=62590.2883"
+    },
+    {
+      "ts": "2024-04-19 01:30:00+00:00",
+      "entry_price": 62196.12398999999,
+      "exit_price": 61041.76,
+      "pnl_pct": -0.018560063167048665,
+      "exit_reason": "ATR TRAILING STOP: price=61041.7600 <= stop=61634.5483"
+    },
+    {
+      "ts": "2024-04-19 11:45:00+00:00",
+      "entry_price": 64504.30987,
+      "exit_price": 64870.74,
+      "pnl_pct": 0.0056807077036944145,
+      "exit_reason": "ATR TRAILING STOP: price=64870.7400 <= stop=64994.5055"
+    },
+    {
+      "ts": "2024-04-19 14:00:00+00:00",
+      "entry_price": 64935.61073999999,
+      "exit_price": 64560.89,
+      "pnl_pct": -0.0057706508913939235,
+      "exit_reason": "ATR TRAILING STOP: price=64560.8900 <= stop=64665.4878"
+    },
+    {
+      "ts": "2024-04-19 16:15:00+00:00",
+      "entry_price": 64625.45088999999,
+      "exit_price": 63799.36,
+      "pnl_pct": -0.012782748570777396,
+      "exit_reason": "ATR TRAILING STOP: price=63799.3600 <= stop=63865.5647"
+    },
+    {
+      "ts": "2024-04-19 20:30:00+00:00",
+      "entry_price": 63863.15935999999,
+      "exit_price": 63860.55,
+      "pnl_pct": -4.0858611226521796e-05,
+      "exit_reason": "ATR TRAILING STOP: price=63860.5500 <= stop=63879.5200"
+    },
+    {
+      "ts": "2024-04-20 08:00:00+00:00",
+      "entry_price": 64110.11606999999,
+      "exit_price": 63784.61,
+      "pnl_pct": -0.005077296532181877,
+      "exit_reason": "ATR TRAILING STOP: price=63784.6100 <= stop=63786.9869"
+    },
+    {
+      "ts": "2024-04-20 09:00:00+00:00",
+      "entry_price": 63848.394609999996,
+      "exit_price": 63547.28,
+      "pnl_pct": -0.004716087410486528,
+      "exit_reason": "ATR TRAILING STOP: price=63547.2800 <= stop=63693.9526"
+    },
+    {
+      "ts": "2024-04-20 10:15:00+00:00",
+      "entry_price": 63610.82727999999,
+      "exit_price": 63527.15,
+      "pnl_pct": -0.001315456559488861,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-20 19:00:00+00:00",
+      "entry_price": 64672.70809999999,
+      "exit_price": 64798.6,
+      "pnl_pct": 0.0019466000991538756,
+      "exit_reason": "ATR TRAILING STOP: price=64798.6000 <= stop=64835.1626"
+    },
+    {
+      "ts": "2024-04-21 03:15:00+00:00",
+      "entry_price": 64863.39859999999,
+      "exit_price": 65168.0,
+      "pnl_pct": 0.004696044403692514,
+      "exit_reason": "ATR TRAILING STOP: price=65168.0000 <= stop=65263.9939"
+    },
+    {
+      "ts": "2024-04-21 08:45:00+00:00",
+      "entry_price": 65233.16799999999,
+      "exit_price": 64926.83,
+      "pnl_pct": -0.004696046649152298,
+      "exit_reason": "ATR TRAILING STOP: price=64926.8300 <= stop=64938.6338"
+    },
+    {
+      "ts": "2024-04-21 12:45:00+00:00",
+      "entry_price": 64991.75682999999,
+      "exit_price": 65004.24,
+      "pnl_pct": 0.00019207312756076478,
+      "exit_reason": "ATR TRAILING STOP: price=65004.2400 <= stop=65111.7424"
+    },
+    {
+      "ts": "2024-04-21 16:00:00+00:00",
+      "entry_price": 65141.98691,
+      "exit_price": 64510.0,
+      "pnl_pct": -0.009701683046191869,
+      "exit_reason": "ATR TRAILING STOP: price=64510.0000 <= stop=64844.3681"
+    },
+    {
+      "ts": "2024-04-21 17:30:00+00:00",
+      "entry_price": 64698.65401999999,
+      "exit_price": 64750.16,
+      "pnl_pct": 0.0007960904408319604,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-22 01:45:00+00:00",
+      "entry_price": 65175.10999999999,
+      "exit_price": 64658.0,
+      "pnl_pct": -0.007934163824195975,
+      "exit_reason": "ATR TRAILING STOP: price=64658.0000 <= stop=64712.4721"
+    },
+    {
+      "ts": "2024-04-22 07:15:00+00:00",
+      "entry_price": 64722.657999999996,
+      "exit_price": 66037.79,
+      "pnl_pct": 0.020319499239354444,
+      "exit_reason": "ATR TRAILING STOP: price=66037.7900 <= stop=66042.7087"
+    },
+    {
+      "ts": "2024-04-22 11:30:00+00:00",
+      "entry_price": 66103.82778999998,
+      "exit_price": 65842.22,
+      "pnl_pct": -0.003957528614395237,
+      "exit_reason": "ATR TRAILING STOP: price=65842.2200 <= stop=65900.3338"
+    },
+    {
+      "ts": "2024-04-22 13:30:00+00:00",
+      "entry_price": 65908.06221999999,
+      "exit_price": 65924.28,
+      "pnl_pct": 0.00024606670950014643,
+      "exit_reason": "ATR TRAILING STOP: price=65924.2800 <= stop=65968.1267"
+    },
+    {
+      "ts": "2024-04-22 14:45:00+00:00",
+      "entry_price": 65990.20427999999,
+      "exit_price": 66031.77,
+      "pnl_pct": 0.0006298771227263921,
+      "exit_reason": "ATR TRAILING STOP: price=66031.7700 <= stop=66188.4961"
+    },
+    {
+      "ts": "2024-04-22 19:15:00+00:00",
+      "entry_price": 66097.80176999999,
+      "exit_price": 66272.02,
+      "pnl_pct": 0.0026357643572813352,
+      "exit_reason": "ATR TRAILING STOP: price=66272.0200 <= stop=66293.3967"
+    },
+    {
+      "ts": "2024-04-22 23:30:00+00:00",
+      "entry_price": 66338.29202,
+      "exit_price": 66844.18,
+      "pnl_pct": 0.007625881894087383,
+      "exit_reason": "ATR TRAILING STOP: price=66844.1800 <= stop=66866.1746"
+    },
+    {
+      "ts": "2024-04-23 01:45:00+00:00",
+      "entry_price": 66911.02417999998,
+      "exit_price": 66780.0,
+      "pnl_pct": -0.0019581852408581462,
+      "exit_reason": "ATR TRAILING STOP: price=66780.0000 <= stop=66781.7702"
+    },
+    {
+      "ts": "2024-04-23 03:45:00+00:00",
+      "entry_price": 66846.78,
+      "exit_price": 66435.01,
+      "pnl_pct": -0.006159907777158512,
+      "exit_reason": "ATR TRAILING STOP: price=66435.0100 <= stop=66491.0624"
+    },
+    {
+      "ts": "2024-04-23 06:00:00+00:00",
+      "entry_price": 66501.44500999998,
+      "exit_price": 66556.0,
+      "pnl_pct": 0.0008203579635271861,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-23 15:30:00+00:00",
+      "entry_price": 66976.68977999999,
+      "exit_price": 66435.14,
+      "pnl_pct": -0.008085645644459719,
+      "exit_reason": "ATR TRAILING STOP: price=66435.1400 <= stop=66508.5260"
+    },
+    {
+      "ts": "2024-04-23 20:00:00+00:00",
+      "entry_price": 66501.57513999999,
+      "exit_price": 66240.0,
+      "pnl_pct": -0.003933367584892762,
+      "exit_reason": "ATR TRAILING STOP: price=66240.0000 <= stop=66480.7626"
+    },
+    {
+      "ts": "2024-04-23 22:30:00+00:00",
+      "entry_price": 66306.23999999999,
+      "exit_price": 66443.98,
+      "pnl_pct": 0.002077330881678787,
+      "exit_reason": "signal_exit"
+    },
+    {
+      "ts": "2024-04-24 05:15:00+00:00",
+      "entry_price": 66776.70999999999,
+      "exit_price": 66767.46,
+      "pnl_pct": -0.00013852134973384357,
+      "exit_reason": "ATR TRAILING STOP: price=66767.4600 <= stop=66781.6402"
+    },
+    {
+      "ts": "2024-04-24 08:45:00+00:00",
+      "entry_price": 66834.22746,
+      "exit_price": 66533.99,
+      "pnl_pct": -0.0044922709726790844,
+      "exit_reason": "ATR TRAILING STOP: price=66533.9900 <= stop=66567.5804"
+    },
+    {
+      "ts": "2024-04-24 10:00:00+00:00",
+      "entry_price": 66600.52399,
+      "exit_price": 66286.02,
+      "pnl_pct": -0.004722244978841606,
+      "exit_reason": "ATR TRAILING STOP: price=66286.0200 <= stop=66325.0585"
+    }
+  ]
+}

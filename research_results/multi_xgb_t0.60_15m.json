@@ -1,0 +1,613 @@
+{
+  "total_return": -0.3009797533235379,
+  "sharpe": -1.3391532216904833,
+  "sortino": -0.5918633359447116,
+  "calmar": -0.8828140799761718,
+  "max_drawdown": -0.34093220775507077,
+  "composite_score": -0.9033355248778812,
+  "num_trades": 522,
+  "win_rate": 0.3620689655172414,
+  "daily_coverage_pct": 0.19235836627140976,
+  "trades": [
+    {
+      "asset": "BTC",
+      "ts": "2024-01-31 02:00:00+00:00",
+      "pnl_pct": -0.007775298547106929,
+      "reason": "ATR TRAILING STOP: price=42746.0800 <= stop=42752.2181"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-01-31 09:00:00+00:00",
+      "pnl_pct": -0.003985253487046952,
+      "reason": "ATR TRAILING STOP: price=100.0600 <= stop=100.4024"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-01-31 09:45:00+00:00",
+      "pnl_pct": -0.010467732407271318,
+      "reason": "ATR TRAILING STOP: price=99.2800 <= stop=99.3883"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-01-31 19:00:00+00:00",
+      "pnl_pct": 0.019703454539250324,
+      "reason": "ATR TRAILING STOP: price=43388.9000 <= stop=43428.9480"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-01-31 20:45:00+00:00",
+      "pnl_pct": -0.012235841735252702,
+      "reason": "ATR TRAILING STOP: price=42541.1800 <= stop=42602.8173"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-01 01:15:00+00:00",
+      "pnl_pct": -0.013120534432354962,
+      "reason": "ATR TRAILING STOP: price=42025.0000 <= stop=42268.6776"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-01 03:15:00+00:00",
+      "pnl_pct": -0.017250591557896194,
+      "reason": "ATR TRAILING STOP: price=93.7300 <= stop=93.8420"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-01 08:00:00+00:00",
+      "pnl_pct": 0.0034059174108315602,
+      "reason": "ATR TRAILING STOP: price=2268.8100 <= stop=2269.1931"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-01 15:45:00+00:00",
+      "pnl_pct": -0.010059229277207973,
+      "reason": "ATR TRAILING STOP: price=42516.1200 <= stop=42646.5608"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-02 17:30:00+00:00",
+      "pnl_pct": -0.002406327823916704,
+      "reason": "ATR TRAILING STOP: price=99.2400 <= stop=99.4062"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-03 00:45:00+00:00",
+      "pnl_pct": 0.005293813208061569,
+      "reason": "ATR TRAILING STOP: price=43229.0700 <= stop=43230.4242"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-06 06:00:00+00:00",
+      "pnl_pct": 0.005478192271355873,
+      "reason": "ATR TRAILING STOP: price=42731.1600 <= stop=42760.3754"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-09 14:15:00+00:00",
+      "pnl_pct": 0.017860922817868226,
+      "reason": "ATR TRAILING STOP: price=46930.8100 <= stop=47270.1680"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-09 19:00:00+00:00",
+      "pnl_pct": 0.002346187018598198,
+      "reason": "ATR TRAILING STOP: price=2492.9900 <= stop=2499.3128"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-09 23:15:00+00:00",
+      "pnl_pct": -0.005622311168487074,
+      "reason": "ATR TRAILING STOP: price=47164.7100 <= stop=47180.9231"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-10 17:00:00+00:00",
+      "pnl_pct": 0.004306738335802481,
+      "reason": "ATR TRAILING STOP: price=47206.2500 <= stop=47230.2473"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-12 01:00:00+00:00",
+      "pnl_pct": 0.005122442314903812,
+      "reason": "ATR TRAILING STOP: price=108.3700 <= stop=108.6170"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-12 07:45:00+00:00",
+      "pnl_pct": 0.00044529858639919646,
+      "reason": "ATR TRAILING STOP: price=48203.9800 <= stop=48214.7129"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-13 02:30:00+00:00",
+      "pnl_pct": 0.0469305957208993,
+      "reason": "ATR TRAILING STOP: price=2656.1200 <= stop=2658.8882"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-13 07:30:00+00:00",
+      "pnl_pct": -0.0025946684608155086,
+      "reason": "ATR TRAILING STOP: price=2644.0500 <= stop=2645.6625"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-13 14:00:00+00:00",
+      "pnl_pct": -0.00910871378925235,
+      "reason": "ATR TRAILING STOP: price=49126.0000 <= stop=49285.5916"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-13 14:45:00+00:00",
+      "pnl_pct": -0.009821347483685006,
+      "reason": "ATR TRAILING STOP: price=48692.1600 <= stop=48882.7812"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-13 16:45:00+00:00",
+      "pnl_pct": -0.004472030943993027,
+      "reason": "ATR TRAILING STOP: price=2602.7400 <= stop=2607.8755"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-14 01:30:00+00:00",
+      "pnl_pct": 0.0069308577803473565,
+      "reason": "ATR TRAILING STOP: price=2623.4000 <= stop=2623.6641"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-14 15:00:00+00:00",
+      "pnl_pct": 0.009802141424241035,
+      "reason": "ATR TRAILING STOP: price=51515.0300 <= stop=51602.5103"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-14 19:00:00+00:00",
+      "pnl_pct": -0.01051113438742638,
+      "reason": "ATR TRAILING STOP: price=51350.3400 <= stop=51436.0897"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-15 01:30:00+00:00",
+      "pnl_pct": -0.011599879487674398,
+      "reason": "ATR TRAILING STOP: price=2774.7500 <= stop=2781.7647"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-15 11:30:00+00:00",
+      "pnl_pct": -0.0019448618174732772,
+      "reason": "ATR TRAILING STOP: price=116.0700 <= stop=116.1835"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-15 15:30:00+00:00",
+      "pnl_pct": -0.011657900624527496,
+      "reason": "ATR TRAILING STOP: price=2828.1000 <= stop=2837.1324"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-15 17:45:00+00:00",
+      "pnl_pct": -0.0026113395394632096,
+      "reason": "ATR TRAILING STOP: price=51875.5900 <= stop=51928.4027"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-15 21:30:00+00:00",
+      "pnl_pct": -0.011630261889712386,
+      "reason": "ATR TRAILING STOP: price=51479.3100 <= stop=51606.5660"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-16 05:45:00+00:00",
+      "pnl_pct": 0.010354793651423009,
+      "reason": "ATR TRAILING STOP: price=52064.3800 <= stop=52076.8029"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-16 07:45:00+00:00",
+      "pnl_pct": -0.004339809960478361,
+      "reason": "ATR TRAILING STOP: price=51731.9900 <= stop=51793.3736"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-16 14:45:00+00:00",
+      "pnl_pct": -0.005823371300350762,
+      "reason": "ATR TRAILING STOP: price=51920.3100 <= stop=51980.4530"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-17 00:45:00+00:00",
+      "pnl_pct": 0.005941488079158834,
+      "reason": "ATR TRAILING STOP: price=52003.8000 <= stop=52029.3255"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-17 08:30:00+00:00",
+      "pnl_pct": -0.0016369326714154291,
+      "reason": "ATR TRAILING STOP: price=109.5500 <= stop=110.1107"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-17 13:00:00+00:00",
+      "pnl_pct": -0.00851166441775393,
+      "reason": "ATR TRAILING STOP: price=108.2200 <= stop=108.7208"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-17 22:00:00+00:00",
+      "pnl_pct": 0.014839233226891752,
+      "reason": "ATR TRAILING STOP: price=2783.4300 <= stop=2784.4349"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-18 10:30:00+00:00",
+      "pnl_pct": -0.0036166972016236526,
+      "reason": "ATR TRAILING STOP: price=51827.0800 <= stop=51830.8691"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-18 12:45:00+00:00",
+      "pnl_pct": -0.011171036894509411,
+      "reason": "ATR TRAILING STOP: price=110.8200 <= stop=110.9091"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-19 08:45:00+00:00",
+      "pnl_pct": 0.008928183105591816,
+      "reason": "ATR TRAILING STOP: price=2906.7000 <= stop=2907.6962"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-19 21:30:00+00:00",
+      "pnl_pct": -0.003389963925356469,
+      "reason": "ATR TRAILING STOP: price=51757.0000 <= stop=51758.7309"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-20 07:45:00+00:00",
+      "pnl_pct": 0.004420761299990039,
+      "reason": "ATR TRAILING STOP: price=51839.2800 <= stop=51857.3046"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-20 14:00:00+00:00",
+      "pnl_pct": -0.012304851257177774,
+      "reason": "ATR TRAILING STOP: price=52242.1300 <= stop=52411.3040"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-20 16:45:00+00:00",
+      "pnl_pct": -0.013521076302999313,
+      "reason": "ATR TRAILING STOP: price=51396.3300 <= stop=51412.8038"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-21 01:30:00+00:00",
+      "pnl_pct": 0.012384875201539422,
+      "reason": "ATR TRAILING STOP: price=52084.9000 <= stop=52095.0659"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-21 09:00:00+00:00",
+      "pnl_pct": -0.0027303010027281234,
+      "reason": "ATR TRAILING STOP: price=2926.2000 <= stop=2933.3833"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-21 09:45:00+00:00",
+      "pnl_pct": -0.009875368292427921,
+      "reason": "ATR TRAILING STOP: price=2900.2000 <= stop=2902.1234"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-21 11:30:00+00:00",
+      "pnl_pct": -0.003522942413364155,
+      "reason": "ATR TRAILING STOP: price=50966.0100 <= stop=50999.6221"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-21 13:30:00+00:00",
+      "pnl_pct": -0.0007616366938959199,
+      "reason": "ATR TRAILING STOP: price=2904.7100 <= stop=2905.6062"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-21 14:15:00+00:00",
+      "pnl_pct": -0.00845872388642574,
+      "reason": "ATR TRAILING STOP: price=2883.0200 <= stop=2885.9240"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-21 17:45:00+00:00",
+      "pnl_pct": 0.004209074218994525,
+      "reason": "ATR TRAILING STOP: price=2898.0500 <= stop=2900.4497"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-22 00:30:00+00:00",
+      "pnl_pct": 0.011004973397488153,
+      "reason": "ATR TRAILING STOP: price=51543.3400 <= stop=51619.5411"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-22 10:30:00+00:00",
+      "pnl_pct": 0.024619386698667374,
+      "reason": "ATR TRAILING STOP: price=3000.0600 <= stop=3007.8830"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-22 12:30:00+00:00",
+      "pnl_pct": -0.008837672064407468,
+      "reason": "ATR TRAILING STOP: price=2976.5200 <= stop=2982.3985"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-22 13:15:00+00:00",
+      "pnl_pct": -0.010502895336117389,
+      "reason": "ATR TRAILING STOP: price=2953.7400 <= stop=2965.0319"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-22 21:00:00+00:00",
+      "pnl_pct": 0.012719024460071721,
+      "reason": "ATR TRAILING STOP: price=2994.3000 <= stop=3007.7371"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-23 02:45:00+00:00",
+      "pnl_pct": -0.00798090144679585,
+      "reason": "ATR TRAILING STOP: price=51096.3900 <= stop=51232.7359"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-23 07:15:00+00:00",
+      "pnl_pct": 0.0010381933531885324,
+      "reason": "ATR TRAILING STOP: price=51138.0000 <= stop=51169.9071"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-23 12:15:00+00:00",
+      "pnl_pct": 3.274601020959957e-05,
+      "reason": "ATR TRAILING STOP: price=2927.1700 <= stop=2929.2453"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-23 22:30:00+00:00",
+      "pnl_pct": -0.001595081694072927,
+      "reason": "ATR TRAILING STOP: price=50834.7100 <= stop=50946.9041"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-24 18:45:00+00:00",
+      "pnl_pct": -0.005372195379146355,
+      "reason": "ATR TRAILING STOP: price=51434.9600 <= stop=51485.9980"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-26 00:00:00+00:00",
+      "pnl_pct": -0.004211769701057489,
+      "reason": "ATR TRAILING STOP: price=51643.3800 <= stop=51648.7772"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-27 03:45:00+00:00",
+      "pnl_pct": 0.09132623899147128,
+      "reason": "ATR TRAILING STOP: price=55667.6000 <= stop=55903.6390"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-27 12:45:00+00:00",
+      "pnl_pct": 0.015869197457843896,
+      "reason": "ATR TRAILING STOP: price=56786.9500 <= stop=57046.3691"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-27 15:30:00+00:00",
+      "pnl_pct": -0.016415964639871116,
+      "reason": "ATR TRAILING STOP: price=107.8200 <= stop=108.7033"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-27 20:30:00+00:00",
+      "pnl_pct": -0.000976687252831582,
+      "reason": "ATR TRAILING STOP: price=56860.0000 <= stop=56941.9272"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-28 01:30:00+00:00",
+      "pnl_pct": -0.0012139610165634229,
+      "reason": "ATR TRAILING STOP: price=56778.7700 <= stop=56810.5619"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-28 11:30:00+00:00",
+      "pnl_pct": 0.041736041736041875,
+      "reason": "ATR TRAILING STOP: price=112.6200 <= stop=113.2628"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-28 17:15:00+00:00",
+      "pnl_pct": 0.031335573829580965,
+      "reason": "ATR TRAILING STOP: price=3423.6900 <= stop=3442.1028"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-02-28 18:15:00+00:00",
+      "pnl_pct": -0.004955084515879945,
+      "reason": "ATR TRAILING STOP: price=110.6700 <= stop=111.4103"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-29 00:45:00+00:00",
+      "pnl_pct": 0.017439607673074446,
+      "reason": "ATR TRAILING STOP: price=61359.9900 <= stop=61535.7851"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-29 02:00:00+00:00",
+      "pnl_pct": -0.01196971395093947,
+      "reason": "ATR TRAILING STOP: price=3411.5000 <= stop=3413.8266"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-29 07:15:00+00:00",
+      "pnl_pct": 0.012251708426411724,
+      "reason": "ATR TRAILING STOP: price=3456.7500 <= stop=3459.8887"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-29 09:15:00+00:00",
+      "pnl_pct": -0.001822651204295737,
+      "reason": "ATR TRAILING STOP: price=3453.9000 <= stop=3463.8139"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-29 12:00:00+00:00",
+      "pnl_pct": 0.00039197542469046295,
+      "reason": "ATR TRAILING STOP: price=3466.5500 <= stop=3477.7202"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-29 16:15:00+00:00",
+      "pnl_pct": -0.01093995323801364,
+      "reason": "ATR TRAILING STOP: price=3439.4900 <= stop=3441.0946"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-02-29 17:30:00+00:00",
+      "pnl_pct": -0.020468217760824015,
+      "reason": "ATR TRAILING STOP: price=60960.3200 <= stop=61332.5587"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-29 21:00:00+00:00",
+      "pnl_pct": -0.008423986420139638,
+      "reason": "ATR TRAILING STOP: price=3349.3300 <= stop=3365.6559"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-02-29 22:30:00+00:00",
+      "pnl_pct": -0.01570365812467943,
+      "reason": "ATR TRAILING STOP: price=3300.0300 <= stop=3308.3904"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-03-01 07:15:00+00:00",
+      "pnl_pct": 0.02192332262967996,
+      "reason": "ATR TRAILING STOP: price=3375.7500 <= stop=3379.2559"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-01 14:15:00+00:00",
+      "pnl_pct": -0.0026467759261280567,
+      "reason": "ATR TRAILING STOP: price=133.1600 <= stop=133.7625"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-01 15:30:00+00:00",
+      "pnl_pct": -0.00635942050694146,
+      "reason": "ATR TRAILING STOP: price=131.6100 <= stop=131.6441"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-01 19:45:00+00:00",
+      "pnl_pct": 0.001678670540670952,
+      "reason": "ATR TRAILING STOP: price=130.9300 <= stop=130.9934"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-01 21:15:00+00:00",
+      "pnl_pct": -0.008018636827924188,
+      "reason": "ATR TRAILING STOP: price=130.0100 <= stop=130.3003"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-01 23:45:00+00:00",
+      "pnl_pct": -0.010403342257008013,
+      "reason": "ATR TRAILING STOP: price=129.4300 <= stop=130.0405"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-02 01:00:00+00:00",
+      "pnl_pct": -0.01226796073431315,
+      "reason": "ATR TRAILING STOP: price=127.9700 <= stop=129.4866"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-02 06:00:00+00:00",
+      "pnl_pct": -0.0009209357494109492,
+      "reason": "ATR TRAILING STOP: price=127.9800 <= stop=128.2027"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-02 08:15:00+00:00",
+      "pnl_pct": -0.003090257548312799,
+      "reason": "ATR TRAILING STOP: price=128.7100 <= stop=128.8166"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-02 09:30:00+00:00",
+      "pnl_pct": -0.00956451242253813,
+      "reason": "ATR TRAILING STOP: price=128.3500 <= stop=128.3552"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-02 14:00:00+00:00",
+      "pnl_pct": -0.0004541621214779777,
+      "reason": "ATR TRAILING STOP: price=128.4200 <= stop=129.1653"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-02 20:00:00+00:00",
+      "pnl_pct": 0.009478936842744048,
+      "reason": "ATR TRAILING STOP: price=129.1000 <= stop=129.4382"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-03 00:00:00+00:00",
+      "pnl_pct": -0.0009215410471515789,
+      "reason": "ATR TRAILING STOP: price=128.9800 <= stop=129.0581"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-03 00:45:00+00:00",
+      "pnl_pct": -0.006475726420131962,
+      "reason": "ATR TRAILING STOP: price=128.8000 <= stop=128.9703"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-03 06:00:00+00:00",
+      "pnl_pct": -0.010452541765051221,
+      "reason": "ATR TRAILING STOP: price=128.7500 <= stop=129.0978"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-03 06:30:00+00:00",
+      "pnl_pct": 0.0015615452508657627,
+      "reason": "ATR TRAILING STOP: price=129.0800 <= stop=129.3069"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-03-03 12:45:00+00:00",
+      "pnl_pct": 0.008033328541344652,
+      "reason": "ATR TRAILING STOP: price=3419.5100 <= stop=3422.2824"
+    },
+    {
+      "asset": "SOL",
+      "ts": "2024-03-03 20:00:00+00:00",
+      "pnl_pct": 0.008087062191540005,
+      "reason": "ATR TRAILING STOP: price=129.8100 <= stop=130.0525"
+    },
+    {
+      "asset": "BTC",
+      "ts": "2024-03-04 00:45:00+00:00",
+      "pnl_pct": 0.009048183188523044,
+      "reason": "ATR TRAILING STOP: price=63459.3000 <= stop=63736.5068"
+    },
+    {
+      "asset": "ETH",
+      "ts": "2024-03-04 05:30:00+00:00",
+      "pnl_pct": -0.005431694174786202,
+      "reason": "ATR TRAILING STOP: price=3464.2900 <= stop=3467.4622"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "n_trades": 607,
+  "trades_per_day": 0.7493827160493827,
+  "active_days": 315,
+  "total_oos_days": 810,
+  "active_pct": 38.88888888888889,
+  "source_counts": {
+    "momentum": 497,
+    "xgb_btc": 96,
+    "mr": 12,
+    "xgb_sol": 2
+  },
+  "coin_counts": {
+    "ETH/USD": 194,
+    "BTC/USD": 218,
+    "SOL/USD": 195
+  },
+  "sharpe": -1.607292025950339,
+  "sortino": -2.2578818190784644,
+  "calmar": -0.0032681749766154244,
+  "composite": -1.386320787909472,
+  "max_drawdown_pct": -30.014076675761302,
+  "total_return_pct": -26.11344483825262,
+  "win_rate_pct": 28.995057660626028,
+  "avg_pnl_pct": -0.054136672923608097,
+  "stop_exits": 103,
+  "signal_exits": 504,
+  "min_active_in_10day_window": 0,
+  "meets_8_of_10": false,
+  "gate_stats": {
+    "kelly_blocked": 0,
+    "cb_halted": 972,
+    "cb_reduced": 427,
+    "unlock_blocked": 0,
+    "max_pos_blocked": 0
+  },
+  "final_portfolio": 738865.5516174738,
+  "oos_start": "2024-01-01",
+  "initial_capital": 1000000.0,
+  "config": {
+    "max_positions": 5,
+    "risk_per_trade_pct": 0.02,
+    "hard_stop_pct": 0.05,
+    "atr_stop_multiplier": 10.0,
+    "expected_win_loss_ratio": 1.5,
+    "max_single_position_pct": 0.4,
+    "circuit_breaker": {
+      "halt_threshold": 0.3,
+      "reduce_heavy_threshold": 0.2,
+      "reduce_light_threshold": 0.1
+    }
+  },
+  "btc_threshold": 0.6,
+  "sol_threshold": 0.75,
+  "fee_bps": 10,
+  "coins_loaded": [
+    "BTC/USD",
+    "SOL/USD",
+    "ETH/USD"
+  ],
+  "n_coins": 3
+}
