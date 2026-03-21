@@ -618,6 +618,12 @@ def _run_one_cycle(
         len(prices),
     )
 
+    heartbeat_interval = config.get("telegram_heartbeat_interval", 900)  # default 15 min
+    cycle_ts = time.time()
+    if cycle_ts - loop_state.get("last_heartbeat_ts", 0.0) >= heartbeat_interval:
+        loop_state["last_heartbeat_ts"] = cycle_ts
+        _send_heartbeat(telegram, order_manager, total_usd, prices, loop_state)
+
     # ── Step 7: Boundary-aligned sleep ───────────────────────────────────────
     sleep_secs = max(0.0, 60.0 - (time.time() % 60.0))
     logger.debug("Step 7: sleeping %.1fs to next 60s boundary", sleep_secs)
@@ -797,6 +803,8 @@ def main() -> None:
     loop_state: dict[str, Any] = {
         "last_signal_epoch": saved_state.get("last_signal_epoch", 0),
         "features_cache": {},
+        "last_trade": "None yet",
+        "last_heartbeat_ts": 0.0,
     }
 
     tradeable_pairs: list[str] = config.get("tradeable_pairs", ["BTC/USD"])
