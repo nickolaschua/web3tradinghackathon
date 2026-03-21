@@ -1,7 +1,8 @@
 # Cross-Sectional Momentum Strategy — Research & Critical Analysis
 
 **Date:** 2026-03-22
-**Purpose:** Comprehensive research document for implementing a cross-sectional momentum rotation strategy across 20 crypto coins. Includes strategy mechanics, parameter choices, known pitfalls, and critical analysis of failure modes.
+**Status:** SUPERSEDED by `compass_artifact_*.md` for signal design. This file retained for pitfall analysis.
+**Purpose:** Initial research document. See companion file for academic-backed upgrades (residual momentum, price anchoring, buffer zones, graduated crash protection).
 
 ---
 
