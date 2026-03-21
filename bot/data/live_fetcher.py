@@ -140,15 +140,15 @@ class LiveFetcher:
         timestamp: int | None = None,
     ) -> None:
         """
-        Append a completed 4H epoch candle to the feature buffer for `pair`.
+        Append a completed 15M epoch candle to the feature buffer for `pair`.
 
-        Called by main.py exactly once per 4H boundary, after all feature pairs
-        have been polled. Uses the last known ticker price as a close-price proxy
+        Called by main.py once per 15M boundary, after all pairs have been polled.
+        Uses the last known ticker price as a close-price proxy
         (O=H=L=C=price, volume=0 — same limitation as Roostoo has no OHLCV).
 
         Args:
             pair: Roostoo pair symbol (e.g. "BTC/USD").
-            price: Close price for this completed 4H bar (from _last_prices).
+            price: Close price for this completed 15M bar (from _last_prices).
             timestamp: Unix seconds for the candle. Defaults to now if omitted.
         """
         if pair not in self._buffers:

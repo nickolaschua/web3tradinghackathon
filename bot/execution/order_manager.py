@@ -112,7 +112,6 @@ class OrderManager:
             response = self.client.place_order(
                 pair=pair,
                 side=side,
-                order_type="MARKET",
                 quantity=quantity
             )
 
@@ -123,6 +122,18 @@ class OrderManager:
 
             # Extract order ID (handle both naming conventions)
             order_id = response.get("OrderId") or response.get("order_id")
+            if order_id is None:
+                logger.error(
+                    f"place_order: response missing OrderId/order_id for {pair}: {response}"
+                )
+                return None
+            try:
+                order_id = int(order_id)
+            except (TypeError, ValueError):
+                logger.error(
+                    f"place_order: invalid OrderId '{order_id}' for {pair}: {response}"
+                )
+                return None
             managed_order.order_id = order_id
             managed_order.status = OrderStatus.SUBMITTED
 

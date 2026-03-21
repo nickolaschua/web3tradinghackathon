@@ -10,7 +10,6 @@ import hashlib
 import hmac
 import logging
 import time
-import urllib.parse
 
 import requests
 
@@ -42,22 +41,66 @@ class RoostooClient:
         self.api_key = api_key
         self.secret = secret
         self.base_url = base_url
+        self._time_offset_ms: int = 0  # corrected by sync_time() on startup
+
+    # ------------------------------------------------------------------
+    # Time sync
+    # ------------------------------------------------------------------
+
+    def sync_time(self) -> int:
+        """Sync local clock against server time. Call once on startup.
+
+        Computes _time_offset_ms = server_time_ms - local_time_ms and stores it.
+        All subsequent timestamp generation adds this offset, keeping signatures
+        within the 60 000 ms acceptance window even on clock-skewed hosts.
+
+        Returns the measured offset in milliseconds (negative = local clock ahead).
+        """
+        local_ms = int(time.time() * 1000)
+        try:
+            resp = requests.get(
+                self.base_url + "/v3/serverTime",
+                timeout=10,
+            )
+            resp.raise_for_status()
+            server_ms = int(resp.json().get("serverTime", local_ms))
+            self._time_offset_ms = server_ms - local_ms
+            logger.info(
+                "sync_time: server=%d local=%d offset=%+d ms",
+                server_ms, local_ms, self._time_offset_ms,
+            )
+        except Exception as exc:
+            logger.warning("sync_time failed — using zero offset: %s", exc)
+            self._time_offset_ms = 0
+        return self._time_offset_ms
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _sign(self, params: dict) -> str:
-        """HMAC-SHA256 sign: sort params alphabetically, urlencode, sign with secret."""
-        msg = urllib.parse.urlencode(sorted(params.items()))
-        return hmac.new(self.secret.encode(), msg.encode(), hashlib.sha256).hexdigest()
+    def _sign(self, params: dict) -> tuple[str, str]:
+        """HMAC-SHA256 sign: sort params alphabetically, join without URL-encoding, sign.
+
+        Returns (signature_hex, total_params_string).
+        total_params is the exact string sent as the POST body (or derived from for GETs).
+        Values are NOT URL-encoded — the server expects the raw f-string join, matching
+        the reference implementation in docs/13_roostoo_api_reference.md.
+        """
+        sorted_keys = sorted(params.keys())
+        total_params = "&".join(f"{k}={params[k]}" for k in sorted_keys)
+        sig = hmac.new(
+            self.secret.encode("utf-8"),
+            total_params.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        return sig, total_params
 
     def _request(self, method: str, path: str, params: dict | None = None) -> dict:
         """Signed HTTP request with rate limiting and exponential backoff."""
         if params is None:
             params = {}
-        params["timestamp"] = str(int(time.time() * 1000))
-        signature = self._sign(params)
+        params["timestamp"] = str(int(time.time() * 1000) + self._time_offset_ms)
+        signature, total_params = self._sign(params)
         headers = {
             "RST-API-KEY": self.api_key,
             "MSG-SIGNATURE": signature,
@@ -74,7 +117,11 @@ class RoostooClient:
                 if method == "GET":
                     resp = requests.get(url, params=params, headers=headers, timeout=10)
                 else:
-                    resp = requests.post(url, data=params, headers=headers, timeout=10)
+                    # POST body MUST be the exact sorted string that was signed.
+                    # Passing a dict would encode in insertion order and break signature
+                    # verification. Content-Type must be set explicitly when body is a string.
+                    post_headers = {**headers, "Content-Type": "application/x-www-form-urlencoded"}
+                    resp = requests.post(url, data=total_params, headers=post_headers, timeout=10)
                 resp.raise_for_status()
                 return resp.json()
             except (requests.RequestException, ValueError) as exc:

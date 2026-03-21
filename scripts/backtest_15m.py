@@ -64,6 +64,8 @@ from bot.data.features import compute_btc_context_features, compute_cross_asset_
 from bot.strategy.base import SignalDirection
 from bot.strategy.mean_reversion import MeanReversionStrategy
 from bot.strategy.pairs_trading import PairState, PairsTradingStrategy
+from bot.strategy.pairs_ml_strategy import PairsMLStrategy
+from bot.data.pairs_features import compute_pairs_features
 from bot.config.unlock_screen import should_exclude
 
 # 15M annualisation constant: 365.25 days x 24 h x 4 bars/h
@@ -176,6 +178,7 @@ def run_backtest(
     # Strategy overlay (all default to None/False = XGBoost-only, unchanged behaviour)
     mr_strategy: Optional[MeanReversionStrategy] = None,
     pairs_strategy: Optional[PairsTradingStrategy] = None,
+    pairs_ml_strategy: Optional[PairsMLStrategy] = None,
     btc_raw_df: Optional[pd.DataFrame] = None,
     eth_raw_df: Optional[pd.DataFrame] = None,
     enable_unlock_screen: bool = False,
@@ -236,6 +239,25 @@ def run_backtest(
         btc_idx = btc_raw_df.index
         eth_idx = eth_raw_df.index
 
+    # Pairs ML: pre-compute full feature matrix + probabilities once (O(n) total, not O(n²))
+    pairs_ml_zscore = None   # np.ndarray aligned to timestamps
+    pairs_ml_probas = None   # np.ndarray aligned to timestamps
+    pairs_ml_long_pair = None       # "BTC/USD" or None — inline position state
+    pairs_ml_last_zscore = 0.0
+    if (pairs_ml_strategy is not None
+            and pairs_ml_strategy._model is not None
+            and btc_raw_df is not None
+            and eth_raw_df is not None):
+        _pf = compute_pairs_features(btc_raw_df["close"], eth_raw_df["close"])
+        _pf = _pf.reindex(timestamps)   # align to backtest timeline
+        pairs_ml_zscore = _pf["zscore"].values
+        _feat_cols = pairs_ml_strategy._feature_cols
+        _X = _pf[_feat_cols]
+        _valid = _X.notna().all(axis=1).values
+        pairs_ml_probas = np.full(len(timestamps), np.nan)
+        if _valid.any():
+            pairs_ml_probas[_valid] = pairs_ml_strategy._model.predict_proba(_X[_valid])[:, 1]
+
     portfolio_values = np.zeros(n)
     portfolio_values[0] = initial_capital
     returns = np.zeros(n)
@@ -268,6 +290,34 @@ def run_backtest(
                         elif sig.direction == SignalDirection.SELL:
                             pairs_sell_btc = True
 
+        # Pairs ML: O(1) per bar -- uses pre-computed zscore + probas arrays
+        pairs_ml_buy_btc = False
+        pairs_ml_sell_btc = False
+        if pairs_ml_zscore is not None:
+            _zs = pairs_ml_zscore[i]
+            _pr = pairs_ml_probas[i]
+            if not np.isnan(_zs):
+                if pairs_ml_long_pair is not None:
+                    # Exit: reversion, blowout, or sign flip
+                    _exit = (
+                        abs(_zs) < 0.5   # EXIT_ZSCORE
+                        or abs(_zs) > 3.0  # STOP_ZSCORE
+                        or (np.sign(_zs) != np.sign(pairs_ml_last_zscore) and pairs_ml_last_zscore != 0.0)
+                    )
+                    if _exit:
+                        if pairs_ml_long_pair == "BTC/USD":
+                            pairs_ml_sell_btc = True
+                        pairs_ml_long_pair = None
+                        pairs_ml_last_zscore = 0.0
+                else:
+                    # Entry: wide spread + model confident in reversion
+                    if abs(_zs) > 1.5 and not np.isnan(_pr) and _pr >= 0.60:
+                        _laggard = "ETH/USD" if _zs > 0 else "BTC/USD"
+                        if _laggard == "BTC/USD":
+                            pairs_ml_buy_btc = True
+                        pairs_ml_long_pair = _laggard
+                        pairs_ml_last_zscore = _zs
+
         # MR: single-row slice, O(1), stateless
         mr_sig = None
         if mr_strategy is not None:
@@ -290,6 +340,8 @@ def run_backtest(
                 sell_signal = (mr_sig is not None and mr_sig.direction == SignalDirection.SELL)
             elif entry_source == "pairs":
                 sell_signal = pairs_sell_btc
+            elif entry_source == "pairs_ml":
+                sell_signal = pairs_ml_sell_btc
             else:
                 sell_signal = False
 
@@ -319,6 +371,9 @@ def run_backtest(
                 # the strategy doesn't know -- clear long_pair so it seeks new entries
                 if stop_hit and prev_source == "pairs" and pairs_state is not None:
                     pairs_state.long_pair = None
+                if stop_hit and prev_source == "pairs_ml":
+                    pairs_ml_long_pair = None
+                    pairs_ml_last_zscore = 0.0
 
         # --- Mark to market ---
         position_value = position_units * c
@@ -446,10 +501,49 @@ def run_backtest(
                         if pairs_state is not None:
                             pairs_state.long_pair = None
 
-        # Sync pairs state: update() set long_pair on a BUY but we didn't enter
-        # (because position was already open, or we entered via xgb/mr instead)
+            elif pairs_ml_buy_btc:
+                # Pairs ML entry (fallback; only acts when BTC is the laggard)
+                if cb_mult == 0.0:
+                    gate_stats["cb_halted"] += 1
+                    pairs_ml_long_pair = None
+                    pairs_ml_last_zscore = 0.0
+                else:
+                    if cb_mult < 1.0:
+                        gate_stats["cb_reduced"] += 1
+
+                    hard_stop_price = c * (1.0 - hard_stop_pct)
+                    if not np.isnan(atr) and atr > 0:
+                        atr_stop_price = c - atr_stop_multiplier * atr
+                        initial_stop = max(hard_stop_price, atr_stop_price)
+                    else:
+                        initial_stop = hard_stop_price
+
+                    target_usd = total_portfolio * 0.25 * cb_mult
+                    usable = free_balance * 0.95
+                    target_usd = min(target_usd, usable)
+
+                    if target_usd >= 10.0:
+                        position_units = target_usd / c
+                        entry_fee = target_usd * fee_rate
+                        free_balance -= (target_usd + entry_fee)
+                        entry_effective_price = c * (1.0 + fee_rate)
+                        trail_stop = initial_stop
+                        entry_bar_ts = ts
+                        entry_source = "pairs_ml"
+
+                        position_value = position_units * c
+                        total_portfolio = free_balance + position_value
+                    else:
+                        # Insufficient funds — undo inline state set above
+                        pairs_ml_long_pair = None
+                        pairs_ml_last_zscore = 0.0
+
+        # Sync pairs state: if a BUY was generated but we didn't enter, undo state
         if pairs_state is not None and pairs_buy_btc and entry_source != "pairs":
             pairs_state.long_pair = None
+        if pairs_ml_buy_btc and entry_source != "pairs_ml":
+            pairs_ml_long_pair = None
+            pairs_ml_last_zscore = 0.0
 
         # Record bar-end portfolio value
         portfolio_values[i] = free_balance + (position_units * c)
@@ -721,10 +815,11 @@ def main():
     if args.strategies:
         strategy_set = set(s.strip().lower() for s in args.strategies.split(","))
         if "all" in strategy_set:
-            strategy_set = {"mr", "pairs", "unlock"}
+            strategy_set = {"mr", "pairs", "pairs-ml", "unlock"}
 
     mr_strat: Optional[MeanReversionStrategy] = None
     pairs_strat: Optional[PairsTradingStrategy] = None
+    pairs_ml_strat: Optional[PairsMLStrategy] = None
     if "mr" in strategy_set:
         mr_strat = MeanReversionStrategy()
         print("  Strategy overlay: MeanReversionStrategy ENABLED")
@@ -732,6 +827,14 @@ def main():
         pairs_strat = PairsTradingStrategy(config={})
         pairs_strat.add_candidate_pair("BTC/USD", "ETH/USD")
         print("  Strategy overlay: PairsTradingStrategy ENABLED (BTC/ETH)")
+    if "pairs-ml" in strategy_set:
+        pairs_ml_strat = PairsMLStrategy(
+            config={},
+            model_path="models/pairs_btc_eth_15m_final.pkl",
+            threshold=0.60,
+        )
+        pairs_ml_strat.add_candidate_pair("BTC/USD", "ETH/USD")
+        print("  Strategy overlay: PairsMLStrategy ENABLED (BTC/ETH, threshold=0.60)")
     if "unlock" in strategy_set:
         print("  Strategy overlay: Token unlock screen ENABLED")
         print("    NOTE: UNLOCK_EXCLUSIONS is currently empty — update bot/config/unlock_screen.py")
@@ -740,8 +843,9 @@ def main():
     strategy_kwargs: dict = {
         "mr_strategy": mr_strat,
         "pairs_strategy": pairs_strat,
-        "btc_raw_df": btc_raw if pairs_strat is not None else None,
-        "eth_raw_df": eth_raw if pairs_strat is not None else None,
+        "pairs_ml_strategy": pairs_ml_strat,
+        "btc_raw_df": btc_raw if (pairs_strat is not None or pairs_ml_strat is not None) else None,
+        "eth_raw_df": eth_raw if (pairs_strat is not None or pairs_ml_strat is not None) else None,
         "enable_unlock_screen": "unlock" in strategy_set,
     }
 

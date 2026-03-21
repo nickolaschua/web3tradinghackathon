@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import os
 import signal
 import sys
@@ -21,15 +22,51 @@ from bot.persistence.state_manager import StateManager
 from bot.strategy.base import SignalDirection
 from bot.config.unlock_screen import apply_unlock_screen
 from bot.strategy.mean_reversion import MeanReversionStrategy
-from bot.strategy.pairs_trading import PairsTradingStrategy
+from bot.strategy.pairs_ml_strategy import PairsMLStrategy
 from bot.strategy.xgboost_strategy import XGBoostStrategy
 
 _CANDLE_15M_SECONDS = 15 * 60  # seconds per 15M candle period
 
 _BINANCE_TO_ROOSTOO: dict[str, str] = {
-    "BTCUSDT": "BTC/USD",
-    "ETHUSDT": "ETH/USD",
-    "SOLUSDT": "SOL/USD",
+    "BTCUSDT":   "BTC/USD",
+    "ETHUSDT":   "ETH/USD",
+    "BNBUSDT":   "BNB/USD",
+    "SOLUSDT":   "SOL/USD",
+    "ADAUSDT":   "ADA/USD",
+    "AVAXUSDT":  "AVAX/USD",
+    "DOGEUSDT":  "DOGE/USD",
+    "LINKUSDT":  "LINK/USD",
+    "DOTUSDT":   "DOT/USD",
+    "UNIUSDT":   "UNI/USD",
+    "XRPUSDT":   "XRP/USD",
+    "LTCUSDT":   "LTC/USD",
+    "AAVEUSDT":  "AAVE/USD",
+    "CRVUSDT":   "CRV/USD",
+    "NEARUSDT":  "NEAR/USD",
+    "FILUSDT":   "FIL/USD",
+    "FETUSDT":   "FET/USD",
+    "HBARUSDT":  "HBAR/USD",
+    "ZECUSDT":   "ZEC/USD",
+    "ZENUSDT":   "ZEN/USD",
+    "CAKEUSDT":  "CAKE/USD",
+    "PAXGUSDT":  "PAXG/USD",
+    "XLMUSDT":   "XLM/USD",
+    "TRXUSDT":   "TRX/USD",
+    "CFXUSDT":   "CFX/USD",
+    "SHIBUSDT":  "SHIB/USD",
+    "ICPUSDT":   "ICP/USD",
+    "APTUSDT":   "APT/USD",
+    "ARBUSDT":   "ARB/USD",
+    "SUIUSDT":   "SUI/USD",
+    "FLOKIUSDT": "FLOKI/USD",
+    "PEPEUSDT":  "PEPE/USD",
+    "PENDLEUSDT":"PENDLE/USD",
+    "WLDUSDT":   "WLD/USD",
+    "SEIUSDT":   "SEI/USD",
+    "BONKUSDT":  "BONK/USD",
+    "WIFUSDT":   "WIF/USD",
+    "ENAUSDT":   "ENA/USD",
+    "TAOUSDT":   "TAO/USD",
 }
 
 
@@ -106,6 +143,18 @@ def startup_reconciliation(
                 "OrderManager state loaded: %d positions",
                 len(order_manager.get_all_positions()),
             )
+
+        # Cross-validate: every position must have a risk_manager entry price.
+        # If risk state was missing/corrupted, backfill from the position's recorded entry_price
+        # so stop-loss checks don't silently skip the position.
+        for pair, pos in order_manager.get_all_positions().items():
+            if pair not in risk_manager._entry_prices:
+                logger.warning(
+                    "Startup: position %s has no risk_manager entry — backfilling from entry_price=%.4f",
+                    pair, pos.entry_price,
+                )
+                hard_stop_pct = risk_manager.config.get("hard_stop_pct", 0.08)
+                risk_manager.record_entry(pair, pos.entry_price, pos.entry_price * (1 - hard_stop_pct))
     else:
         logger.info("No persisted state found — cold start")
 
@@ -205,7 +254,7 @@ def _run_one_cycle(
     state_manager: StateManager,
     strategy: Any,
     mean_reversion_strategy: MeanReversionStrategy,
-    pairs_strategy: PairsTradingStrategy,
+    pairs_ml_strategy: PairsMLStrategy,
     regime_detector: RegimeDetector,
     tradeable_pairs: list[str],
     feature_pairs: list[str],
@@ -231,9 +280,24 @@ def _run_one_cycle(
     logger = logging.getLogger(__name__)
     warmup_bars = config.get("warmup_bars", 35)
 
-    # ── Step 1: Poll ticker for all pairs ────────────────────────────────────
+    # ── Step 1: Poll ticker — rotating budget to stay within 30 calls/min ────
+    # Always poll: feature_pairs (3) + open-position pairs.
+    # Rotate: 36 non-feature pairs split into 3 batches of 12; one batch/cycle.
     prices: dict[str, float] = {}
-    for pair in feature_pairs:
+
+    non_feature_pairs = [p for p in tradeable_pairs if p not in feature_pairs]
+    rotation_idx = loop_state.get("poll_rotation_idx", 0)
+    batch_size = 12
+    batch_start = (rotation_idx % 3) * batch_size
+    rotating_batch = non_feature_pairs[batch_start: batch_start + batch_size]
+    loop_state["poll_rotation_idx"] = rotation_idx + 1
+
+    open_position_pairs = set(order_manager.get_all_positions().keys())
+    pairs_to_poll = list(dict.fromkeys(
+        feature_pairs + rotating_batch + list(open_position_pairs)
+    ))
+
+    for pair in pairs_to_poll:
         try:
             ticker = client.get_ticker(pair)
             price = float(ticker.get("Data", {}).get(pair, {}).get("LastPrice", 0.0))
@@ -293,12 +357,13 @@ def _run_one_cycle(
         # MUST run before the tradeable_pairs loop so get_feature_matrix() sees
         # the latest bar for cross-asset lag features (eth_return_lag1 etc.).
         epoch_ts = current_15m_epoch * _CANDLE_15M_SECONDS
-        for fpair in feature_pairs:
-            if fpair in prices:
-                live_fetcher.append_epoch_candle(fpair, prices[fpair], epoch_ts)
-                logger.debug("Step 4: appended epoch candle for %s at epoch %d", fpair, epoch_ts)
+        for tpair in tradeable_pairs:
+            candle_price = prices.get(tpair) or live_fetcher._last_prices.get(tpair)
+            if candle_price and candle_price > 0.0:
+                live_fetcher.append_epoch_candle(tpair, candle_price, epoch_ts)
+                logger.debug("Step 4: appended epoch candle for %s at epoch %d", tpair, epoch_ts)
             else:
-                logger.warning("Step 4: no live price for %s — epoch candle skipped", fpair)
+                logger.warning("Step 4: no live price for %s — epoch candle skipped", tpair)
 
         # Recompute portfolio weights once per 4H boundary using full price history
         feature_price_history = {
@@ -353,27 +418,28 @@ def _run_one_cycle(
                     "Step 4A: error processing %s: %s", pair, exc, exc_info=True
                 )
 
-        # ── Phase B: pairs trading signals ───────────────────────────────────
-        bar_index: int = loop_state.get("bar_index", 0)
-        loop_state["bar_index"] = bar_index + 1
-
-        coin_dfs = {fpair: live_fetcher._to_dataframe(fpair) for fpair in feature_pairs}
-        for pair_state in pairs_strategy.pair_states:
-            try:
-                pt_signals = pairs_strategy.update(pair_state, coin_dfs, bar_index)
-                for pt_sig in pt_signals:
-                    existing = signals.get(pt_sig.pair)
-                    if existing is None or existing.direction == SignalDirection.HOLD:
-                        signals[pt_sig.pair] = pt_sig
-                        logger.info(
-                            "Step 4B: pairs signal %s for %s",
-                            pt_sig.direction.name, pt_sig.pair,
-                        )
-            except Exception as exc:
-                logger.error(
-                    "Step 4B: pairs error %s/%s: %s",
-                    pair_state.pair_a, pair_state.pair_b, exc, exc_info=True,
-                )
+        # ── Phase B: pairs ML signals (BTC/ETH spread reversion) ─────────────
+        # Builds coin_dfs once and passes to each registered pair_state.
+        # Only fires if no existing BUY/SELL signal for the target pair.
+        if pairs_ml_strategy is not None:
+            for pair_state in pairs_ml_strategy.pair_states:
+                try:
+                    ml_signals = pairs_ml_strategy.update(
+                        pair_state, feature_price_history, current_15m_epoch
+                    )
+                    for sig in ml_signals:
+                        existing = signals.get(sig.pair)
+                        if existing is None or existing.direction == SignalDirection.HOLD:
+                            signals[sig.pair] = sig
+                            logger.debug(
+                                "Step 4B: pairs ML %s for %s (P=%.2f)",
+                                sig.direction.name, sig.pair, sig.confidence,
+                            )
+                except Exception as exc:
+                    logger.error(
+                        "Step 4B: pairs ML error for %s/%s: %s",
+                        pair_state.pair_a, pair_state.pair_b, exc,
+                    )
 
         # ── Phase C: token unlock screen ─────────────────────────────────────
         signals = apply_unlock_screen(signals)
@@ -385,7 +451,7 @@ def _run_one_cycle(
                 continue
 
             try:
-                current_price = prices.get(pair, 0.0)
+                current_price = prices.get(pair) or live_fetcher._last_prices.get(pair, 0.0)
                 if current_price <= 0.0:
                     logger.warning("Step 4D: no price for %s, skipping", pair)
                     continue
@@ -411,7 +477,11 @@ def _run_one_cycle(
 
                     open_pos = order_manager.get_all_positions()
                     open_pos_usd: dict[str, float] = {
-                        p: pos_obj.quantity * prices.get(p, current_price)
+                        p: pos_obj.quantity * (
+                            prices.get(p)
+                            or live_fetcher._last_prices.get(p)
+                            or pos_obj.entry_price
+                        )
                         for p, pos_obj in open_pos.items()
                     }
                     free_usd = max(0.0, total_usd - sum(open_pos_usd.values()))
@@ -519,20 +589,24 @@ def _load_seed_data(config: dict) -> dict[str, Any]:
     data_dir = Path(config.get("data_dir", "data"))
 
     roostoo_to_binance = {v: k for k, v in _BINANCE_TO_ROOSTOO.items()}
-    feature_pairs: list[str] = config.get("feature_pairs", ["BTC/USD"])
+    # Load seed data for ALL tradeable pairs (not just feature_pairs)
+    all_pairs: list[str] = config.get("tradeable_pairs", config.get("feature_pairs", ["BTC/USD"]))
 
     seed_dfs: dict[str, pd.DataFrame] = {}
 
-    for pair in feature_pairs:
+    for pair in all_pairs:
         binance_sym = roostoo_to_binance.get(pair)
         if not binance_sym:
             logger.warning("_load_seed_data: no Binance symbol for pair %s, skipping", pair)
             continue
 
+        # Try 15m first (preferred resolution), then 4h as fallback
         candidates = [
             data_dir / f"{binance_sym}_15m.parquet",
             data_dir / f"{binance_sym}-15m.parquet",
             data_dir / f"{binance_sym.lower()}_15m.parquet",
+            data_dir / f"{binance_sym}_4h.parquet",   # 4h fallback
+            data_dir / f"{binance_sym}-4h.parquet",
         ]
 
         loaded = False
@@ -589,6 +663,7 @@ def main() -> None:
     tg_chat = os.environ.get("TELEGRAM_CHAT_ID", "")
 
     client = RoostooClient(api_key=api_key, secret=secret)
+    client.sync_time()
     telegram = TelegramAlerter(token=tg_token, chat_id=tg_chat)
     state_manager = StateManager(path=Path(config.get("state_path", "state.json")))
     risk_manager = RiskManager(config=config)
@@ -597,24 +672,30 @@ def main() -> None:
     portfolio_allocator = PortfolioAllocator(config=config)
 
     # Load seed data and initialise LiveFetcher
-    # maxlen=3200 (~33 days at 15M) — required for window=2880 in compute_btc_context_features
+    # maxlen=4000 (~41 days at 15M):
+    # - compute_btc_context_features requires window=2880 (30d)
+    # - pairs ML features require ols_window(2880) + zscore_window(672) = 3552 bars minimum
     seed_dfs = _load_seed_data(config)
-    live_fetcher = LiveFetcher(seed_dfs=seed_dfs, maxlen=3200)
+    live_fetcher = LiveFetcher(seed_dfs=seed_dfs, maxlen=4000)
     logger.info("LiveFetcher initialised: %s", live_fetcher)
 
-    # Primary strategy: XGBoost 15M model (xgb_btc_15m_iter5.pkl, threshold=0.65)
+    # Primary strategy: XGBoost 15M model (xgb_btc_15m_iter5.pkl, threshold=0.70)
+    # threshold=0.70 per backtest sweep OOS 2024-2026 (best Sharpe)
     strategy = XGBoostStrategy(threshold=0.65)
     # Fallback strategy: mean reversion (fires when momentum returns HOLD)
     mean_reversion_strategy = MeanReversionStrategy()
-    # Pairs trading (ETH/SOL and BTC/ETH — only feature_pairs with seeded data)
-    pairs_strategy = PairsTradingStrategy(config=config)
-    pairs_strategy.add_candidate_pair("ETH/USD", "SOL/USD")
-    pairs_strategy.add_candidate_pair("BTC/USD", "ETH/USD")
+    # Pairs ML strategy: XGBoost spread-reversion classifier (BTC/USD vs ETH/USD)
+    pairs_ml_strategy = PairsMLStrategy(
+        config=config,
+        model_path="models/pairs_btc_eth_15m_final.pkl",
+        threshold=0.60,
+    )
+    pairs_ml_strategy.add_candidate_pair("BTC/USD", "ETH/USD")
     logger.info(
-        "Strategies: primary=%s fallback=%s pairs=%d candidate pairs",
+        "Strategies: primary=%s fallback=%s pairs_ml=%s",
         strategy.__class__.__name__,
         mean_reversion_strategy.__class__.__name__,
-        len(pairs_strategy.candidate_pairs),
+        pairs_ml_strategy.__class__.__name__,
     )
 
     # Register shutdown handler BEFORE reconciliation (handles crashes during startup)
@@ -629,6 +710,20 @@ def main() -> None:
         state_manager=state_manager,
     )
 
+    # Cold-start HWM init: if no persisted state loaded, fetch live balance now
+    # so the circuit breaker and tiered sizing multipliers work from the first cycle.
+    if risk_manager._portfolio_hwm == 0:
+        try:
+            balance = client.get_balance()
+            initial_usd = float(balance.get("total_usd", 0.0))
+            if initial_usd > 0:
+                risk_manager.initialize_hwm(initial_usd)
+                logger.info("Cold start: initialized portfolio HWM to $%.0f", initial_usd)
+            else:
+                logger.warning("Cold start: balance returned total_usd=0, HWM not initialized")
+        except Exception as exc:
+            logger.warning("Cold start: could not fetch balance for HWM init: %s", exc)
+
     telegram.send("\u2705 Bot started — entering main loop")
     logger.info("Startup complete — entering main loop")
 
@@ -637,7 +732,6 @@ def main() -> None:
     loop_state: dict[str, Any] = {
         "last_signal_epoch": saved_state.get("last_signal_epoch", 0),
         "features_cache": {},
-        "bar_index": 0,
     }
 
     tradeable_pairs: list[str] = config.get("tradeable_pairs", ["BTC/USD"])
@@ -656,7 +750,7 @@ def main() -> None:
                 state_manager=state_manager,
                 strategy=strategy,
                 mean_reversion_strategy=mean_reversion_strategy,
-                pairs_strategy=pairs_strategy,
+                pairs_ml_strategy=pairs_ml_strategy,
                 regime_detector=regime_detector,
                 tradeable_pairs=tradeable_pairs,
                 feature_pairs=feature_pairs,

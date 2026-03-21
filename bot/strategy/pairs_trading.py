@@ -24,18 +24,23 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 # Engle-Granger test p-value threshold for cointegration
-COINT_PVALUE_MAX = 0.10   # accept up to 10% — looser than the usual 5% to get more pairs
+# Tightened from 0.10 → 0.05: at 15M windows, looser threshold causes spurious cointegration.
+COINT_PVALUE_MAX = 0.05
 
-# Spread entry and exit thresholds (in standard deviations)
+# Spread entry and exit thresholds (in standard deviations) — timeframe-agnostic
 ENTRY_ZSCORE = 1.5    # enter long laggard when spread is >1.5 std from mean
 EXIT_ZSCORE  = 0.5    # exit when spread reverts to within 0.5 std of mean
 STOP_ZSCORE  = 3.0    # emergency exit if spread widens further to 3.0 std (spread breaking down)
 
-# Minimum bars for cointegration test
-MIN_BARS = 100         # ~16 days of 4H data
+# Minimum bars for cointegration test — calibrated for 15M bars.
+# Was 100 (= 25h at 15M, too short for statistical significance).
+# 672 = 1 week (7d × 24h × 4 bars/h) — minimum for a reliable ADF test.
+MIN_BARS = 672
 
-# How often to re-run the cointegration test (in bars)
-RETEST_INTERVAL = 42   # re-test every 7 days
+# How often to re-run the cointegration test (in bars) — calibrated for 15M bars.
+# Was 42 (= 10.5h at 15M, reruns every half-day — spurious cointegration fires constantly).
+# 672 = 1 week — same real-time cadence as the original 4H calibration (42 × 4h = 7 days).
+RETEST_INTERVAL = 672
 
 
 @dataclass
