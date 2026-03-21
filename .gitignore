@@ -30,3 +30,4 @@ data/parquet/
 Thumbs.db
 *.swp
 *.swo
+.worktrees/
