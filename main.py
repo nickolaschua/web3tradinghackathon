@@ -684,13 +684,10 @@ def main() -> None:
     strategy = XGBoostStrategy(threshold=0.65)
     # Fallback strategy: mean reversion (fires when momentum returns HOLD)
     mean_reversion_strategy = MeanReversionStrategy()
-    # Pairs ML strategy: XGBoost spread-reversion classifier (BTC/USD vs ETH/USD)
-    pairs_ml_strategy = PairsMLStrategy(
-        config=config,
-        model_path="models/pairs_btc_eth_15m_final.pkl",
-        threshold=0.60,
-    )
-    pairs_ml_strategy.add_candidate_pair("BTC/USD", "ETH/USD")
+    # Pairs ML strategy: disabled — needs 3552 bars (37 days) of warmup to fire,
+    # which exceeds the 10-day competition window. Re-enable once seed data is
+    # wired into feature_price_history so it can trade from day 1.
+    pairs_ml_strategy = None
     logger.info(
         "Strategies: primary=%s fallback=%s pairs_ml=%s",
         strategy.__class__.__name__,
