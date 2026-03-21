@@ -37,34 +37,38 @@ class RelaxedMeanReversionStrategy(BaseStrategy):
 
         latest = features.iloc[-1]
 
-        # ── Regime gate (same as original) ─────────────────────────────────
+        # ── Soft regime gate ────────────────────────────────────────────────
+        # Unlike original MR, we use a soft gate: uptrend gets full size,
+        # sideways/downtrend gets halved size. Never fully blocked — this
+        # strategy exists for activity coverage, not alpha.
         ema_20 = latest.get("EMA_20", float("nan"))
         ema_50 = latest.get("EMA_50", float("nan"))
+        regime_mult = 1.0
         if not (ema_20 > ema_50):
-            return TradingSignal(pair=pair)
+            regime_mult = 0.5  # half size in downtrend, not blocked
 
         rsi = latest.get("RSI_14", 50.0)
         bb_pos = latest.get("bb_pos", 0.5)
 
         # ── Entry: relaxed 2-condition stack ────────────────────────────────
-        # RSI moderately oversold + near lower Bollinger Band in uptrend.
+        # RSI moderately oversold + near lower Bollinger Band.
         # Relaxed from RSI<30/bb<0.15 to RSI<35/bb<0.25. No MACD requirement.
-        # Small size (0.15) — activity layer, not primary alpha.
+        # Micro size (0.03) scaled by regime.
         if rsi < 35 and bb_pos < 0.25:
             return TradingSignal(
                 pair=pair,
                 direction=SignalDirection.BUY,
-                size=0.15,
+                size=round(0.03 * regime_mult, 4),
                 confidence=0.50,
             )
 
         # ── Entry: deep oversold ────────────────────────────────────────────
-        # RSI < 28 in uptrend — slightly relaxed from 25.
+        # RSI < 28 — slightly relaxed from 25.
         if rsi < 28:
             return TradingSignal(
                 pair=pair,
                 direction=SignalDirection.BUY,
-                size=0.10,
+                size=round(0.03 * regime_mult, 4),
                 confidence=0.50,
             )
 

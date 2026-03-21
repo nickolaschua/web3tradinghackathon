@@ -44,7 +44,24 @@ tradeable_pairs:
 feature_pairs:
   - BTC/USD
   - ETH/USD
+  - BNB/USD
   - SOL/USD
+  - XRP/USD
+  - DOGE/USD
+  - ADA/USD
+  - AVAX/USD
+  - LINK/USD
+  - DOT/USD
+  - LTC/USD
+  - UNI/USD
+  - NEAR/USD
+  - SUI/USD
+  - APT/USD
+  - PEPE/USD
+  - ARB/USD
+  - SHIB/USD
+  - FIL/USD
+  - HBAR/USD
 
 candle_interval: "4h"
 max_positions: 5

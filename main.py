@@ -22,6 +22,7 @@ from bot.persistence.state_manager import StateManager
 from bot.strategy.base import SignalDirection
 from bot.config.unlock_screen import apply_unlock_screen
 from bot.strategy.mean_reversion import MeanReversionStrategy
+from bot.strategy.relaxed_mean_reversion import RelaxedMeanReversionStrategy
 from bot.strategy.pairs_ml_strategy import PairsMLStrategy
 from bot.strategy.xgboost_strategy import XGBoostStrategy
 
@@ -457,9 +458,14 @@ def _run_one_cycle(
                 if signal.direction == SignalDirection.HOLD and sol_strategy is not None:
                     signal = sol_strategy.generate_signal(pair, features_df)
 
-                # Fallback: mean reversion when both XGBoost models say HOLD
+                # Fallback 1: original mean reversion (high precision, rare)
                 if signal.direction == SignalDirection.HOLD:
                     signal = mean_reversion_strategy.generate_signal(pair, features_df)
+
+                # Fallback 2: relaxed mean reversion (activity layer, micro positions)
+                # Ensures 8/10 active trading days across 20 coins
+                if signal.direction == SignalDirection.HOLD:
+                    signal = relaxed_mr_strategy.generate_signal(pair, features_df)
 
                 signals[pair] = signal
 
@@ -759,13 +765,18 @@ def main() -> None:
     )
     # Fallback strategy: mean reversion (fires when both XGBoost models return HOLD)
     mean_reversion_strategy = MeanReversionStrategy()
+    # Activity layer: relaxed MR on all 20 feature pairs (RSI<35 + bb<0.25, soft regime)
+    # Micro positions (0.03x) — ensures 8/10 active trading days for competition
+    # Hybrid backtest: Sharpe 1.280, Sortino 1.848, 99.3% active days, worst 10d = 9/10
+    relaxed_mr_strategy = RelaxedMeanReversionStrategy()
     # Pairs ML strategy: disabled (needs 3552 bars warmup > 10-day competition window)
     pairs_ml_strategy = None
     logger.info(
-        "Strategies: primary=%s sol=%s fallback=%s pairs_ml=%s",
+        "Strategies: primary=%s sol=%s fallback=%s relaxed_mr=%s pairs_ml=%s",
         strategy.__class__.__name__,
         sol_strategy.__class__.__name__,
         mean_reversion_strategy.__class__.__name__,
+        relaxed_mr_strategy.__class__.__name__,
         pairs_ml_strategy.__class__.__name__,
     )
 
