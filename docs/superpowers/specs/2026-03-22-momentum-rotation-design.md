@@ -15,11 +15,15 @@
 Every rebalancing period, compute a composite score for each coin:
 
 ```
-final_score = 0.30 × sharpe_mom_48H
-            + 0.25 × nearness_ratio
-            + 0.25 × sharpe_mom_168H
-            + 0.20 × residual_sharpe_mom_48H
+final_score = w1 × sharpe_mom_48H
+            + w2 × nearness_ratio
+            + w3 × sharpe_mom_168H
+            + w4 × residual_sharpe_mom_48H
 ```
+
+**Weights (w1-w4) are determined by IC analysis, not guessed.** Before locking weights, run information coefficient (IC) analysis on each component across the 20-coin universe on 2024-01 to 2025-06 data. Weight by `IC_i / sum(IC_j)`. If one component dominates IC, it gets dominant weight. Starting guess (0.30/0.25/0.25/0.20) is a placeholder until IC analysis is complete.
+
+The IC analysis is the **first backtest to run** — it determines whether all four components contribute or whether some should be dropped.
 
 ### 1a. Sharpe momentum (48H and 168H)
 
@@ -44,10 +48,19 @@ Coins near their high (nearness → 1.0) rank highest. Strongest single crypto p
 ### 1c. Residual momentum (BTC beta stripped)
 
 ```python
-# Rolling regression: coin_return = alpha + beta * btc_return + epsilon
-# Use 168-bar (7-day) window
-residual = cumulative_epsilon / std(epsilon)
+# Rolling 42-bar OLS: coin_4h_return = alpha + beta * btc_4h_return + epsilon
+# Take the residual of the CURRENT bar only (no look-ahead)
+# Cumulate residuals over last 48 bars (12 × 4H = 48H)
+# Divide by rolling residual volatility
+residual_mom = sum(epsilon[-48:]) / (std(epsilon[-48:]) + 1e-10)
 ```
+
+**Precision notes:**
+- Regression window = 42 bars (7 days) for beta estimation
+- Residual accumulation window = 12 bars (48H) for the momentum signal
+- Uses rolling expanding-window OLS (not in-sample) to prevent look-ahead
+- Floor `std(epsilon)` at 1e-10 to handle coins tracking BTC near-perfectly (e.g. high-beta large caps)
+- All inputs are 4H returns, not 15M (4H = native rebalancing cadence)
 
 Isolates coin-specific momentum from market-wide BTC moves. Roughly doubles risk-adjusted alpha vs raw momentum (Blitz et al. 2011).
 
@@ -131,16 +144,18 @@ realized_vol = std(portfolio_returns, last 42 bars)  # 7-day rolling
 vol_scalar = min(target_daily_vol / realized_vol, 1.0)  # cap at 1.0, no leverage
 ```
 
-Applied to all position sizes multiplicatively.
+Applied to all position sizes multiplicatively. **Freed capital sits as cash.** This reduces both returns and volatility — net effect on scoring ratios depends on regime. In high-vol regimes (where vol_scalar is low), the cash drag is acceptable because avoiding drawdowns improves Calmar/Sortino more than the lost return hurts Sharpe.
 
 ### 4b. Layer 2: BTC time-series momentum filter
 
 ```python
 btc_7d_ema_return = EMA(btc_daily_returns, span=7)
-if btc_7d_ema_return < 0:     tsmom_scalar = 0.50
-elif btc_7d_ema_return < -0.05: tsmom_scalar = 0.0  # go flat
-else:                           tsmom_scalar = 1.0
+if btc_7d_ema_return < -0.05:  tsmom_scalar = 0.0   # go flat — crash
+elif btc_7d_ema_return < 0:    tsmom_scalar = 0.50   # caution — BTC trending down
+else:                          tsmom_scalar = 1.0    # full exposure
 ```
+
+*Note: order matters — check the severe condition first.*
 
 ### 4c. Layer 3: Cross-sectional dispersion filter
 
@@ -154,6 +169,8 @@ else:
 ```
 
 Low dispersion = all coins moving together = rankings are noise.
+
+**Calibration note:** The 20th percentile threshold must be validated in absolute terms (bps). Compute the actual dispersion value at P20 on 2024-2026 data and verify it meaningfully separates "all coins correlated" from "normal dispersion." If the P20 threshold falls at e.g. 15 bps, verify that below 15 bps, momentum rankings are indeed noisy (low IC). The percentile approach adapts to regime, but the threshold itself should be sanity-checked against market structure.
 
 ### 4d. Layer 4: Drawdown circuit breaker
 
@@ -177,18 +194,19 @@ final_exposure = base_weight * vol_scalar * min(tsmom_scalar, dispersion_scalar)
 
 ## 5. Competition-Specific Features
 
-### 5a. Late-game adjustment (leaderboard-aware)
+### 5a. Late-game adjustment (score-aware, not just rank-aware)
 
-If ahead on the leaderboard by day 7-8, reduce exposure to 50-60% to lock in favorable risk-adjusted ratios. The marginal return from final days is not worth the drawdown risk.
+Reduce exposure in the final days based on **current score trajectory**, not just leaderboard rank. A team in 3rd place with a big drawdown on day 6 should behave differently than 3rd place with a clean run.
 
 ```python
-if competition_day >= 7 and leaderboard_position <= 5:
+# Primary trigger: protect existing score components
+if current_max_drawdown > 0.04 or competition_day >= 7:
     late_game_scalar = 0.5
 else:
     late_game_scalar = 1.0
 ```
 
-Leaderboard is visible mid-competition — can be checked via Roostoo dashboard.
+The drawdown trigger (>4%) fires independently of the calendar — if we take a hit on day 3, we protect immediately rather than waiting until day 7. Leaderboard position (visible via Roostoo dashboard) is used as a secondary check: if we're outside top 10 by day 7, aggressive play may be warranted instead of conservative.
 
 ### 5b. Asymmetric sizing after losses
 
@@ -215,7 +233,7 @@ Same 20 coins already validated: BTC, ETH, BNB, SOL, XRP, DOGE, ADA, AVAX, LINK,
 
 ### 6b. Volume filter
 
-Before ranking, filter to top two-thirds by 24H trading volume (~13 coins). Removes illiquid coins where momentum may revert rather than persist (Fičura 2023).
+Filter out the bottom 4 coins by **Binance 24H volume** (not Roostoo volume, which is simulated). This leaves ~16 eligible coins — deep enough to avoid identical-score problems in low-dispersion environments, while removing coins where momentum may revert rather than persist (Fičura 2023). Use Binance volume data already available via the data pipeline.
 
 ### 6c. Unlock filter
 
@@ -235,6 +253,11 @@ Remove coins with upcoming unlocks (existing unlock_screen.py).
 | Does crash protection work? | Compare managed vs unmanaged MaxDD | Managed MaxDD < 8% |
 | 4H vs 8H rebalancing? | Compare frequencies | Similar Sortino with fewer trades = prefer 8H |
 | Limit order fill rate? | N/A in backtest (assume fills) | Test in paper trading |
+| **Full strategy vs BTC hold (PRIMARY)** | Run full strategy across ALL overlapping 10-day windows in 2024-2026. Compare distribution of 10-day competition scores vs BTC buy-and-hold | Median competition score > BTC hold; P5 outcome > -5% return |
+| What fraction of windows beat BTC? | Count windows where strategy score > BTC score | > 60% of windows |
+| Worst-case 10-day window | P5 of 10-day return distribution | > -8% |
+| Sensitivity to dispersion threshold | Sweep 10th/15th/20th/25th percentile | Score stable across thresholds |
+| Sensitivity to drawdown flat trigger | Sweep 8%/10%/12%/15% | Score stable across thresholds |
 
 ---
 
@@ -251,7 +274,29 @@ Remove coins with upcoming unlocks (existing unlock_screen.py).
 
 ---
 
-## 9. Implementation Order
+## 9. Market Regime Flag (competition-open calibration)
+
+At competition open (day 1), compute a simple regime flag using BTC's 30-day return and 7-day volatility. This determines initial weight emphasis:
+
+```python
+btc_30d_ret = log(btc_close[-1] / btc_close[-180])  # 30 days at 4H
+btc_7d_vol = std(btc_4h_returns[-42:])               # 7 days at 4H
+
+if btc_30d_ret > 0.05 and btc_7d_vol > median_vol:
+    regime = "HIGH_VOL_TREND"     # 48H momentum gets more weight
+elif btc_30d_ret > 0 and btc_7d_vol < median_vol:
+    regime = "LOW_VOL_TREND"      # nearness signal dominates
+elif btc_30d_ret < -0.05:
+    regime = "BEARISH"            # max crash protection, minimal exposure
+else:
+    regime = "SIDEWAYS"           # balanced weights
+```
+
+This adds one degree of freedom and is interpretable. The competition is only 10 days — getting the opening-day regime call right matters a lot. The regime flag adjusts IC-derived weights by ±20% (not a full override).
+
+---
+
+## 10. Implementation Order
 
 1. **Momentum signal functions** — compute composite scores, residual momentum, nearness
 2. **Backtest script** — simulate 10-day windows across OOS period, sweep parameters
