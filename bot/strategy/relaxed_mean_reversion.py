@@ -45,7 +45,7 @@ class RelaxedMeanReversionStrategy(BaseStrategy):
         ema_50 = latest.get("EMA_50", float("nan"))
         regime_mult = 1.0
         if not (ema_20 > ema_50):
-            regime_mult = 0.5  # half size in downtrend, not blocked
+            regime_mult = 0.25  # quarter size in downtrend, not blocked
 
         rsi = latest.get("RSI_14", 50.0)
         bb_pos = latest.get("bb_pos", 0.5)
@@ -58,7 +58,7 @@ class RelaxedMeanReversionStrategy(BaseStrategy):
             return TradingSignal(
                 pair=pair,
                 direction=SignalDirection.BUY,
-                size=round(0.03 * regime_mult, 4),
+                size=round(0.01 * regime_mult, 4),
                 confidence=0.50,
             )
 
@@ -68,7 +68,7 @@ class RelaxedMeanReversionStrategy(BaseStrategy):
             return TradingSignal(
                 pair=pair,
                 direction=SignalDirection.BUY,
-                size=round(0.03 * regime_mult, 4),
+                size=round(0.01 * regime_mult, 4),
                 confidence=0.50,
             )
 
