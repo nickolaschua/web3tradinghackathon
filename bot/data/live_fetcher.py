@@ -8,7 +8,11 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 
-from bot.data.features import compute_features, compute_cross_asset_features
+from bot.data.features import (
+    compute_features,
+    compute_cross_asset_features,
+    compute_btc_context_features,
+)
 
 
 class LiveFetcher:
@@ -255,6 +259,19 @@ class LiveFetcher:
             if p != pair
         }
         df = compute_cross_asset_features(df, other_dfs)
+
+        # Step 2.5: 15M-specific features for BTC/USD (shift-16=4H, shift-96=1D returns
+        # and rolling 2880-bar corr/beta). Mirrors prepare_features() in train_model_15m.py.
+        if pair == "BTC/USD":
+            eth_raw = other_dfs.get("ETH/USD", pd.DataFrame())
+            sol_raw = other_dfs.get("SOL/USD", pd.DataFrame())
+            for prefix, raw_df in [("eth", eth_raw), ("sol", sol_raw)]:
+                if not raw_df.empty:
+                    log_ret = np.log(raw_df["close"] / raw_df["close"].shift(1))
+                    df[f"{prefix}_return_4h"] = log_ret.shift(16).reindex(df.index)
+                    df[f"{prefix}_return_1d"] = log_ret.shift(96).reindex(df.index)
+            if not eth_raw.empty and not sol_raw.empty:
+                df = compute_btc_context_features(df, eth_raw, sol_raw, window=2880)
 
         # Step 3: Drop warmup rows (NaN from rolling windows and shift)
         df = df.dropna()

@@ -29,7 +29,7 @@ from sklearn.model_selection import TimeSeriesSplit
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from bot.data.features import compute_cross_asset_features, compute_features
+from bot.data.features import compute_btc_context_features, compute_cross_asset_features, compute_features
 
 
 # ── Constants ──────────────────────────────────────────────────────────────────
@@ -60,6 +60,9 @@ FEATURE_COLS = [
     # Cross-asset lags at meaningful timescales (4H and 1D)
     "eth_return_4h", "sol_return_4h",
     "eth_return_1d", "sol_return_1d",
+    # BTC/ETH rolling correlation and beta (window=2880 bars = 30 days at 15M)
+    # Proven at 4H (IC=0.0747, 0.0648 respectively). sol_btc_* rejected (CV regress).
+    "eth_btc_corr", "eth_btc_beta",
 ]
 
 XGB_PARAMS = dict(
@@ -113,6 +116,10 @@ def prepare_features(btc_path: str, eth_path: str, sol_path: str) -> pd.DataFram
         log_ret = np.log(df["close"] / df["close"].shift(1))
         feat[f"{asset}_return_4h"] = log_ret.shift(16).reindex(feat.index)
         feat[f"{asset}_return_1d"] = log_ret.shift(96).reindex(feat.index)
+
+    # BTC/ETH rolling correlation + beta (30-day window at 15M = 2880 bars).
+    # Must be called BEFORE dropna() to preserve row alignment.
+    feat = compute_btc_context_features(feat, eth, sol, window=2880)
 
     feat = feat.dropna()
 
@@ -248,6 +255,7 @@ def train_final_model(
     X: pd.DataFrame,
     y: pd.Series,
     test_cutoff: str = "2024-01-01",
+    n_estimators: int = 300,
 ):
     """
     Train on all data before test_cutoff, evaluate on held-out test set.
@@ -272,10 +280,10 @@ def train_final_model(
     print(f"Train+Val class balance: BUY={n_pos:,} ({n_pos/len(y_train_val):.1%}), scale_pos_weight={spw:.2f}")
 
     final_params = {k: v for k, v in XGB_PARAMS.items() if k != "early_stopping_rounds"}
-    final_params["n_estimators"] = 300
+    final_params["n_estimators"] = n_estimators
     final_params["scale_pos_weight"] = spw
 
-    print("\nTraining final model (n_estimators=300, no early stopping)...")
+    print(f"\nTraining final model (n_estimators={n_estimators}, no early stopping)...")
     model = xgb.XGBClassifier(**final_params)
     model.fit(X_train_val, y_train_val, verbose=False)
 
@@ -343,6 +351,8 @@ def parse_args():
                    help="Stop-loss %% for triple-barrier label (default 0.003 = 0.3%%)")
     p.add_argument("--test-cutoff", default="2024-01-01",
                    help="Train/test split date (default 2024-01-01)")
+    p.add_argument("--n-estimators", type=int, default=300,
+                   help="n_estimators for final model (default 300, no early stopping)")
     p.add_argument("--cv-only", action="store_true",
                    help="Run walk-forward CV only, skip final training")
     p.add_argument("--output", default="models/xgb_btc_15m.pkl")
@@ -368,7 +378,7 @@ def main():
         return
 
     print("\nStep 4: Training final model...")
-    model, metrics = train_final_model(X, y, args.test_cutoff)
+    model, metrics = train_final_model(X, y, args.test_cutoff, args.n_estimators)
 
     print("\nStep 5: Saving model...")
     save_model(model, args.output)

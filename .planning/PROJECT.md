@@ -75,10 +75,13 @@ A correctly-wired, crash-safe infrastructure that submits valid orders and never
 
 ### Competition Setup
 - **Exchange**: Roostoo mock exchange (`https://mock-api.roostoo.com`), Binance-priced
-- **Round 1**: Starts Mar 21 8PM; first trade must execute before Mar 22 8PM
-- **Round 2 (if finalist)**: Starts Apr 4 8PM; separate API keys issued
-- **Scoring**: Ranked by ROI + Sharpe + Sortino + Calmar on Roostoo App leaderboard
-- **Capital**: $50,000 virtual USD (briefing says $1M — treat API reference as authoritative)
+- **Round 1**: Mar 21 – Mar 31 (10 days); first trade must execute before Mar 22 8PM
+- **Round 2 (if finalist)**: Apr 4 – Apr 14 (10 days); separate API keys issued; top 16 announced Apr 2
+- **Scoring**: Composite score = 0.4×Sortino + 0.3×Sharpe + 0.3×Calmar (Screen 3, 40% weight); Code/strategy review 60%
+- **Qualification**: Top 20 per region by portfolio return advance to Screen 3; need ≥8 active trading days with enough trades per day
+- **Repo deadline**: Submit open-source repo + ReadMe by **March 28**
+- **Capital**: $1,000,000 virtual USD per team
+- **Commission**: 0.1% taker (market order), 0.05% maker (limit order) — backtest uses 10 bps ✓
 - **Auth**: HMAC SHA256 — sort params alphabetically, `key=val&...` string, sign with secret; POST bodies form-encoded
 - **Rate limit**: 30 calls/minute for ALL API calls (not just trades); 65s minimum between `place_order` calls
 
