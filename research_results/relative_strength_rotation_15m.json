@@ -1,0 +1,17 @@
+{
+  "total_return_pct": 0.0,
+  "sharpe": NaN,
+  "sortino": NaN,
+  "calmar": NaN,
+  "composite_score": NaN,
+  "max_drawdown_pct": 0.0,
+  "n_trades": 0,
+  "daily_coverage": 0.0,
+  "trades_per_day": 0.0,
+  "avg_utilization": 0.0,
+  "n_bars": 75277,
+  "win_rate_pct": 0.0,
+  "avg_trade_pnl_pct": 0.0,
+  "best_trade_pct": 0.0,
+  "worst_trade_pct": 0.0
+}

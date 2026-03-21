@@ -1,0 +1,17 @@
+{
+  "total_return_pct": 69.25220769754274,
+  "sharpe": 2.6145969546826984,
+  "sortino": 4.658744952240328,
+  "calmar": 0.038270574933774275,
+  "composite_score": 2.659358239781073,
+  "max_drawdown_pct": -4.607050709358152,
+  "n_trades": 236,
+  "daily_coverage": 0.22363405336721728,
+  "trades_per_day": 0.29987293519695046,
+  "avg_utilization": 0.013463856682195373,
+  "n_bars": 75277,
+  "win_rate_pct": 35.16949152542373,
+  "avg_trade_pnl_pct": -0.0725428264481918,
+  "best_trade_pct": 10.100493865335848,
+  "worst_trade_pct": -4.314753608648067
+}

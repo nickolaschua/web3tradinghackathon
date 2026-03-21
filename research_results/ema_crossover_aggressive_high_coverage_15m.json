@@ -1,0 +1,13 @@
+{
+  "total_return_pct": -55.867026324299516,
+  "sharpe": -2.8056834104946016,
+  "sortino": -4.034447994490554,
+  "calmar": -0.00481823839039111,
+  "composite_score": -2.4569296924617197,
+  "max_drawdown_pct": -56.67184505333891,
+  "n_trades": 541,
+  "daily_coverage": 0.29224904701397714,
+  "trades_per_day": 0.6874205844980941,
+  "avg_utilization": 0.030839810871190074,
+  "n_bars": 75385
+}
