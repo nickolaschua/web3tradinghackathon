@@ -260,8 +260,7 @@ class LiveFetcher:
         }
         df = compute_cross_asset_features(df, other_dfs)
 
-        # Step 2.5: 15M-specific features for BTC/USD (shift-16=4H, shift-96=1D returns
-        # and rolling 2880-bar corr/beta). Mirrors prepare_features() in train_model_15m.py.
+        # Step 2.5: 15M-specific features. Mirrors prepare_features() in train scripts.
         if pair == "BTC/USD":
             eth_raw = other_dfs.get("ETH/USD", pd.DataFrame())
             sol_raw = other_dfs.get("SOL/USD", pd.DataFrame())
@@ -272,6 +271,24 @@ class LiveFetcher:
                     df[f"{prefix}_return_1d"] = log_ret.shift(96).reindex(df.index)
             if not eth_raw.empty and not sol_raw.empty:
                 df = compute_btc_context_features(df, eth_raw, sol_raw, window=2880)
+
+        elif pair == "SOL/USD":
+            # Mirrors prepare_features(target="sol") in train_alt_15m.py.
+            btc_raw = other_dfs.get("BTC/USD", pd.DataFrame())
+            eth_raw = other_dfs.get("ETH/USD", pd.DataFrame())
+            for prefix, raw_df in [("btc", btc_raw), ("eth", eth_raw)]:
+                if not raw_df.empty:
+                    log_ret = np.log(raw_df["close"] / raw_df["close"].shift(1))
+                    df[f"{prefix}_return_4h"] = log_ret.shift(16).reindex(df.index)
+                    df[f"{prefix}_return_1d"] = log_ret.shift(96).reindex(df.index)
+            if not btc_raw.empty:
+                sol_ret = np.log(df["close"] / df["close"].shift(1))
+                btc_ret = np.log(btc_raw["close"] / btc_raw["close"].shift(1)).reindex(df.index)
+                corr = sol_ret.rolling(2880).corr(btc_ret)
+                cov = sol_ret.rolling(2880).cov(btc_ret)
+                var_btc = btc_ret.rolling(2880).var()
+                df["sol_btc_corr"] = corr.shift(1)
+                df["sol_btc_beta"] = (cov / (var_btc + 1e-10)).shift(1)
 
         # Step 3: Drop warmup rows (NaN from rolling windows and shift)
         df = df.dropna()

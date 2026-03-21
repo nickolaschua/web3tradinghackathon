@@ -253,6 +253,7 @@ def _run_one_cycle(
     telegram: TelegramAlerter,
     state_manager: StateManager,
     strategy: Any,
+    sol_strategy: Any,
     mean_reversion_strategy: MeanReversionStrategy,
     pairs_ml_strategy: PairsMLStrategy,
     regime_detector: RegimeDetector,
@@ -404,10 +405,14 @@ def _run_one_cycle(
                     regime.name, regime.size_multiplier, pair,
                 )
 
-                # Primary: momentum strategy
+                # Primary: momentum strategy (BTC XGBoost)
                 signal = strategy.generate_signal(pair, features_df)
 
-                # Fallback: mean reversion when momentum says HOLD
+                # Secondary: SOL XGBoost model (threshold=0.75)
+                if signal.direction == SignalDirection.HOLD and sol_strategy is not None:
+                    signal = sol_strategy.generate_signal(pair, features_df)
+
+                # Fallback: mean reversion when both XGBoost models say HOLD
                 if signal.direction == SignalDirection.HOLD:
                     signal = mean_reversion_strategy.generate_signal(pair, features_df)
 
@@ -679,18 +684,23 @@ def main() -> None:
     live_fetcher = LiveFetcher(seed_dfs=seed_dfs, maxlen=4000)
     logger.info("LiveFetcher initialised: %s", live_fetcher)
 
-    # Primary strategy: XGBoost 15M model (xgb_btc_15m_iter5.pkl, threshold=0.70)
-    # threshold=0.70 per backtest sweep OOS 2024-2026 (best Sharpe)
+    # Primary strategy: XGBoost 15M model for BTC/USD (threshold=0.65)
     strategy = XGBoostStrategy(threshold=0.65)
-    # Fallback strategy: mean reversion (fires when momentum returns HOLD)
+    # Secondary strategy: XGBoost 15M model for SOL/USD (threshold=0.75)
+    # Threshold=0.75 per portfolio backtest OOS 2024-2026 (Sharpe 1.667 combined)
+    sol_strategy = XGBoostStrategy(
+        model_path="models/xgb_sol_15m.pkl",
+        threshold=0.75,
+        pair="SOL/USD",
+    )
+    # Fallback strategy: mean reversion (fires when both XGBoost models return HOLD)
     mean_reversion_strategy = MeanReversionStrategy()
-    # Pairs ML strategy: disabled — needs 3552 bars (37 days) of warmup to fire,
-    # which exceeds the 10-day competition window. Re-enable once seed data is
-    # wired into feature_price_history so it can trade from day 1.
+    # Pairs ML strategy: disabled (needs 3552 bars warmup > 10-day competition window)
     pairs_ml_strategy = None
     logger.info(
-        "Strategies: primary=%s fallback=%s pairs_ml=%s",
+        "Strategies: primary=%s sol=%s fallback=%s pairs_ml=%s",
         strategy.__class__.__name__,
+        sol_strategy.__class__.__name__,
         mean_reversion_strategy.__class__.__name__,
         pairs_ml_strategy.__class__.__name__,
     )
@@ -746,6 +756,7 @@ def main() -> None:
                 telegram=telegram,
                 state_manager=state_manager,
                 strategy=strategy,
+                sol_strategy=sol_strategy,
                 mean_reversion_strategy=mean_reversion_strategy,
                 pairs_ml_strategy=pairs_ml_strategy,
                 regime_detector=regime_detector,
