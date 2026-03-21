@@ -79,6 +79,16 @@ expected_win_loss_ratio: 1.5
 cvar_beta: 0.95
 hrp_blend: 0.5
 
+# Intraday Hybrid Layer (fast triggers + 4H bias scaling)
+intraday:
+  interval: "15m"  # "5m" or "15m"
+  trigger_mode: "momentum_breakout"  # "momentum_breakout" or "mean_reversion"
+  return_threshold: 0.0015
+  volume_ratio_threshold: 1.2
+  zscore_threshold: 1.5
+  base_size: 0.7
+  bias_weight: 0.3  # size multiplier = base_size * (1 + bias_weight * bias), bias in [0, 3]
+
 # Logging
 log_level: "INFO"
 log_max_bytes: 10485760

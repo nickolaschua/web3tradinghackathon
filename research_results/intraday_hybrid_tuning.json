@@ -1,0 +1,434 @@
+{
+  "constraints": {
+    "min_daily_coverage": 1.0,
+    "min_trades_per_day": 1.0
+  },
+  "period": {
+    "start": "2024-01-01",
+    "end": null
+  },
+  "results": {
+    "5m": {
+      "interval": "5m",
+      "n_candidates": 300,
+      "coarse_windows": 8,
+      "validate_windows": 24,
+      "best_overall": {
+        "params": {
+          "interval": "5m",
+          "trigger_mode": "mean_reversion",
+          "return_threshold": 0.0015,
+          "volume_ratio_threshold": 1.2,
+          "zscore_threshold": 0.3,
+          "base_size": 0.2,
+          "bias_weight": 0.2,
+          "max_hold_bars": 3
+        },
+        "n_windows": 24,
+        "feasible_all": true,
+        "feasible_ratio": 1.0,
+        "avg_daily_coverage": 1.0,
+        "avg_trades_per_day": 69.70238095238095,
+        "avg_utilization": 0.23669996981192787,
+        "avg_composite": -89.43129022347215,
+        "avg_sharpe": -121.33649952682195,
+        "avg_max_dd_pct": -28.185462553310614,
+        "objective": [
+          1,
+          1.0,
+          3.0,
+          1.0,
+          0.23669996981192787,
+          -89.43129022347215
+        ]
+      },
+      "best_feasible": {
+        "params": {
+          "interval": "5m",
+          "trigger_mode": "mean_reversion",
+          "return_threshold": 0.0015,
+          "volume_ratio_threshold": 1.2,
+          "zscore_threshold": 0.3,
+          "base_size": 0.2,
+          "bias_weight": 0.2,
+          "max_hold_bars": 3
+        },
+        "n_windows": 24,
+        "feasible_all": true,
+        "feasible_ratio": 1.0,
+        "avg_daily_coverage": 1.0,
+        "avg_trades_per_day": 69.70238095238095,
+        "avg_utilization": 0.23669996981192787,
+        "avg_composite": -89.43129022347215,
+        "avg_sharpe": -121.33649952682195,
+        "avg_max_dd_pct": -28.185462553310614,
+        "objective": [
+          1,
+          1.0,
+          3.0,
+          1.0,
+          0.23669996981192787,
+          -89.43129022347215
+        ]
+      },
+      "top_validated": [
+        {
+          "params": {
+            "interval": "5m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.3,
+            "base_size": 0.2,
+            "bias_weight": 0.2,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 69.70238095238095,
+          "avg_utilization": 0.23669996981192787,
+          "avg_composite": -89.43129022347215,
+          "avg_sharpe": -121.33649952682195,
+          "avg_max_dd_pct": -28.185462553310614,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.23669996981192787,
+            -89.43129022347215
+          ]
+        },
+        {
+          "params": {
+            "interval": "5m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.3,
+            "base_size": 0.2,
+            "bias_weight": 0.1,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 69.83928571428571,
+          "avg_utilization": 0.23482911366513007,
+          "avg_composite": -89.70480794091442,
+          "avg_sharpe": -121.83799274434959,
+          "avg_max_dd_pct": -28.00859280585188,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.23482911366513007,
+            -89.70480794091442
+          ]
+        },
+        {
+          "params": {
+            "interval": "5m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.3,
+            "base_size": 0.2,
+            "bias_weight": 0.05,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 69.88095238095237,
+          "avg_utilization": 0.23355026000082488,
+          "avg_composite": -89.8658334947131,
+          "avg_sharpe": -122.13857362169627,
+          "avg_max_dd_pct": -27.894237510810598,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.23355026000082488,
+            -89.8658334947131
+          ]
+        },
+        {
+          "params": {
+            "interval": "5m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.5,
+            "base_size": 0.2,
+            "bias_weight": 0.2,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 66.1309523809524,
+          "avg_utilization": 0.2255816243335774,
+          "avg_composite": -87.77623977314416,
+          "avg_sharpe": -118.95558781273309,
+          "avg_max_dd_pct": -27.266320259373263,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.2255816243335774,
+            -87.77623977314416
+          ]
+        },
+        {
+          "params": {
+            "interval": "5m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.5,
+            "base_size": 0.2,
+            "bias_weight": 0.1,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 66.1309523809524,
+          "avg_utilization": 0.22354880936550145,
+          "avg_composite": -87.95934231081401,
+          "avg_sharpe": -119.32629976096275,
+          "avg_max_dd_pct": -27.080078466466148,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.22354880936550145,
+            -87.95934231081401
+          ]
+        }
+      ]
+    },
+    "15m": {
+      "interval": "15m",
+      "n_candidates": 300,
+      "coarse_windows": 8,
+      "validate_windows": 24,
+      "best_overall": {
+        "params": {
+          "interval": "15m",
+          "trigger_mode": "mean_reversion",
+          "return_threshold": 0.0015,
+          "volume_ratio_threshold": 1.2,
+          "zscore_threshold": 0.3,
+          "base_size": 0.2,
+          "bias_weight": 0.2,
+          "max_hold_bars": 3
+        },
+        "n_windows": 24,
+        "feasible_all": true,
+        "feasible_ratio": 1.0,
+        "avg_daily_coverage": 1.0,
+        "avg_trades_per_day": 23.55357142857143,
+        "avg_utilization": 0.24840423890944865,
+        "avg_composite": -36.11497442419359,
+        "avg_sharpe": -46.16142233693146,
+        "avg_max_dd_pct": -11.72274256868601,
+        "objective": [
+          1,
+          1.0,
+          3.0,
+          1.0,
+          0.24840423890944865,
+          -36.11497442419359
+        ]
+      },
+      "best_feasible": {
+        "params": {
+          "interval": "15m",
+          "trigger_mode": "mean_reversion",
+          "return_threshold": 0.0015,
+          "volume_ratio_threshold": 1.2,
+          "zscore_threshold": 0.3,
+          "base_size": 0.2,
+          "bias_weight": 0.2,
+          "max_hold_bars": 3
+        },
+        "n_windows": 24,
+        "feasible_all": true,
+        "feasible_ratio": 1.0,
+        "avg_daily_coverage": 1.0,
+        "avg_trades_per_day": 23.55357142857143,
+        "avg_utilization": 0.24840423890944865,
+        "avg_composite": -36.11497442419359,
+        "avg_sharpe": -46.16142233693146,
+        "avg_max_dd_pct": -11.72274256868601,
+        "objective": [
+          1,
+          1.0,
+          3.0,
+          1.0,
+          0.24840423890944865,
+          -36.11497442419359
+        ]
+      },
+      "top_validated": [
+        {
+          "params": {
+            "interval": "15m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.3,
+            "base_size": 0.2,
+            "bias_weight": 0.2,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 23.55357142857143,
+          "avg_utilization": 0.24840423890944865,
+          "avg_composite": -36.11497442419359,
+          "avg_sharpe": -46.16142233693146,
+          "avg_max_dd_pct": -11.72274256868601,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.24840423890944865,
+            -36.11497442419359
+          ]
+        },
+        {
+          "params": {
+            "interval": "15m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.3,
+            "base_size": 0.2,
+            "bias_weight": 0.1,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 23.55357142857143,
+          "avg_utilization": 0.2464494509607749,
+          "avg_composite": -36.14316718571428,
+          "avg_sharpe": -46.23705118683734,
+          "avg_max_dd_pct": -11.671464685310953,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.2464494509607749,
+            -36.14316718571428
+          ]
+        },
+        {
+          "params": {
+            "interval": "15m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.3,
+            "base_size": 0.2,
+            "bias_weight": 0.05,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 23.55357142857143,
+          "avg_utilization": 0.24522299761813734,
+          "avg_composite": -36.20326113974523,
+          "avg_sharpe": -46.3227918094426,
+          "avg_max_dd_pct": -11.622204091745926,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.24522299761813734,
+            -36.20326113974523
+          ]
+        },
+        {
+          "params": {
+            "interval": "15m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.5,
+            "base_size": 0.2,
+            "bias_weight": 0.2,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 22.297619047619047,
+          "avg_utilization": 0.22882411314081752,
+          "avg_composite": -35.21621726517383,
+          "avg_sharpe": -45.314688422247684,
+          "avg_max_dd_pct": -11.299682252845125,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.22882411314081752,
+            -35.21621726517383
+          ]
+        },
+        {
+          "params": {
+            "interval": "15m",
+            "trigger_mode": "mean_reversion",
+            "return_threshold": 0.0015,
+            "volume_ratio_threshold": 1.2,
+            "zscore_threshold": 0.5,
+            "base_size": 0.2,
+            "bias_weight": 0.1,
+            "max_hold_bars": 3
+          },
+          "n_windows": 24,
+          "feasible_all": true,
+          "feasible_ratio": 1.0,
+          "avg_daily_coverage": 1.0,
+          "avg_trades_per_day": 22.297619047619047,
+          "avg_utilization": 0.22738870169899547,
+          "avg_composite": -35.32761878713838,
+          "avg_sharpe": -45.47733284069175,
+          "avg_max_dd_pct": -11.234464921413398,
+          "objective": [
+            1,
+            1.0,
+            3.0,
+            1.0,
+            0.22738870169899547,
+            -35.32761878713838
+          ]
+        }
+      ]
+    }
+  }
+}

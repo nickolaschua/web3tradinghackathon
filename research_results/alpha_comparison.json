@@ -1,0 +1,416 @@
+[
+  {
+    "feature_set": "Base Indicators + Macro Filter",
+    "agg_stats": {
+      "sharpe": -0.3005178732273012,
+      "sortino": 0.011058432329438853,
+      "calmar": 0.13025614977291924,
+      "composite_score": -0.046655144104539005,
+      "total_return_pct": -1.6966122779789445,
+      "max_drawdown_pct": -5.574171999853017,
+      "n_trades_total": 43,
+      "n_folds": 3
+    },
+    "fold_results": [
+      {
+        "fold": 0,
+        "stats": {
+          "total_return_pct": 2.565605410383931,
+          "cagr_pct": 5.892360964461307,
+          "sharpe": 1.4020757898780816,
+          "sortino": 3.0846882893805576,
+          "calmar": 0.6164021842579799,
+          "composite_score": 1.8394187079930415,
+          "max_drawdown_pct": -1.0723123905714171,
+          "volatility_ann_pct": 4.14436002865643,
+          "n_trades": 6,
+          "trade_win_rate_pct": 50.0,
+          "avg_trade_pnl_pct": 0.7732796309893801,
+          "n_bars": 969
+        },
+        "n_trades": 6
+      },
+      {
+        "fold": 1,
+        "stats": {
+          "total_return_pct": -5.0196210037352635,
+          "cagr_pct": -9.855635674675888,
+          "sharpe": -1.5415220581596023,
+          "sortino": -1.9902614403863355,
+          "calmar": -0.13019880633413292,
+          "composite_score": -1.2976208355026546,
+          "max_drawdown_pct": -9.11548928139908,
+          "volatility_ann_pct": 6.589739886585916,
+          "n_trades": 15,
+          "trade_win_rate_pct": 33.33333333333333,
+          "avg_trade_pnl_pct": -1.0114037274891912,
+          "n_bars": 1087
+        },
+        "n_trades": 15
+      },
+      {
+        "fold": 2,
+        "stats": {
+          "total_return_pct": -2.635821240585501,
+          "cagr_pct": -5.291552706490488,
+          "sharpe": -0.7621073514003829,
+          "sortino": -1.0612515520059056,
+          "calmar": -0.09543492860508924,
+          "composite_score": -0.6817633048040039,
+          "max_drawdown_pct": -6.534714327588553,
+          "volatility_ann_pct": 6.8279638334808155,
+          "n_trades": 22,
+          "trade_win_rate_pct": 40.909090909090914,
+          "avg_trade_pnl_pct": -0.2475533438029845,
+          "n_bars": 1076
+        },
+        "n_trades": 22
+      }
+    ]
+  },
+  {
+    "feature_set": "Funding Only + Macro Filter",
+    "agg_stats": {
+      "sharpe": -0.17356878541280982,
+      "sortino": -0.20667511328117794,
+      "calmar": -0.026422395170629092,
+      "composite_score": -0.14266739948750287,
+      "total_return_pct": -0.2712485797525921,
+      "max_drawdown_pct": -2.6078146944712626,
+      "n_trades_total": 27,
+      "n_folds": 3
+    },
+    "fold_results": [
+      {
+        "fold": 0,
+        "stats": {
+          "total_return_pct": 0.42877785009172165,
+          "cagr_pct": 0.8705725025588418,
+          "sharpe": 0.18639281271736102,
+          "sortino": 0.3391877966117256,
+          "calmar": 0.02889409379490354,
+          "composite_score": 0.20026119059836964,
+          "max_drawdown_pct": -3.4537054484373053,
+          "volatility_ann_pct": 5.434508277052761,
+          "n_trades": 10,
+          "trade_win_rate_pct": 20.0,
+          "avg_trade_pnl_pct": 0.06700931079877878,
+          "n_bars": 1081
+        },
+        "n_trades": 10
+      },
+      {
+        "fold": 1,
+        "stats": {
+          "total_return_pct": -0.13146997710320463,
+          "cagr_pct": -0.26300698383817656,
+          "sharpe": -0.10859281712340123,
+          "sortino": -0.14647348151414533,
+          "calmar": -0.02600435965122601,
+          "composite_score": -0.0989685456380463,
+          "max_drawdown_pct": -1.165154401696289,
+          "volatility_ann_pct": 2.201770261760857,
+          "n_trades": 5,
+          "trade_win_rate_pct": 40.0,
+          "avg_trade_pnl_pct": -0.03754774792659996,
+          "n_bars": 1094
+        },
+        "n_trades": 5
+      },
+      {
+        "fold": 2,
+        "stats": {
+          "total_return_pct": -1.1110536122462933,
+          "cagr_pct": -2.2649901757807567,
+          "sharpe": -0.5985063518323892,
+          "sortino": -0.8127396549411141,
+          "calmar": -0.0821569196555648,
+          "composite_score": -0.529294843422832,
+          "max_drawdown_pct": -3.2045842332801944,
+          "volatility_ann_pct": 3.7127819400305886,
+          "n_trades": 12,
+          "trade_win_rate_pct": 41.66666666666667,
+          "avg_trade_pnl_pct": -0.5264932778695923,
+          "n_bars": 1068
+        },
+        "n_trades": 12
+      }
+    ]
+  },
+  {
+    "feature_set": "Funding Only",
+    "agg_stats": {
+      "sharpe": -0.41440347105764447,
+      "sortino": -0.37849106178335945,
+      "calmar": 0.02901258984557305,
+      "composite_score": -0.26701368907696527,
+      "total_return_pct": -1.263725588730835,
+      "max_drawdown_pct": -7.619996039983627,
+      "n_trades_total": 175,
+      "n_folds": 3
+    },
+    "fold_results": [
+      {
+        "fold": 0,
+        "stats": {
+          "total_return_pct": 5.712114337097063,
+          "cagr_pct": 10.558405824032713,
+          "sharpe": 1.1170240355339085,
+          "sortino": 1.860741664016849,
+          "calmar": 0.27727927213871545,
+          "composite_score": 1.1625876579085268,
+          "max_drawdown_pct": -4.189571675710013,
+          "volatility_ann_pct": 9.377659215393736,
+          "n_trades": 60,
+          "trade_win_rate_pct": 45.0,
+          "avg_trade_pnl_pct": 0.30092070940926724,
+          "n_bars": 1212
+        },
+        "n_trades": 60
+      },
+      {
+        "fold": 1,
+        "stats": {
+          "total_return_pct": -1.5564824758763085,
+          "cagr_pct": -2.794776333837279,
+          "sharpe": -0.3947061760368927,
+          "sortino": -0.5657070488095377,
+          "calmar": -0.0503222016576541,
+          "composite_score": -0.3597913328321791,
+          "max_drawdown_pct": -6.471074965069235,
+          "volatility_ann_pct": 6.625955708438655,
+          "n_trades": 52,
+          "trade_win_rate_pct": 48.07692307692308,
+          "avg_trade_pnl_pct": 0.007949718237178337,
+          "n_bars": 1212
+        },
+        "n_trades": 52
+      },
+      {
+        "fold": 2,
+        "stats": {
+          "total_return_pct": -7.94680862741326,
+          "cagr_pct": -13.896522169943227,
+          "sharpe": -1.9655282726699492,
+          "sortino": -2.4305078005573897,
+          "calmar": -0.13991930094434218,
+          "composite_score": -1.6038373923072435,
+          "max_drawdown_pct": -12.199341479171633,
+          "volatility_ann_pct": 7.469673651951076,
+          "n_trades": 63,
+          "trade_win_rate_pct": 46.03174603174603,
+          "avg_trade_pnl_pct": -0.45913929618849847,
+          "n_bars": 1212
+        },
+        "n_trades": 63
+      }
+    ]
+  },
+  {
+    "feature_set": "Oil + DXY",
+    "agg_stats": {
+      "sharpe": -0.7243304155540798,
+      "sortino": -0.9039459246676813,
+      "calmar": -0.06963613800218367,
+      "composite_score": -0.5997683359339517,
+      "total_return_pct": -3.8416124131824234,
+      "max_drawdown_pct": -10.397948055141802,
+      "n_trades_total": 138,
+      "n_folds": 3
+    },
+    "fold_results": [
+      {
+        "fold": 0,
+        "stats": {
+          "total_return_pct": 1.6604477016599173,
+          "cagr_pct": 3.0203926391621394,
+          "sharpe": 0.33754896549742947,
+          "sortino": 0.46752063704011293,
+          "calmar": 0.040134349014406975,
+          "composite_score": 0.3003132491695961,
+          "max_drawdown_pct": -8.546134462086851,
+          "volatility_ann_pct": 10.427663998894614,
+          "n_trades": 41,
+          "trade_win_rate_pct": 43.90243902439025,
+          "avg_trade_pnl_pct": 0.14105150022857693,
+          "n_bars": 1212
+        },
+        "n_trades": 41
+      },
+      {
+        "fold": 1,
+        "stats": {
+          "total_return_pct": -6.785036681409052,
+          "cagr_pct": -11.922971599280885,
+          "sharpe": -1.3123226717250107,
+          "sortino": -1.6321839274595926,
+          "calmar": -0.13144642988173386,
+          "composite_score": -1.0860043014658607,
+          "max_drawdown_pct": -11.03318133343314,
+          "volatility_ann_pct": 9.340680894969314,
+          "n_trades": 39,
+          "trade_win_rate_pct": 46.15384615384615,
+          "avg_trade_pnl_pct": -0.23855165477580106,
+          "n_bars": 1212
+        },
+        "n_trades": 39
+      },
+      {
+        "fold": 2,
+        "stats": {
+          "total_return_pct": -6.400248259798136,
+          "cagr_pct": -11.26491532842775,
+          "sharpe": -1.1982175404346582,
+          "sortino": -1.5471744835835646,
+          "calmar": -0.11759633313922412,
+          "composite_score": -1.0136139555055905,
+          "max_drawdown_pct": -11.614528369905418,
+          "volatility_ann_pct": 9.589847879851003,
+          "n_trades": 58,
+          "trade_win_rate_pct": 41.37931034482759,
+          "avg_trade_pnl_pct": -0.2085287455770597,
+          "n_bars": 1212
+        },
+        "n_trades": 58
+      }
+    ]
+  },
+  {
+    "feature_set": "Base Indicators Only",
+    "agg_stats": {
+      "sharpe": -0.9185422856580994,
+      "sortino": -1.1336203277790649,
+      "calmar": -0.05471739457627245,
+      "composite_score": -0.7454260351819375,
+      "total_return_pct": -4.542573085954264,
+      "max_drawdown_pct": -10.283245917201038,
+      "n_trades_total": 143,
+      "n_folds": 3
+    },
+    "fold_results": [
+      {
+        "fold": 0,
+        "stats": {
+          "total_return_pct": 4.030453074656881,
+          "cagr_pct": 7.400874104419719,
+          "sharpe": 0.7061017604848485,
+          "sortino": 1.0251097338467918,
+          "calmar": 0.1397207635492135,
+          "composite_score": 0.6637906507489353,
+          "max_drawdown_pct": -5.904288565339422,
+          "volatility_ann_pct": 10.96286635285207,
+          "n_trades": 48,
+          "trade_win_rate_pct": 47.91666666666667,
+          "avg_trade_pnl_pct": 0.33996743659041423,
+          "n_bars": 1212
+        },
+        "n_trades": 48
+      },
+      {
+        "fold": 1,
+        "stats": {
+          "total_return_pct": -6.918011217751319,
+          "cagr_pct": -12.149872878214884,
+          "sharpe": -1.3866655650697686,
+          "sortino": -1.7244044045000286,
+          "calmar": -0.12266486887129704,
+          "composite_score": -1.1425608919823311,
+          "max_drawdown_pct": -12.061475592265413,
+          "volatility_ann_pct": 9.045582790757498,
+          "n_trades": 35,
+          "trade_win_rate_pct": 31.428571428571427,
+          "avg_trade_pnl_pct": -0.4415497607880809,
+          "n_bars": 1212
+        },
+        "n_trades": 35
+      },
+      {
+        "fold": 2,
+        "stats": {
+          "total_return_pct": -10.740161114768354,
+          "cagr_pct": -18.559770274855058,
+          "sharpe": -2.0750630523893783,
+          "sortino": -2.7015663126839575,
+          "calmar": -0.1812080784067338,
+          "composite_score": -1.757507864312417,
+          "max_drawdown_pct": -12.883973593998277,
+          "volatility_ann_pct": 9.667946088909009,
+          "n_trades": 60,
+          "trade_win_rate_pct": 33.33333333333333,
+          "avg_trade_pnl_pct": -0.4615018372474051,
+          "n_bars": 1212
+        },
+        "n_trades": 60
+      }
+    ]
+  },
+  {
+    "feature_set": "Funding + Oil + DXY",
+    "agg_stats": {
+      "sharpe": -0.9071110017629515,
+      "sortino": -1.185530965768234,
+      "calmar": -0.11882020305522058,
+      "composite_score": -0.7819917477527453,
+      "total_return_pct": -4.601280636642009,
+      "max_drawdown_pct": -7.961197132880012,
+      "n_trades_total": 128,
+      "n_folds": 3
+    },
+    "fold_results": [
+      {
+        "fold": 0,
+        "stats": {
+          "total_return_pct": -3.208037503484207,
+          "cagr_pct": -5.7215164643945045,
+          "sharpe": -0.6036242709374765,
+          "sortino": -0.7730569046451629,
+          "calmar": -0.09386705109403382,
+          "composite_score": -0.5184701584675183,
+          "max_drawdown_pct": -7.198035370191091,
+          "volatility_ann_pct": 9.075821502703393,
+          "n_trades": 40,
+          "trade_win_rate_pct": 47.5,
+          "avg_trade_pnl_pct": -0.09987741975754642,
+          "n_bars": 1212
+        },
+        "n_trades": 40
+      },
+      {
+        "fold": 1,
+        "stats": {
+          "total_return_pct": -7.9001697423480515,
+          "cagr_pct": -13.817679692297503,
+          "sharpe": -1.5195380822439484,
+          "sortino": -1.9574050758200128,
+          "calmar": -0.18918264388696632,
+          "composite_score": -1.2955782481672795,
+          "max_drawdown_pct": -8.967899218618546,
+          "volatility_ann_pct": 9.489184941779454,
+          "n_trades": 44,
+          "trade_win_rate_pct": 38.63636363636363,
+          "avg_trade_pnl_pct": -0.43075104013416776,
+          "n_bars": 1212
+        },
+        "n_trades": 44
+      },
+      {
+        "fold": 2,
+        "stats": {
+          "total_return_pct": -2.695634664093771,
+          "cagr_pct": -4.817757504779796,
+          "sharpe": -0.5981706521074293,
+          "sortino": -0.8261309168395262,
+          "calmar": -0.0734109141846616,
+          "composite_score": -0.5319268366234378,
+          "max_drawdown_pct": -7.717656809830398,
+          "volatility_ann_pct": 7.752317848346959,
+          "n_trades": 44,
+          "trade_win_rate_pct": 43.18181818181818,
+          "avg_trade_pnl_pct": -0.15178616708854903,
+          "n_bars": 1212
+        },
+        "n_trades": 44
+      }
+    ]
+  }
+]
