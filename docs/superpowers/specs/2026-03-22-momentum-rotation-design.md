@@ -21,9 +21,14 @@ final_score = w1 × sharpe_mom_48H
             + w4 × residual_sharpe_mom_48H
 ```
 
-**Weights (w1-w4) are determined by IC analysis, not guessed.** Before locking weights, run information coefficient (IC) analysis on each component across the 20-coin universe on 2024-01 to 2025-06 data. Weight by `IC_i / sum(IC_j)`. If one component dominates IC, it gets dominant weight. Starting guess (0.30/0.25/0.25/0.20) is a placeholder until IC analysis is complete.
+**Weights (w1-w4) are determined by IC analysis, not guessed.** Before locking weights, run information coefficient (IC) analysis on each component across the 20-coin universe on 2024-01 to 2025-06 data:
 
-The IC analysis is the **first backtest to run** — it determines whether all four components contribute or whether some should be dropped.
+1. Compute IC as **Spearman rank correlation** between each component score and the subsequent 4H return (Spearman, not Pearson — scores are not normally distributed and we care about rank ordering)
+2. **Drop any component with IC ≤ 0** on the formation period — do not invert or floor at zero
+3. Weight remaining components by `IC_i / sum(IC_j)` where j runs over positive-IC components only
+4. Starting guess (0.30/0.25/0.25/0.20) is a placeholder until IC analysis is complete
+
+The IC analysis is **Step 2a of implementation** — it gates whether all four components are used or some are dropped, which affects all subsequent code.
 
 ### 1a. Sharpe momentum (48H and 168H)
 
@@ -92,9 +97,11 @@ Allocates less to volatile coins. Directly reduces portfolio variance → improv
 ### 2c. Buffer zones (turnover control)
 
 - **Buy zone:** Rank 1-4 → enter position
-- **Hold zone:** Rank 5-8 → maintain, do not sell
-- **Sell zone:** Below rank 8 → exit, replace with highest-ranked non-held coin
+- **Hold zone:** Rank 5-6 → maintain, do not sell
+- **Sell zone:** Below rank 6 → exit, replace with highest-ranked non-held coin
 - **Minimum swap threshold:** Replacement's smoothed score must exceed current holding's score by ≥ 1 std dev of the score distribution
+
+Buffer is tightened to ranks 5-6 (from 5-8) because the filtered universe is only ~16 coins. Rank 7-8 out of 16 is below median — too deep to hold. Rank 5-6 keeps us in the top 37%.
 
 Expected: ~10-20 actual trades over 10 days (vs ~60 without buffer zones).
 
@@ -185,10 +192,15 @@ else:                 dd_scalar = 1.0
 ### 4e. Combined exposure
 
 ```python
-final_exposure = base_weight * vol_scalar * min(tsmom_scalar, dispersion_scalar) * dd_scalar
+final_exposure = (base_weight
+                  * vol_scalar
+                  * min(tsmom_scalar, dispersion_scalar)
+                  * dd_scalar
+                  * loss_scalar        # from Section 5b
+                  * late_game_scalar)  # from Section 5a
 ```
 
-`min()` on TSMOM and dispersion avoids double-counting. Any severe signal → near-zero exposure.
+`min()` on TSMOM and dispersion avoids double-counting. `loss_scalar` and `late_game_scalar` are outer multipliers applied after the risk layers. Note that `loss_scalar` (3-day return based) and `dd_scalar` (drawdown based) can fire simultaneously — a -3% 3-day loss often coincides with ~3-5% drawdown. The combined effect (e.g., 0.60 × 0.75 = 0.45) is intentionally conservative: in a denominator-minimization competition, over-cutting is safer than under-cutting.
 
 ---
 
@@ -258,6 +270,7 @@ Remove coins with upcoming unlocks (existing unlock_screen.py).
 | Worst-case 10-day window | P5 of 10-day return distribution | > -8% |
 | Sensitivity to dispersion threshold | Sweep 10th/15th/20th/25th percentile | Score stable across thresholds |
 | Sensitivity to drawdown flat trigger | Sweep 8%/10%/12%/15% | Score stable across thresholds |
+| **EMA smoothing alpha sensitivity** | Sweep α ∈ {0.2, 0.3, 0.4, 0.5, 0.6} | Verify 0.4 minimizes fee/alpha tradeoff; too high = raw scores (excess turnover), too low = stale signals |
 
 ---
 
@@ -274,33 +287,46 @@ Remove coins with upcoming unlocks (existing unlock_screen.py).
 
 ---
 
-## 9. Market Regime Flag (competition-open calibration)
+## 9. Market Regime Flag (recomputed daily)
 
-At competition open (day 1), compute a simple regime flag using BTC's 30-day return and 7-day volatility. This determines initial weight emphasis:
+Compute a regime flag **daily** (not set-and-forget) using BTC's 30-day return and 7-day volatility. This adjusts signal weights to match current market conditions:
 
 ```python
 btc_30d_ret = log(btc_close[-1] / btc_close[-180])  # 30 days at 4H
 btc_7d_vol = std(btc_4h_returns[-42:])               # 7 days at 4H
 
 if btc_30d_ret > 0.05 and btc_7d_vol > median_vol:
-    regime = "HIGH_VOL_TREND"     # 48H momentum gets more weight
+    regime = "HIGH_VOL_TREND"     # boost 48H momentum weight
 elif btc_30d_ret > 0 and btc_7d_vol < median_vol:
-    regime = "LOW_VOL_TREND"      # nearness signal dominates
+    regime = "LOW_VOL_TREND"      # boost nearness weight
 elif btc_30d_ret < -0.05:
     regime = "BEARISH"            # max crash protection, minimal exposure
 else:
-    regime = "SIDEWAYS"           # balanced weights
+    regime = "SIDEWAYS"           # use IC-derived weights unmodified
 ```
 
-This adds one degree of freedom and is interpretable. The competition is only 10 days — getting the opening-day regime call right matters a lot. The regime flag adjusts IC-derived weights by ±20% (not a full override).
+**Weight adjustment mechanism (multiplicative with re-normalization):**
+```python
+# Start with IC-derived base weights [w1, w2, w3, w4]
+# Apply regime boost: multiply the favored component by 1.3, others unchanged
+# Re-normalize so weights sum to 1.0
+# Example: HIGH_VOL_TREND boosts w1 (sharpe_mom_48H) by 1.3x
+adjusted = [w1 * 1.3, w2, w3, w4]
+adjusted = [w / sum(adjusted) for w in adjusted]
+```
+
+This is multiplicative (preserves relative ordering of other weights) and always sums to 1.0 after re-normalization. The 1.3x boost is ~20% effective increase after re-normalization.
+
+Recomputed daily at the first 4H rebalancing of each day (00:00 UTC). If BTC crashes on day 3, the regime shifts to BEARISH by day 4's first rebalancing — signal weights adapt rather than staying stale.
 
 ---
 
 ## 10. Implementation Order
 
-1. **Momentum signal functions** — compute composite scores, residual momentum, nearness
-2. **Backtest script** — simulate 10-day windows across OOS period, sweep parameters
-3. **Validate** — check all gates in Section 7
-4. **Strategy class** — MomentumRotationStrategy with buffer zones, crash protection
-5. **Wire into main.py** — replace signal cascade
-6. **Paper trade** — verify limit order fills on Roostoo before going live
+1. **Momentum signal functions** — compute all 4 component scores, residual momentum, nearness
+2. **IC analysis (gates Step 3)** — compute Spearman IC for each component on 2024-01 to 2025-06 data. Drop components with IC ≤ 0. Derive weights from positive-IC components. This determines which components survive into the strategy code.
+3. **Backtest script** — simulate 10-day windows across OOS period (2025-06 to 2026-03 holdout), sweep EMA alpha, buffer width, dispersion threshold, drawdown trigger
+4. **Validate** — check all gates in Section 7, especially full strategy vs BTC hold
+5. **Strategy class** — MomentumRotationStrategy with buffer zones, crash protection, regime flag
+6. **Wire into main.py** — replace signal cascade
+7. **Paper trade** — verify limit order fills on Roostoo before going live
