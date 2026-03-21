@@ -183,6 +183,7 @@ def run_backtest(
     eth_raw_df: Optional[pd.DataFrame] = None,
     enable_unlock_screen: bool = False,
     pairs_lookback: int = 500,
+    exit_threshold: Optional[float] = None,
 ) -> tuple:
     """
     Bar-by-bar backtest with live-bot risk management.
@@ -214,7 +215,7 @@ def run_backtest(
         - gate_stats:      dict counting how many BUY signals were blocked by each gate
     """
     fee_rate = fee_bps / 10_000.0
-    sell_threshold = 1.0 - threshold
+    sell_threshold = exit_threshold if exit_threshold is not None else (1.0 - threshold)
 
     closes = feat_df["close"].values
     atrs = feat_df["atr_proxy"].values
@@ -726,6 +727,55 @@ def run_atr_sweep(
     return results
 
 
+# -- Exit threshold sweep ------------------------------------------------------
+
+def run_exit_sweep(
+    feat_df: pd.DataFrame,
+    probas: np.ndarray,
+    entry_threshold: float,
+    initial_capital: float = 10_000.0,
+    fee_bps: int = 10,
+    strategy_kwargs: Optional[dict] = None,
+    **sizing_kwargs,
+) -> list[dict]:
+    """
+    Sweep exit thresholds at a fixed entry threshold to find the optimal
+    conviction-decay exit point.
+
+    For XGBoost entries, we exit when P(BUY) drops below exit_threshold.
+    Baseline (exit = 1 - entry_threshold) is included for comparison.
+    """
+    exit_thresholds = [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50]
+    results = []
+    all_kwargs = {**(strategy_kwargs or {}), **sizing_kwargs}
+
+    for et in exit_thresholds:
+        ret, port, trades, gates = run_backtest(
+            feat_df, probas, entry_threshold,
+            initial_capital=initial_capital,
+            fee_bps=fee_bps,
+            exit_threshold=et,
+            **all_kwargs,
+        )
+        stats = compute_stats_report(ret, port, trades, gates, initial_capital)
+        baseline = abs(et - (1.0 - entry_threshold)) < 1e-6
+        results.append({
+            "exit_threshold": et,
+            "sharpe": round(stats["sharpe"], 3),
+            "sortino": round(stats["sortino"], 3),
+            "n_trades": stats["n_trades"],
+            "stop_exit_pct": round(
+                stats["stop_exits"] / stats["n_trades"] * 100 if stats["n_trades"] > 0 else 0, 1
+            ),
+            "total_return_pct": round(stats["total_return_pct"], 2),
+            "trade_win_rate_pct": round(stats["trade_win_rate_pct"], 1),
+            "is_baseline": baseline,
+        })
+
+    results.sort(key=lambda r: r["sharpe"], reverse=True)
+    return results
+
+
 # -- CLI -----------------------------------------------------------------------
 
 def parse_args():
@@ -767,6 +817,15 @@ def parse_args():
     parser.add_argument(
         "--atr-sweep", action="store_true",
         help="Sweep ATR multipliers 2-30 to find best 15M calibration (at fixed --threshold)",
+    )
+    parser.add_argument(
+        "--exit-threshold", type=float, default=None,
+        help="P(BUY) exit threshold (default: 1 - entry threshold). "
+             "Exit when P(BUY) drops below this value.",
+    )
+    parser.add_argument(
+        "--exit-sweep", action="store_true",
+        help="Sweep exit thresholds [0.10-0.40] at fixed entry --threshold (XGBoost exits only)",
     )
     parser.add_argument(
         "--output", type=str, default=None,
@@ -852,6 +911,40 @@ def main():
     print("Batch predicting probas...")
     probas = batch_predict(model, feat)
 
+    if args.exit_sweep:
+        print(
+            f"\nRunning exit threshold sweep "
+            f"(entry={args.threshold}, fee={args.fee_bps} bps, capital=${args.capital:,.0f})..."
+        )
+        print(f"  Baseline exit = {1.0 - args.threshold:.2f} (= 1 - entry threshold)\n")
+        exit_results = run_exit_sweep(
+            feat, probas, args.threshold,
+            initial_capital=args.capital,
+            fee_bps=args.fee_bps,
+            strategy_kwargs=strategy_kwargs,
+            **sizing_kwargs,
+        )
+        print(
+            f"{'Exit Thresh':>12}  {'Sharpe':>8}  {'Sortino':>8}  {'Trades':>7}  "
+            f"{'Stop Exit%':>11}  {'Return%':>9}  {'WinRate%':>9}"
+        )
+        print("-" * 80)
+        best_exit = exit_results[0]
+        for r in exit_results:
+            marker = " <-- best" if r is best_exit else ""
+            marker += " [baseline]" if r["is_baseline"] else ""
+            print(
+                f"  {r['exit_threshold']:>10.2f}  {r['sharpe']:>8.3f}  {r['sortino']:>8.3f}  "
+                f"{r['n_trades']:>7}  {r['stop_exit_pct']:>10.1f}%  "
+                f"{r['total_return_pct']:>9.2f}  {r['trade_win_rate_pct']:>8.1f}%{marker}"
+            )
+        print(
+            f"\nBest exit threshold: {best_exit['exit_threshold']:.2f} "
+            f"(Sharpe={best_exit['sharpe']:.3f}) vs baseline "
+            f"exit={1.0 - args.threshold:.2f}"
+        )
+        return
+
     if args.atr_sweep:
         base_kwargs = dict(
             risk_per_trade_pct=args.risk_per_trade,
@@ -915,14 +1008,16 @@ def main():
         feat, probas, args.threshold,
         initial_capital=args.capital,
         fee_bps=args.fee_bps,
+        exit_threshold=args.exit_threshold,
         **{**strategy_kwargs, **sizing_kwargs},
     )
     print(f"  Simulation complete: {len(trades)} closed trades")
 
     stats = compute_stats_report(returns, portfolio, trades, gates, args.capital)
     strategies_label = f" +{args.strategies}" if args.strategies else ""
+    exit_label = f" exit={args.exit_threshold:.2f}" if args.exit_threshold is not None else ""
     label = (
-        f"XGBoost 15M{strategies_label} threshold={args.threshold} "
+        f"XGBoost 15M{strategies_label} threshold={args.threshold}{exit_label} "
         f"risk={args.risk_per_trade:.0%}/trade "
         f"stop={args.hard_stop_pct:.0%} "
         f"fee={args.fee_bps}bps"

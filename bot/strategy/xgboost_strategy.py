@@ -42,8 +42,10 @@ class XGBoostStrategy(BaseStrategy):
         model_path: str = "models/xgb_btc_15m_iter5.pkl",
         threshold: float = 0.65,
         pair: str = "BTC/USD",
+        exit_threshold: float = 0.10,
     ) -> None:
         self._threshold = threshold
+        self._exit_threshold = exit_threshold
         self._pair = pair
 
         path = Path(model_path)
@@ -106,13 +108,23 @@ class XGBoostStrategy(BaseStrategy):
             logger.error("XGBoostStrategy: predict_proba failed for %s: %s", pair, exc)
             return TradingSignal(pair=pair)
 
-        logger.debug("XGBoostStrategy: %s P(BUY)=%.4f threshold=%.2f", pair, proba, self._threshold)
+        logger.debug(
+            "XGBoostStrategy: %s P(BUY)=%.4f threshold=%.2f exit_threshold=%.2f",
+            pair, proba, self._threshold, self._exit_threshold,
+        )
 
         if proba >= self._threshold:
             return TradingSignal(
                 pair=pair,
                 direction=SignalDirection.BUY,
                 size=1.0,
+                confidence=round(min(proba, 1.0), 4),
+            )
+
+        if proba <= self._exit_threshold:
+            return TradingSignal(
+                pair=pair,
+                direction=SignalDirection.SELL,
                 confidence=round(min(proba, 1.0), 4),
             )
 

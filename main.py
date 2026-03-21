@@ -243,6 +243,51 @@ def _register_shutdown_handler(
     logger.info("Shutdown handler registered (SIGTERM + SIGINT)")
 
 
+def _send_heartbeat(
+    telegram: "TelegramAlerter",
+    order_manager: "OrderManager",
+    total_usd: float,
+    prices: dict,
+    loop_state: dict,
+) -> None:
+    """Send a periodic status heartbeat to Telegram."""
+    import datetime
+
+    ts = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    positions = order_manager.get_all_positions()
+
+    lines = [
+        "<b>💓 Heartbeat</b>",
+        f"🕐 {ts}",
+        f"💵 Balance: ${total_usd:,.2f}",
+    ]
+
+    if positions:
+        lines.append(f"📊 Positions ({len(positions)}):")
+        total_unrealized = 0.0
+        for pair, pos in positions.items():
+            current_price = prices.get(pair, pos.entry_price)
+            unrealized_pnl = (current_price - pos.entry_price) * pos.quantity
+            unrealized_pct = (
+                (current_price / pos.entry_price - 1) * 100 if pos.entry_price > 0 else 0.0
+            )
+            total_unrealized += unrealized_pnl
+            sign = "+" if unrealized_pnl >= 0 else ""
+            lines.append(
+                f"  • {pair}: qty={pos.quantity:.6f} "
+                f"entry={pos.entry_price:.4f} now={current_price:.4f} "
+                f"PnL={sign}{unrealized_pnl:.2f} ({sign}{unrealized_pct:.1f}%)"
+            )
+        total_sign = "+" if total_unrealized >= 0 else ""
+        lines.append(f"📈 Unrealized PnL: {total_sign}${total_unrealized:.2f}")
+    else:
+        lines.append("📊 Positions: None")
+
+    lines.append(f"🔄 Last trade: {loop_state.get('last_trade', 'None yet')}")
+
+    telegram.send("\n".join(lines))
+
+
 def _run_one_cycle(
     *,
     client: RoostooClient,
@@ -515,6 +560,11 @@ def _run_one_cycle(
                                 f"\U0001f7e2 BUY {pair}: qty={sizing.approved_quantity:.6f} "
                                 f"@ ~{current_price:.4f} | stop={sizing.stop_price:.4f}"
                             )
+                            loop_state["last_trade"] = (
+                                f"BUY {pair} qty={sizing.approved_quantity:.6f} "
+                                f"@ {current_price:.4f} "
+                                f"[{time.strftime('%H:%M:%S UTC', time.gmtime())}]"
+                            )
                     else:
                         logger.info(
                             "Step 4D: BUY blocked for %s: %s (%s)",
@@ -532,6 +582,11 @@ def _run_one_cycle(
                     if managed:
                         telegram.send(
                             f"\U0001f534 SELL {pair}: qty={pos.quantity:.6f} @ ~{current_price:.4f}"
+                        )
+                        loop_state["last_trade"] = (
+                            f"SELL {pair} qty={pos.quantity:.6f} "
+                            f"@ {current_price:.4f} "
+                            f"[{time.strftime('%H:%M:%S UTC', time.gmtime())}]"
                         )
 
             except Exception as exc:
@@ -684,14 +739,17 @@ def main() -> None:
     live_fetcher = LiveFetcher(seed_dfs=seed_dfs, maxlen=4000)
     logger.info("LiveFetcher initialised: %s", live_fetcher)
 
-    # Primary strategy: XGBoost 15M model for BTC/USD (threshold=0.65)
-    strategy = XGBoostStrategy(threshold=0.65)
-    # Secondary strategy: XGBoost 15M model for SOL/USD (threshold=0.75)
+    # Primary strategy: XGBoost 15M model for BTC/USD (threshold=0.65, exit=0.10)
+    # exit_threshold=0.10: only exit on conviction decay when model is very bearish (P<10%)
+    # Backtest OOS 2024-2026: exit=0.10 -> Sharpe 1.558 vs exit=0.30 (baseline) -> 1.387
+    strategy = XGBoostStrategy(threshold=0.65, exit_threshold=0.10)
+    # Secondary strategy: XGBoost 15M model for SOL/USD (threshold=0.75, exit=0.10)
     # Threshold=0.75 per portfolio backtest OOS 2024-2026 (Sharpe 1.667 combined)
     sol_strategy = XGBoostStrategy(
         model_path="models/xgb_sol_15m.pkl",
         threshold=0.75,
         pair="SOL/USD",
+        exit_threshold=0.10,
     )
     # Fallback strategy: mean reversion (fires when both XGBoost models return HOLD)
     mean_reversion_strategy = MeanReversionStrategy()

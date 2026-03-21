@@ -101,6 +101,7 @@ def run_portfolio_backtest(
     max_single_position_pct: float = 0.40,
     expected_win_loss_ratio: float = 1.5,
     fee_bps: int = 10,
+    exit_threshold: float = 0.10,
 ) -> tuple:
     """
     Bar-by-bar portfolio simulation with two independent position slots.
@@ -174,7 +175,7 @@ def run_portfolio_backtest(
                 continue
 
             stop_hit   = c <= s["trail_stop"]
-            sell_signal = p <= (1.0 - threshold)
+            sell_signal = p <= exit_threshold
 
             if stop_hit or sell_signal:
                 proceeds = s["units"] * c * (1.0 - fee_rate)
@@ -358,7 +359,7 @@ def main():
             for st in sol_thresholds:
                 ret, port, trades, gates = run_portfolio_backtest(
                     btc_feat, sol_feat, btc_probas, sol_probas,
-                    bt, st, initial_capital=args.capital,
+                    bt, st, initial_capital=args.capital, exit_threshold=0.10,
                 )
                 stats = compute_stats(ret, port, trades, args.capital)
                 results.append((bt, st, stats))
@@ -373,7 +374,7 @@ def main():
         ret, port, trades, gates = run_portfolio_backtest(
             btc_feat, sol_feat, btc_probas, sol_probas,
             args.btc_threshold, args.sol_threshold,
-            initial_capital=args.capital,
+            initial_capital=args.capital, exit_threshold=0.10,
         )
         stats = compute_stats(ret, port, trades, args.capital)
         print_report(stats, args.btc_threshold, args.sol_threshold, args.capital)
@@ -385,6 +386,7 @@ def main():
             btc_feat, btc_probas, args.btc_threshold,
             initial_capital=args.capital,
             atr_stop_multiplier=10.0,
+            exit_threshold=0.10,
         )
         s_btc = compute_stats_report(ret_b, port_b, trades_b, gates_b, args.capital)
         print(f"  Sharpe: {s_btc['sharpe']:.3f}  |  Trades: {s_btc['n_trades']}  |  Return: {s_btc['total_return_pct']:+.2f}%")
