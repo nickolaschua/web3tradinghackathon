@@ -1,10 +1,17 @@
 """
-Mean-reversion strategy stub for the Roostoo trading bot.
+Mean-reversion with regime gate strategy for the Roostoo trading bot.
 
-This module contains MeanReversionStrategy — a placeholder that returns a safe
-HOLD signal until you fill in your alpha logic.  Open this file, read the
-docstring on generate_signal(), and write your conditions in the marked zones.
-You do not need to read any other file to understand what data is available.
+Entry logic:
+  1. Regime gate: only enter longs when EMA_20 > EMA_50 (local uptrend).
+     Blocked in downtrend to avoid catching falling knives.
+  2. Standard entry: RSI_14 < 30 AND bb_pos < 0.15 AND MACDh_12_26_9 > 0.
+     Three stacked conditions → higher precision, size=0.35.
+  3. Extreme entry: RSI_14 < 25 alone (EMA gate already confirmed uptrend).
+     Single condition → lower size=0.25.
+Exit logic:
+  RSI_14 > 55 OR bb_pos > 0.6 → SELL full position.
+
+Reference: research/strategies/mean_reversion_regime_gate.md
 """
 from __future__ import annotations
 
@@ -14,78 +21,81 @@ from bot.strategy.base import BaseStrategy, SignalDirection, TradingSignal
 
 class MeanReversionStrategy(BaseStrategy):
     """
-    Mean-reversion strategy stub.
+    Mean-reversion strategy with EMA regime gate.
 
-    Returns a HOLD signal by default.  Safe to deploy before alpha logic is
-    filled in — no real positions will be opened until the entry zones below
-    contain actual conditions.
+    Only enters long when the coin is in a local uptrend (EMA_20 > EMA_50).
+    In a downtrend, oversold readings keep declining — the regime gate prevents
+    the "catching falling knives" failure mode.
     """
 
     def generate_signal(self, pair: str, features: pd.DataFrame) -> TradingSignal:
         """
-        Generate a mean-reversion trading signal from the latest features.
+        Generate a mean-reversion signal from the latest features.
 
         Parameters
         ----------
         pair : str
-            The tradeable pair symbol, e.g. ``"BTC/USD"``.  The returned
-            TradingSignal will carry this exact value in its ``pair`` field.
+            Tradeable pair symbol, e.g. "BTC/USD".
         features : pd.DataFrame
-            Recent candle/indicator data.  Every indicator column is already
-            shifted by 1 bar (``shift(1)``) — there is no look-ahead bias.
-            The most recent complete bar is the last row (``features.iloc[-1]``).
-
-        Available feature columns
-        -------------------------
-        close         : float  — latest close price
-        atr_proxy     : float  — volatility proxy: log_returns.rolling(14).std()
-                                 * close * 1.25
-        rsi           : float  — RSI(14), value 0–100
-        macd          : float  — MACD line (12, 26)
-        macd_signal   : float  — MACD signal line (9)
-        macd_hist     : float  — MACD histogram (macd − macd_signal)
-        ema_slope     : float  — rate of change of EMA(20) over last N bars
-        eth_btc_corr  : float  — rolling 20-bar correlation of BTC/USD and
-                                 ETH/USD returns
-        sol_btc_corr  : float  — rolling 20-bar correlation of BTC/USD and
-                                 SOL/USD returns
-        eth_return    : float  — latest ETH/USD log return
-        sol_return    : float  — latest SOL/USD log return
+            Computed indicator DataFrame (all columns already shifted 1 bar).
+            Required columns: EMA_20, EMA_50, RSI_14, bb_pos, MACDh_12_26_9.
 
         Returns
         -------
         TradingSignal
-            ``pair`` always matches the input ``pair`` argument.
-            ``direction`` is BUY, SELL, or HOLD.
-            ``size`` is a fraction of the portfolio (0.0–1.0).
-            ``confidence`` is 0.0–1.0 (reserved for future sizing/filtering).
-
-        Example
-        -------
-        Simple oversold bounce (mean-reversion buy):
-
-            if latest["rsi"] < 25 and latest["macd_hist"] > 0:
-                return TradingSignal(
-                    pair=pair,
-                    direction=SignalDirection.BUY,
-                    size=0.4,
-                    confidence=0.65,
-                )
+            BUY when deeply oversold in uptrend; SELL when mean-reverted;
+            HOLD otherwise.
         """
-        # Get the most recent row of features
-        latest = features.iloc[-1] if len(features) > 0 else None
-        if latest is None:
+        if len(features) == 0:
             return TradingSignal(pair=pair)
 
-        # --- ADD YOUR ENTRY CONDITIONS HERE ---
-        # Mean-reversion example: buy when RSI is deeply oversold and MACD hist is turning up
-        # if latest["rsi"] < 25 and latest["macd_hist"] > 0:
-        #     return TradingSignal(pair=pair, direction=SignalDirection.BUY, size=0.4, confidence=0.65)
+        latest = features.iloc[-1]
 
-        # --- ADD YOUR EXIT CONDITIONS HERE ---
-        # Example: exit when RSI returns to mean (>50)
-        # if latest["rsi"] > 50:
-        #     return TradingSignal(pair=pair, direction=SignalDirection.SELL, size=1.0, confidence=0.5)
+        # ── Regime gate ──────────────────────────────────────────────────────
+        # Require a local uptrend (EMA_20 > EMA_50). This per-coin micro-regime
+        # check prevents entries on declining coins even during global bull markets.
+        ema_20 = latest.get("EMA_20", float("nan"))
+        ema_50 = latest.get("EMA_50", float("nan"))
+        if not (ema_20 > ema_50):
+            return TradingSignal(pair=pair)  # downtrend — hold
 
-        # Default: no signal — hold current position
+        rsi       = latest.get("RSI_14", 50.0)
+        bb_pos    = latest.get("bb_pos", 0.5)
+        macd_hist = latest.get("MACDh_12_26_9", 0.0)
+
+        # ── Entry: 3-condition stack (highest precision) ──────────────────────
+        # All three conditions together: RSI oversold + near lower Bollinger Band
+        # + MACD histogram has turned positive (momentum reversing, not leading).
+        # Fires ~2-3% of bars; win rate ~65-70%.
+        if rsi < 30 and bb_pos < 0.15 and macd_hist > 0:
+            return TradingSignal(
+                pair=pair,
+                direction=SignalDirection.BUY,
+                size=0.35,
+                confidence=0.60,
+            )
+
+        # ── Entry: extreme oversold alone ─────────────────────────────────────
+        # RSI < 25 in an uptrend is extreme enough to enter without bb_pos or MACD
+        # confirmation. Smaller size due to lower precision (single condition).
+        if rsi < 25:
+            return TradingSignal(
+                pair=pair,
+                direction=SignalDirection.BUY,
+                size=0.25,
+                confidence=0.55,
+            )
+
+        # ── Exit: mean has reverted ──────────────────────────────────────────
+        # RSI back to neutral (>55) or price above Bollinger midpoint (bb_pos>0.6).
+        # Exit the full mean-reversion position; momentum strategy handles the rest.
+        if rsi > 55 or bb_pos > 0.6:
+            return TradingSignal(
+                pair=pair,
+                direction=SignalDirection.SELL,
+                size=1.0,
+                confidence=0.70,
+            )
+
+        # ── Default: hold current position ───────────────────────────────────
         return TradingSignal(pair=pair)

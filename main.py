@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import os
 import signal
 import sys
@@ -19,15 +20,53 @@ from bot.execution.risk import RiskManager
 from bot.monitoring.telegram import TelegramAlerter
 from bot.persistence.state_manager import StateManager
 from bot.strategy.base import SignalDirection
+from bot.config.unlock_screen import apply_unlock_screen
 from bot.strategy.mean_reversion import MeanReversionStrategy
-from bot.strategy.momentum import MomentumStrategy
+from bot.strategy.pairs_ml_strategy import PairsMLStrategy
+from bot.strategy.xgboost_strategy import XGBoostStrategy
 
-_CANDLE_4H_SECONDS = 4 * 3600  # seconds per 4H candle period
+_CANDLE_15M_SECONDS = 15 * 60  # seconds per 15M candle period
 
 _BINANCE_TO_ROOSTOO: dict[str, str] = {
-    "BTCUSDT": "BTC/USD",
-    "ETHUSDT": "ETH/USD",
-    "SOLUSDT": "SOL/USD",
+    "BTCUSDT":   "BTC/USD",
+    "ETHUSDT":   "ETH/USD",
+    "BNBUSDT":   "BNB/USD",
+    "SOLUSDT":   "SOL/USD",
+    "ADAUSDT":   "ADA/USD",
+    "AVAXUSDT":  "AVAX/USD",
+    "DOGEUSDT":  "DOGE/USD",
+    "LINKUSDT":  "LINK/USD",
+    "DOTUSDT":   "DOT/USD",
+    "UNIUSDT":   "UNI/USD",
+    "XRPUSDT":   "XRP/USD",
+    "LTCUSDT":   "LTC/USD",
+    "AAVEUSDT":  "AAVE/USD",
+    "CRVUSDT":   "CRV/USD",
+    "NEARUSDT":  "NEAR/USD",
+    "FILUSDT":   "FIL/USD",
+    "FETUSDT":   "FET/USD",
+    "HBARUSDT":  "HBAR/USD",
+    "ZECUSDT":   "ZEC/USD",
+    "ZENUSDT":   "ZEN/USD",
+    "CAKEUSDT":  "CAKE/USD",
+    "PAXGUSDT":  "PAXG/USD",
+    "XLMUSDT":   "XLM/USD",
+    "TRXUSDT":   "TRX/USD",
+    "CFXUSDT":   "CFX/USD",
+    "SHIBUSDT":  "SHIB/USD",
+    "ICPUSDT":   "ICP/USD",
+    "APTUSDT":   "APT/USD",
+    "ARBUSDT":   "ARB/USD",
+    "SUIUSDT":   "SUI/USD",
+    "FLOKIUSDT": "FLOKI/USD",
+    "PEPEUSDT":  "PEPE/USD",
+    "PENDLEUSDT":"PENDLE/USD",
+    "WLDUSDT":   "WLD/USD",
+    "SEIUSDT":   "SEI/USD",
+    "BONKUSDT":  "BONK/USD",
+    "WIFUSDT":   "WIF/USD",
+    "ENAUSDT":   "ENA/USD",
+    "TAOUSDT":   "TAO/USD",
 }
 
 
@@ -104,6 +143,18 @@ def startup_reconciliation(
                 "OrderManager state loaded: %d positions",
                 len(order_manager.get_all_positions()),
             )
+
+        # Cross-validate: every position must have a risk_manager entry price.
+        # If risk state was missing/corrupted, backfill from the position's recorded entry_price
+        # so stop-loss checks don't silently skip the position.
+        for pair, pos in order_manager.get_all_positions().items():
+            if pair not in risk_manager._entry_prices:
+                logger.warning(
+                    "Startup: position %s has no risk_manager entry — backfilling from entry_price=%.4f",
+                    pair, pos.entry_price,
+                )
+                hard_stop_pct = risk_manager.config.get("hard_stop_pct", 0.08)
+                risk_manager.record_entry(pair, pos.entry_price, pos.entry_price * (1 - hard_stop_pct))
     else:
         logger.info("No persisted state found — cold start")
 
@@ -192,6 +243,51 @@ def _register_shutdown_handler(
     logger.info("Shutdown handler registered (SIGTERM + SIGINT)")
 
 
+def _send_heartbeat(
+    telegram: "TelegramAlerter",
+    order_manager: "OrderManager",
+    total_usd: float,
+    prices: dict,
+    loop_state: dict,
+) -> None:
+    """Send a periodic status heartbeat to Telegram."""
+    import datetime
+
+    ts = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+    positions = order_manager.get_all_positions()
+
+    lines = [
+        "<b>💓 Heartbeat</b>",
+        f"🕐 {ts}",
+        f"💵 Balance: ${total_usd:,.2f}",
+    ]
+
+    if positions:
+        lines.append(f"📊 Positions ({len(positions)}):")
+        total_unrealized = 0.0
+        for pair, pos in positions.items():
+            current_price = prices.get(pair, pos.entry_price)
+            unrealized_pnl = (current_price - pos.entry_price) * pos.quantity
+            unrealized_pct = (
+                (current_price / pos.entry_price - 1) * 100 if pos.entry_price > 0 else 0.0
+            )
+            total_unrealized += unrealized_pnl
+            sign = "+" if unrealized_pnl >= 0 else ""
+            lines.append(
+                f"  • {pair}: qty={pos.quantity:.6f} "
+                f"entry={pos.entry_price:.4f} now={current_price:.4f} "
+                f"PnL={sign}{unrealized_pnl:.2f} ({sign}{unrealized_pct:.1f}%)"
+            )
+        total_sign = "+" if total_unrealized >= 0 else ""
+        lines.append(f"📈 Unrealized PnL: {total_sign}${total_unrealized:.2f}")
+    else:
+        lines.append("📊 Positions: None")
+
+    lines.append(f"🔄 Last trade: {loop_state.get('last_trade', 'None yet')}")
+
+    telegram.send("\n".join(lines))
+
+
 def _run_one_cycle(
     *,
     client: RoostooClient,
@@ -202,6 +298,9 @@ def _run_one_cycle(
     telegram: TelegramAlerter,
     state_manager: StateManager,
     strategy: Any,
+    sol_strategy: Any,
+    mean_reversion_strategy: MeanReversionStrategy,
+    pairs_ml_strategy: PairsMLStrategy,
     regime_detector: RegimeDetector,
     tradeable_pairs: list[str],
     feature_pairs: list[str],
@@ -227,12 +326,27 @@ def _run_one_cycle(
     logger = logging.getLogger(__name__)
     warmup_bars = config.get("warmup_bars", 35)
 
-    # ── Step 1: Poll ticker for all pairs ────────────────────────────────────
+    # ── Step 1: Poll ticker — rotating budget to stay within 30 calls/min ────
+    # Always poll: feature_pairs (3) + open-position pairs.
+    # Rotate: 36 non-feature pairs split into 3 batches of 12; one batch/cycle.
     prices: dict[str, float] = {}
-    for pair in feature_pairs:
+
+    non_feature_pairs = [p for p in tradeable_pairs if p not in feature_pairs]
+    rotation_idx = loop_state.get("poll_rotation_idx", 0)
+    batch_size = 12
+    batch_start = (rotation_idx % 3) * batch_size
+    rotating_batch = non_feature_pairs[batch_start: batch_start + batch_size]
+    loop_state["poll_rotation_idx"] = rotation_idx + 1
+
+    open_position_pairs = set(order_manager.get_all_positions().keys())
+    pairs_to_poll = list(dict.fromkeys(
+        feature_pairs + rotating_batch + list(open_position_pairs)
+    ))
+
+    for pair in pairs_to_poll:
         try:
             ticker = client.get_ticker(pair)
-            price = float(ticker.get("LastPrice", 0.0))
+            price = float(ticker.get("Data", {}).get(pair, {}).get("LastPrice", 0.0))
             if price > 0.0:
                 live_fetcher.poll_ticker(pair, price)
                 prices[pair] = price
@@ -276,25 +390,26 @@ def _run_one_cycle(
         except Exception as exc:
             logger.error("Step 3: stop check failed for %s: %s", pair, exc)
 
-    # ── Step 4: New 4H candle — features + signal + size + submit ────────────
+    # ── Step 4: New 15M candle — features + signal + size + submit ───────────
     now = time.time()
-    current_4h_epoch = int(now) // _CANDLE_4H_SECONDS
+    current_15m_epoch = int(now) // _CANDLE_15M_SECONDS
     last_signal_epoch = loop_state.get("last_signal_epoch", 0)
 
-    if current_4h_epoch > last_signal_epoch:
-        loop_state["last_signal_epoch"] = current_4h_epoch
-        logger.info("Step 4: new 4H candle epoch %d — computing signals", current_4h_epoch)
+    if current_15m_epoch > last_signal_epoch:
+        loop_state["last_signal_epoch"] = current_15m_epoch
+        logger.info("Step 4: new 15M candle epoch %d — computing signals", current_15m_epoch)
 
-        # Extend feature buffers with the just-completed 4H candle.
+        # Extend feature buffers with the just-completed 15M candle.
         # MUST run before the tradeable_pairs loop so get_feature_matrix() sees
         # the latest bar for cross-asset lag features (eth_return_lag1 etc.).
-        epoch_ts = current_4h_epoch * _CANDLE_4H_SECONDS
-        for fpair in feature_pairs:
-            if fpair in prices:
-                live_fetcher.append_epoch_candle(fpair, prices[fpair], epoch_ts)
-                logger.debug("Step 4: appended epoch candle for %s at epoch %d", fpair, epoch_ts)
+        epoch_ts = current_15m_epoch * _CANDLE_15M_SECONDS
+        for tpair in tradeable_pairs:
+            candle_price = prices.get(tpair) or live_fetcher._last_prices.get(tpair)
+            if candle_price and candle_price > 0.0:
+                live_fetcher.append_epoch_candle(tpair, candle_price, epoch_ts)
+                logger.debug("Step 4: appended epoch candle for %s at epoch %d", tpair, epoch_ts)
             else:
-                logger.warning("Step 4: no live price for %s — epoch candle skipped", fpair)
+                logger.warning("Step 4: no live price for %s — epoch candle skipped", tpair)
 
         # Recompute portfolio weights once per 4H boundary using full price history
         feature_price_history = {
@@ -303,68 +418,120 @@ def _run_one_cycle(
         }
         portfolio_allocator.compute_weights(feature_price_history)
 
+        # ── Phase A: collect per-pair signals (momentum → mean-reversion fallback) ──
+        from bot.strategy.base import TradingSignal
+        signals: dict[str, TradingSignal] = {}
+        regime_mults: dict[str, float] = {}
+
         for pair in tradeable_pairs:
             try:
                 df = live_fetcher._to_dataframe(pair)
 
                 if len(df) < warmup_bars:
                     logger.info(
-                        "Step 4: %s has %d bars (need %d) — skipping (warmup)",
+                        "Step 4A: %s has %d bars (need %d) — skipping (warmup)",
                         pair, len(df), warmup_bars,
                     )
                     continue
 
-                # Use get_feature_matrix() — computes indicators + cross-asset
-                # lag features (eth_return_lag1/2, sol_return_lag1/2) in the
-                # correct order. Required for XGBoost model inference.
                 features_df = live_fetcher.get_feature_matrix(pair)
                 if features_df.empty:
-                    logger.warning("Step 4: get_feature_matrix returned empty DataFrame for %s", pair)
+                    logger.warning("Step 4A: get_feature_matrix empty for %s", pair)
                     continue
 
-                # Update cache — last row as dict; ATR available for step 3 in next cycle
+                # Update cache — ATR available for step 3 in next cycle
                 features_cache[pair] = features_df.iloc[-1].to_dict()
 
                 # Regime detection
                 regime = regime_detector.update(df)
-                regime_mult = regime.size_multiplier
+                regime_mults[pair] = regime.size_multiplier
                 logger.debug(
-                    "Step 4: regime=%s (mult=%.1f) for %s", regime.name, regime_mult, pair
+                    "Step 4A: regime=%s (mult=%.1f) for %s",
+                    regime.name, regime.size_multiplier, pair,
                 )
 
-                # Signal generation — pass full DataFrame to strategy
+                # Primary: momentum strategy (BTC XGBoost)
                 signal = strategy.generate_signal(pair, features_df)
 
+                # Secondary: SOL XGBoost model (threshold=0.75)
+                if signal.direction == SignalDirection.HOLD and sol_strategy is not None:
+                    signal = sol_strategy.generate_signal(pair, features_df)
+
+                # Fallback: mean reversion when both XGBoost models say HOLD
                 if signal.direction == SignalDirection.HOLD:
-                    logger.debug("Step 4: HOLD signal for %s", pair)
+                    signal = mean_reversion_strategy.generate_signal(pair, features_df)
+
+                signals[pair] = signal
+
+            except Exception as exc:
+                logger.error(
+                    "Step 4A: error processing %s: %s", pair, exc, exc_info=True
+                )
+
+        # ── Phase B: pairs ML signals (BTC/ETH spread reversion) ─────────────
+        # Builds coin_dfs once and passes to each registered pair_state.
+        # Only fires if no existing BUY/SELL signal for the target pair.
+        if pairs_ml_strategy is not None:
+            for pair_state in pairs_ml_strategy.pair_states:
+                try:
+                    ml_signals = pairs_ml_strategy.update(
+                        pair_state, feature_price_history, current_15m_epoch
+                    )
+                    for sig in ml_signals:
+                        existing = signals.get(sig.pair)
+                        if existing is None or existing.direction == SignalDirection.HOLD:
+                            signals[sig.pair] = sig
+                            logger.debug(
+                                "Step 4B: pairs ML %s for %s (P=%.2f)",
+                                sig.direction.name, sig.pair, sig.confidence,
+                            )
+                except Exception as exc:
+                    logger.error(
+                        "Step 4B: pairs ML error for %s/%s: %s",
+                        pair_state.pair_a, pair_state.pair_b, exc,
+                    )
+
+        # ── Phase C: token unlock screen ─────────────────────────────────────
+        signals = apply_unlock_screen(signals)
+
+        # ── Phase D: execute signals ──────────────────────────────────────────
+        for pair, signal in signals.items():
+            if signal.direction == SignalDirection.HOLD:
+                logger.debug("Step 4D: HOLD signal for %s", pair)
+                continue
+
+            try:
+                current_price = prices.get(pair) or live_fetcher._last_prices.get(pair, 0.0)
+                if current_price <= 0.0:
+                    logger.warning("Step 4D: no price for %s, skipping", pair)
                     continue
 
-                current_price = prices.get(pair, 0.0)
-                if current_price <= 0.0:
-                    logger.warning("Step 4: no price for %s, skipping", pair)
-                    continue
+                regime_mult = regime_mults.get(pair, 1.0)
 
                 if signal.direction == SignalDirection.BUY:
                     if cb_active:
-                        logger.info("Step 4: CB active, skipping BUY for %s", pair)
+                        logger.info("Step 4D: CB active, skipping BUY for %s", pair)
                         continue
 
                     if pair in order_manager.get_all_positions():
                         logger.debug(
-                            "Step 4: already in position for %s, skipping BUY", pair
+                            "Step 4D: already in position for %s, skipping BUY", pair
                         )
                         continue
 
-                    atr = features_cache[pair].get("atr_proxy", current_price * 0.02)
+                    atr = features_cache.get(pair, {}).get("atr_proxy", current_price * 0.02)
                     confidence = signal.confidence if signal.confidence > 0.0 else 0.5
                     portfolio_weight = portfolio_allocator.get_pair_weight(
                         pair, n_active_pairs=len(feature_pairs)
                     )
 
                     open_pos = order_manager.get_all_positions()
-                    # Build {pair: usd_value} dict as required by size_new_position
                     open_pos_usd: dict[str, float] = {
-                        p: pos_obj.quantity * prices.get(p, current_price)
+                        p: pos_obj.quantity * (
+                            prices.get(p)
+                            or live_fetcher._last_prices.get(p)
+                            or pos_obj.entry_price
+                        )
                         for p, pos_obj in open_pos.items()
                     }
                     free_usd = max(0.0, total_usd - sum(open_pos_usd.values()))
@@ -393,9 +560,14 @@ def _run_one_cycle(
                                 f"\U0001f7e2 BUY {pair}: qty={sizing.approved_quantity:.6f} "
                                 f"@ ~{current_price:.4f} | stop={sizing.stop_price:.4f}"
                             )
+                            loop_state["last_trade"] = (
+                                f"BUY {pair} qty={sizing.approved_quantity:.6f} "
+                                f"@ {current_price:.4f} "
+                                f"[{time.strftime('%H:%M:%S UTC', time.gmtime())}]"
+                            )
                     else:
                         logger.info(
-                            "Step 4: BUY blocked for %s: %s (%s)",
+                            "Step 4D: BUY blocked for %s: %s (%s)",
                             pair, sizing.decision.name, sizing.reason,
                         )
 
@@ -403,7 +575,7 @@ def _run_one_cycle(
                     pos = order_manager.get_all_positions().get(pair)
                     if pos is None:
                         logger.debug(
-                            "Step 4: SELL signal for %s but no open position", pair
+                            "Step 4D: SELL signal for %s but no open position", pair
                         )
                         continue
                     managed = order_manager.close_position(pair, pos.quantity, current_price)
@@ -411,10 +583,15 @@ def _run_one_cycle(
                         telegram.send(
                             f"\U0001f534 SELL {pair}: qty={pos.quantity:.6f} @ ~{current_price:.4f}"
                         )
+                        loop_state["last_trade"] = (
+                            f"SELL {pair} qty={pos.quantity:.6f} "
+                            f"@ {current_price:.4f} "
+                            f"[{time.strftime('%H:%M:%S UTC', time.gmtime())}]"
+                        )
 
             except Exception as exc:
                 logger.error(
-                    "Step 4: error processing %s: %s", pair, exc, exc_info=True
+                    "Step 4D: error executing %s: %s", pair, exc, exc_info=True
                 )
 
     # Periodic reconciliation (every 5 min — OrderManager tracks interval internally)
@@ -434,12 +611,18 @@ def _run_one_cycle(
 
     # ── Step 6: Heartbeat log ─────────────────────────────────────────────────
     logger.info(
-        "Heartbeat: positions=%d cb_active=%s 4h_epoch=%d prices_polled=%d",
+        "Heartbeat: positions=%d cb_active=%s 15m_epoch=%d prices_polled=%d",
         len(order_manager.get_all_positions()),
         cb_active,
-        current_4h_epoch,
+        current_15m_epoch,
         len(prices),
     )
+
+    heartbeat_interval = config.get("telegram_heartbeat_interval", 900)  # default 15 min
+    cycle_ts = time.time()
+    if cycle_ts - loop_state.get("last_heartbeat_ts", 0.0) >= heartbeat_interval:
+        loop_state["last_heartbeat_ts"] = cycle_ts
+        _send_heartbeat(telegram, order_manager, total_usd, prices, loop_state)
 
     # ── Step 7: Boundary-aligned sleep ───────────────────────────────────────
     sleep_secs = max(0.0, 60.0 - (time.time() % 60.0))
@@ -455,10 +638,10 @@ def _load_seed_data(config: dict) -> dict[str, Any]:
     skipped — the bot starts with an empty buffer and warms up from live ticks.
 
     Filename patterns tried (in order):
-      1. {data_dir}/{BINANCE_SYM}_4h.parquet          (e.g. BTCUSDT_4h.parquet)
-      2. {data_dir}/{BINANCE_SYM}-4h.parquet           (e.g. BTCUSDT-4h.parquet)
-      3. {data_dir}/{BINANCE_SYM.lower()}_4h.parquet
-      4. {data_dir}/{BINANCE_SYM}-4h-*.parquet (glob)  (from binance_historical_data)
+      1. {data_dir}/{BINANCE_SYM}_15m.parquet          (e.g. BTCUSDT_15m.parquet)
+      2. {data_dir}/{BINANCE_SYM}-15m.parquet           (e.g. BTCUSDT-15m.parquet)
+      3. {data_dir}/{BINANCE_SYM.lower()}_15m.parquet
+      4. {data_dir}/{BINANCE_SYM}-15m-*.parquet (glob)  (from binance_historical_data)
 
     Returns:
         dict[str, pd.DataFrame] with Roostoo pair names (e.g. "BTC/USD") as keys.
@@ -472,20 +655,24 @@ def _load_seed_data(config: dict) -> dict[str, Any]:
     data_dir = Path(config.get("data_dir", "data"))
 
     roostoo_to_binance = {v: k for k, v in _BINANCE_TO_ROOSTOO.items()}
-    feature_pairs: list[str] = config.get("feature_pairs", ["BTC/USD"])
+    # Load seed data for ALL tradeable pairs (not just feature_pairs)
+    all_pairs: list[str] = config.get("tradeable_pairs", config.get("feature_pairs", ["BTC/USD"]))
 
     seed_dfs: dict[str, pd.DataFrame] = {}
 
-    for pair in feature_pairs:
+    for pair in all_pairs:
         binance_sym = roostoo_to_binance.get(pair)
         if not binance_sym:
             logger.warning("_load_seed_data: no Binance symbol for pair %s, skipping", pair)
             continue
 
+        # Try 15m first (preferred resolution), then 4h as fallback
         candidates = [
-            data_dir / f"{binance_sym}_4h.parquet",
+            data_dir / f"{binance_sym}_15m.parquet",
+            data_dir / f"{binance_sym}-15m.parquet",
+            data_dir / f"{binance_sym.lower()}_15m.parquet",
+            data_dir / f"{binance_sym}_4h.parquet",   # 4h fallback
             data_dir / f"{binance_sym}-4h.parquet",
-            data_dir / f"{binance_sym.lower()}_4h.parquet",
         ]
 
         loaded = False
@@ -501,8 +688,8 @@ def _load_seed_data(config: dict) -> dict[str, Any]:
                     logger.warning("Failed to read %s: %s", path, exc)
 
         if not loaded:
-            # Try glob for date-suffixed files: BTCUSDT-4h-2024-01-01.parquet etc.
-            pattern = str(data_dir / f"{binance_sym}-4h-*.parquet")
+            # Try glob for date-suffixed files: BTCUSDT-15m-2024-01-01.parquet etc.
+            pattern = str(data_dir / f"{binance_sym}-15m-*.parquet")
             matches = sorted(glob_mod.glob(pattern))
             if matches:
                 try:
@@ -536,12 +723,13 @@ def main() -> None:
     config = _load_config()
 
     # ── Component initialisation ──────────────────────────────────────────────
-    api_key = os.environ["ROOSTOO_API_KEY"]
-    secret = os.environ["ROOSTOO_SECRET"]
+    api_key = os.environ.get("ROOSTOO_API_KEY") or os.environ["ROOSTOO_API_KEY_TEST"]
+    secret = os.environ.get("ROOSTOO_SECRET") or os.environ["ROOSTOO_SECRET_TEST"]
     tg_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
     tg_chat = os.environ.get("TELEGRAM_CHAT_ID", "")
 
     client = RoostooClient(api_key=api_key, secret=secret)
+    client.sync_time()
     telegram = TelegramAlerter(token=tg_token, chat_id=tg_chat)
     state_manager = StateManager(path=Path(config.get("state_path", "state.json")))
     risk_manager = RiskManager(config=config)
@@ -550,13 +738,36 @@ def main() -> None:
     portfolio_allocator = PortfolioAllocator(config=config)
 
     # Load seed data and initialise LiveFetcher
+    # maxlen=4000 (~41 days at 15M):
+    # - compute_btc_context_features requires window=2880 (30d)
+    # - pairs ML features require ols_window(2880) + zscore_window(672) = 3552 bars minimum
     seed_dfs = _load_seed_data(config)
-    live_fetcher = LiveFetcher(seed_dfs=seed_dfs)
+    live_fetcher = LiveFetcher(seed_dfs=seed_dfs, maxlen=4000)
     logger.info("LiveFetcher initialised: %s", live_fetcher)
 
-    # Strategy selection — user swaps this to MeanReversionStrategy or custom
-    strategy = MomentumStrategy()
-    logger.info("Strategy: %s", strategy.__class__.__name__)
+    # Primary strategy: XGBoost 15M model for BTC/USD (threshold=0.65, exit=0.10)
+    # exit_threshold=0.10: only exit on conviction decay when model is very bearish (P<10%)
+    # Backtest OOS 2024-2026: exit=0.10 -> Sharpe 1.558 vs exit=0.30 (baseline) -> 1.387
+    strategy = XGBoostStrategy(threshold=0.65, exit_threshold=0.10)
+    # Secondary strategy: XGBoost 15M model for SOL/USD (threshold=0.75, exit=0.10)
+    # Threshold=0.75 per portfolio backtest OOS 2024-2026 (Sharpe 1.667 combined)
+    sol_strategy = XGBoostStrategy(
+        model_path="models/xgb_sol_15m.pkl",
+        threshold=0.75,
+        pair="SOL/USD",
+        exit_threshold=0.10,
+    )
+    # Fallback strategy: mean reversion (fires when both XGBoost models return HOLD)
+    mean_reversion_strategy = MeanReversionStrategy()
+    # Pairs ML strategy: disabled (needs 3552 bars warmup > 10-day competition window)
+    pairs_ml_strategy = None
+    logger.info(
+        "Strategies: primary=%s sol=%s fallback=%s pairs_ml=%s",
+        strategy.__class__.__name__,
+        sol_strategy.__class__.__name__,
+        mean_reversion_strategy.__class__.__name__,
+        pairs_ml_strategy.__class__.__name__,
+    )
 
     # Register shutdown handler BEFORE reconciliation (handles crashes during startup)
     _register_shutdown_handler(state_manager, risk_manager, order_manager, telegram)
@@ -570,6 +781,20 @@ def main() -> None:
         state_manager=state_manager,
     )
 
+    # Cold-start HWM init: if no persisted state loaded, fetch live balance now
+    # so the circuit breaker and tiered sizing multipliers work from the first cycle.
+    if risk_manager._portfolio_hwm == 0:
+        try:
+            balance = client.get_balance()
+            initial_usd = float(balance.get("total_usd", 0.0))
+            if initial_usd > 0:
+                risk_manager.initialize_hwm(initial_usd)
+                logger.info("Cold start: initialized portfolio HWM to $%.0f", initial_usd)
+            else:
+                logger.warning("Cold start: balance returned total_usd=0, HWM not initialized")
+        except Exception as exc:
+            logger.warning("Cold start: could not fetch balance for HWM init: %s", exc)
+
     telegram.send("\u2705 Bot started — entering main loop")
     logger.info("Startup complete — entering main loop")
 
@@ -578,6 +803,8 @@ def main() -> None:
     loop_state: dict[str, Any] = {
         "last_signal_epoch": saved_state.get("last_signal_epoch", 0),
         "features_cache": {},
+        "last_trade": "None yet",
+        "last_heartbeat_ts": 0.0,
     }
 
     tradeable_pairs: list[str] = config.get("tradeable_pairs", ["BTC/USD"])
@@ -595,6 +822,9 @@ def main() -> None:
                 telegram=telegram,
                 state_manager=state_manager,
                 strategy=strategy,
+                sol_strategy=sol_strategy,
+                mean_reversion_strategy=mean_reversion_strategy,
+                pairs_ml_strategy=pairs_ml_strategy,
                 regime_detector=regime_detector,
                 tradeable_pairs=tradeable_pairs,
                 feature_pairs=feature_pairs,

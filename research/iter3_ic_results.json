@@ -1,0 +1,37 @@
+{
+  "btc_funding_latest": {
+    "mean_ic": -0.07763267096315238,
+    "pos_pct": 0.0,
+    "max_ic": 0.16656770297969165,
+    "n_windows": 8,
+    "status": "FAIL"
+  },
+  "btc_funding_ma_24h": {
+    "mean_ic": -0.07288687438317462,
+    "pos_pct": 0.125,
+    "max_ic": 0.21788047427588808,
+    "n_windows": 8,
+    "status": "FAIL"
+  },
+  "btc_funding_change_24h": {
+    "mean_ic": -0.03845290087899639,
+    "pos_pct": 0.125,
+    "max_ic": 0.08604129251633763,
+    "n_windows": 8,
+    "status": "FAIL"
+  },
+  "btc_funding_self_zscore": {
+    "mean_ic": -0.06510262778509544,
+    "pos_pct": 0.125,
+    "max_ic": 0.1319104976337829,
+    "n_windows": 8,
+    "status": "FAIL"
+  },
+  "btc_funding_extreme": {
+    "mean_ic": 0.027683014498380218,
+    "pos_pct": 0.625,
+    "max_ic": 0.14085718178148146,
+    "n_windows": 8,
+    "status": "MARGINAL+CONCENTRATED"
+  }
+}

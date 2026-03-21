@@ -160,4 +160,58 @@ def compute_cross_asset_features(
     return out
 
 
-__all__ = ["compute_features", "compute_cross_asset_features"]
+def compute_btc_context_features(
+    btc_feat_df: pd.DataFrame,
+    eth_df: pd.DataFrame,
+    sol_df: pd.DataFrame,
+    window: int = 180,
+) -> pd.DataFrame:
+    """
+    Add BTC/altcoin context features based on rolling correlation, beta, and return divergence.
+
+    All new columns are shifted 1 bar to match the convention in compute_features().
+
+    New columns added:
+      eth_btc_corr        : rolling {window}-bar Spearman correlation of ETH and BTC log-returns
+      sol_btc_corr        : rolling {window}-bar Spearman correlation of SOL and BTC log-returns
+      eth_btc_beta        : rolling OLS beta of ETH returns on BTC returns (cov/var)
+      sol_btc_beta        : same for SOL
+      eth_btc_divergence  : ETH log-return minus BTC log-return (lag-1 bar), captures ETH leading BTC
+      sol_btc_divergence  : same for SOL
+
+    Args:
+        btc_feat_df : Output of compute_features() + compute_cross_asset_features().
+                      Must have a DatetimeIndex (UTC) and a 'close' column (unshifted).
+        eth_df      : Raw OHLCV DataFrame for ETH (any capitalisation).
+        sol_df      : Raw OHLCV DataFrame for SOL (any capitalisation).
+        window      : Rolling window in bars for correlation and beta (default 20 = ~3.3 days at 4H).
+
+    Returns:
+        New DataFrame with six additional columns.
+    """
+    out = btc_feat_df.copy()
+
+    btc_ret = np.log(out["close"] / out["close"].shift(1))
+
+    for symbol, raw_df in [("eth", eth_df), ("sol", sol_df)]:
+        raw = raw_df.copy()
+        raw.columns = raw.columns.str.lower()
+
+        alt_ret = np.log(raw["close"] / raw["close"].shift(1)).reindex(out.index, method="ffill")
+
+        # Rolling correlation (Pearson on log returns; shift 1 for look-ahead prevention)
+        corr = btc_ret.rolling(window).corr(alt_ret)
+        out[f"{symbol}_btc_corr"] = corr.shift(1)
+
+        # Rolling beta: cov(btc, alt) / var(btc) — how much alt moves per unit of BTC
+        cov = btc_ret.rolling(window).cov(alt_ret)
+        var = btc_ret.rolling(window).var()
+        out[f"{symbol}_btc_beta"] = (cov / (var + 1e-10)).shift(1)
+
+        # Return divergence: alt outperformed/underperformed BTC last bar (lead-lag signal)
+        out[f"{symbol}_btc_divergence"] = (alt_ret - btc_ret).shift(1)
+
+    return out
+
+
+__all__ = ["compute_features", "compute_cross_asset_features", "compute_btc_context_features"]

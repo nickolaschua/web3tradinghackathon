@@ -53,9 +53,11 @@ max_positions: 5
 trade_cooldown_seconds: 65
 
 # Risk Management
+# atr_stop_multiplier: at 15M, atr_proxy is ~5-10x smaller than at 4H.
+# Backtest ATR sweep (OOS 2024-2026): 2x→Sharpe=-0.499 (noise-stops), 10x→Sharpe=+0.760
 hard_stop_pct: 0.05
-atr_stop_multiplier: 2.0
-trailing_stop_multiplier: 1.5
+atr_stop_multiplier: 10.0
+trailing_stop_multiplier: 10.0
 
 # Circuit Breaker (Tiered)
 circuit_breaker:

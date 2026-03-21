@@ -1,16 +1,24 @@
 """
-CURRENT BEST MODEL -- points to the latest iteration.
+Iteration 1 model — BTC lead-lag context features (14 features).
 
-Convention: do NOT modify this file to test new features.
-Instead, create a new per-strategy script (e.g. train_cross_sectional.py),
-freeze it once it passes IC + CV, then update this file's FEATURE_COLS
-and prepare_features() only when promoting a new iteration to "current best".
+Adds eth_btc_corr and eth_btc_beta to the baseline 12-feature set.
+These represent rolling 30-day (180-bar) ETH/BTC correlation and beta.
 
-Per-strategy scripts (frozen, never modified):
-  scripts/train_baseline.py        -- 12 features, CV AP=0.530
-  scripts/train_btc_lead_lag.py    -- 14 features, CV AP=0.524, test AP=0.531
+This script is frozen. Do NOT modify it. See research/iteration_log.md for decisions.
 
-Iteration log: research/iteration_log.md
+Decisions vs baseline:
+  KEEP: eth_btc_corr  (IC=0.0747, pos%=75%, rank 2 importance)
+  KEEP: eth_btc_beta  (IC=0.0648, pos%=88%, rank 5 importance)
+  REJECT: sol_btc_corr/beta  (redundant with sol_return_lag1/2, CV AP regresses)
+  REJECT: eth_btc_divergence/sol_btc_divergence  (negative IC at all windows)
+
+CV Mean AP: 0.524  (baseline: 0.530 -- difference within noise)
+Test AP:    0.531  (baseline anchor for comparison)
+Output: models/xgb_btc_4h_lead_lag.pkl
+
+Usage:
+    python scripts/train_btc_lead_lag.py
+    python scripts/train_btc_lead_lag.py --cv-only
 """
 import argparse
 import pickle
@@ -23,7 +31,6 @@ import xgboost as xgb
 from sklearn.metrics import average_precision_score, f1_score
 from sklearn.model_selection import TimeSeriesSplit
 
-# Add project root to path so bot package can be imported
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
@@ -42,7 +49,7 @@ FEATURE_COLS = [
     "eth_return_lag1", "eth_return_lag2", "sol_return_lag1", "sol_return_lag2",
     # BTC lead-lag context: ETH rolling correlation and beta (window=180 bars = 30 days)
     # Rejected: eth_btc_divergence, sol_btc_divergence (negative IC at all windows)
-    # Rejected: sol_btc_corr, sol_btc_beta (IC passes but CV AP regresses; redundant with sol_return_lag1/2)
+    # Rejected: sol_btc_corr, sol_btc_beta (redundant with sol_return_lag1/2; CV AP regresses)
     "eth_btc_corr",   # IC=0.0747  pos%=75%  PASS
     "eth_btc_beta",   # IC=0.0648  pos%=88%  PASS
 ]
@@ -58,23 +65,13 @@ XGB_PARAMS = dict(
     reg_lambda=1.0,
     objective="binary:logistic",
     eval_metric="aucpr",
-    early_stopping_rounds=50,   # XGBoost 3.x: goes in constructor, NOT in .fit()
+    early_stopping_rounds=50,
     random_state=42,
     n_jobs=-1,
 )
 
 
 def prepare_features(btc_path: str, eth_path: str, sol_path: str) -> pd.DataFrame:
-    """
-    Load and compute features for BTC, ETH, SOL.
-
-    Reuses the same pipeline as backtest.py:
-    1. Load all 3 parquets
-    2. Normalize column names to lowercase
-    3. compute_features(btc)
-    4. compute_cross_asset_features(feat, {"ETH/USD": eth, "SOL/USD": sol})
-    5. dropna()
-    """
     btc = pd.read_parquet(btc_path)
     eth = pd.read_parquet(eth_path)
     sol = pd.read_parquet(sol_path)
@@ -85,38 +82,20 @@ def prepare_features(btc_path: str, eth_path: str, sol_path: str) -> pd.DataFram
 
     feat = compute_features(btc)
     feat = compute_cross_asset_features(feat, {"ETH/USD": eth, "SOL/USD": sol})
-    feat = compute_btc_context_features(feat, eth, sol)
+    feat = compute_btc_context_features(feat, eth, sol)   # window=180 default
     feat = feat.dropna()
 
     return feat
 
 
-def prepare_training_data(
-    feat_df: pd.DataFrame, horizon: int = 6, threshold: float = 0.00015
-):
-    """
-    Build aligned (X, y) with no look-ahead bias.
-
-    feat_df: output of prepare_features() — has 'close' column (unshifted) + shifted indicators.
-    horizon: forward bars for label (default 6 = 24H at 4H bars).
-    threshold: minimum forward return to label as BUY (default 0.015% = 0.00015, adjusted for data scale).
-
-    Labels: BUY=1 if close[t+horizon]/close[t] - 1 >= threshold, else 0.
-    Features are already 1-bar lagged by compute_features() — no extra shift needed.
-    """
-    # Forward return label: close[t+horizon] / close[t] - 1
+def prepare_training_data(feat_df: pd.DataFrame, horizon: int = 6, threshold: float = 0.00015):
     fwd_ret = feat_df["close"].shift(-horizon) / feat_df["close"] - 1
     labels = (fwd_ret >= threshold).astype(int)
 
-    # Exclude OHLCV from features; keep only indicator columns
-    OHLCV = {"open", "high", "low", "close", "volume"}
     cols = [c for c in FEATURE_COLS if c in feat_df.columns]
-
-    # Drop last `horizon` rows — no valid forward label
     X = feat_df[cols].iloc[:-horizon]
     y = labels.iloc[:-horizon]
 
-    # Drop any remaining NaN rows (warmup period)
     valid = X.notna().all(axis=1)
     X = X[valid]
     y = y[valid]
@@ -131,13 +110,6 @@ def prepare_training_data(
 
 
 def run_walk_forward_cv(X: pd.DataFrame, y: pd.Series) -> list[dict]:
-    """
-    Walk-forward cross-validation with TimeSeriesSplit.
-
-    Uses gap=24 bars (96H) to prevent label leakage from 6-bar forward horizon.
-    Computes scale_pos_weight per fold (not global) for correct class weighting.
-    Evaluates with AUC-PR (average precision) and F1 at 0.5 threshold.
-    """
     tscv = TimeSeriesSplit(n_splits=5, gap=24)
     scores = []
 
@@ -148,7 +120,7 @@ def run_walk_forward_cv(X: pd.DataFrame, y: pd.Series) -> list[dict]:
         n_pos = int(y_tr.sum())
         n_neg = int(len(y_tr) - n_pos)
         if n_pos == 0:
-            print(f"Fold {fold}: SKIP — no positive labels in training fold")
+            print(f"Fold {fold}: SKIP -- no positive labels in training fold")
             continue
         spw = n_neg / n_pos
 
@@ -173,21 +145,9 @@ def run_walk_forward_cv(X: pd.DataFrame, y: pd.Series) -> list[dict]:
     return scores
 
 
-def train_final_model(
-    X: pd.DataFrame,
-    y: pd.Series,
-    test_cutoff: str = "2024-01-01",
-):
-    """
-    Train final model on train+val (all data before test_cutoff).
-    Evaluate on held-out test set (test_cutoff onwards).
-
-    No early stopping for final training — use fixed n_estimators=300.
-    This avoids the need for a validation set during final fit.
-    """
+def train_final_model(X: pd.DataFrame, y: pd.Series, test_cutoff: str = "2024-01-01"):
     cutoff = pd.Timestamp(test_cutoff, tz="UTC")
 
-    # Hard split
     X_train_val = X[X.index < cutoff]
     y_train_val = y[y.index < cutoff]
     X_test = X[X.index >= cutoff]
@@ -196,17 +156,11 @@ def train_final_model(
     print(f"Train+Val: {len(X_train_val)} bars ({X_train_val.index[0].date()} to {X_train_val.index[-1].date()})")
     print(f"Test:      {len(X_test)} bars ({X_test.index[0].date()} to {X_test.index[-1].date()})")
 
-    if len(X_test) == 0:
-        print("WARNING: No test data available after cutoff. Adjust test_cutoff.")
-
-    # Class weight for train+val
     n_pos = int(y_train_val.sum())
     n_neg = int(len(y_train_val) - n_pos)
     spw = n_neg / n_pos if n_pos > 0 else 1.0
     print(f"Train+Val class balance: BUY={n_pos} ({n_pos/len(y_train_val):.1%}), scale_pos_weight={spw:.2f}")
 
-    # Final model: no early_stopping_rounds (no val set), fixed n_estimators
-    # Remove early_stopping_rounds from params for final training
     final_params = {k: v for k, v in XGB_PARAMS.items() if k != "early_stopping_rounds"}
     final_params["n_estimators"] = 300
     final_params["scale_pos_weight"] = spw
@@ -215,7 +169,6 @@ def train_final_model(
     model = xgb.XGBClassifier(**final_params)
     model.fit(X_train_val, y_train_val, verbose=False)
 
-    # Evaluate on test set
     metrics = {}
     if len(X_test) > 0 and y_test.sum() > 0:
         proba_test = model.predict_proba(X_test)[:, 1]
@@ -228,10 +181,7 @@ def train_final_model(
         print(f"  AP (AUC-PR): {ap_test:.3f}")
         print(f"  F1 (thresh=0.5): {f1_test:.3f}")
         print(f"  Test bars: {len(X_test)} | BUY signals: {n_buy_test} ({n_buy_test/len(X_test):.1%})")
-    else:
-        print("WARNING: Skipping test evaluation — no test data or no BUY labels in test set")
 
-    # Feature importance (top 5)
     importances = pd.Series(
         model.feature_importances_, index=model.feature_names_in_
     ).sort_values(ascending=False)
@@ -243,11 +193,9 @@ def train_final_model(
 
 
 def save_model(model: xgb.XGBClassifier, output_path: str) -> None:
-    """Save model with pickle (matches load_model() in scripts/backtest.py)."""
-    # Sanity check interface requirements from load_model()
     assert hasattr(model, "predict_proba"), "Model must have predict_proba"
     assert hasattr(model, "feature_names_in_"), (
-        "Model has no feature_names_in_ — did you train with a named DataFrame?"
+        "Model has no feature_names_in_ -- did you train with a named DataFrame?"
     )
 
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
@@ -257,54 +205,46 @@ def save_model(model: xgb.XGBClassifier, output_path: str) -> None:
     print(f"\nSaved: {output_path}")
     print(f"Feature columns ({len(model.feature_names_in_)}): {list(model.feature_names_in_)}")
 
-    # Quick round-trip verification
     with open(output_path, "rb") as f:
         reloaded = pickle.load(f)
-    assert hasattr(reloaded, "predict_proba")
-    assert hasattr(reloaded, "feature_names_in_")
     assert list(reloaded.feature_names_in_) == list(model.feature_names_in_)
     print("Round-trip pickle verification: OK")
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description="Train XGBoost BTC/USD 4H classifier")
+    p = argparse.ArgumentParser(description="Train BTC lead-lag model (14 features, iteration 1)")
     p.add_argument("--btc", default="data/BTCUSDT_4h.parquet")
     p.add_argument("--eth", default="data/ETHUSDT_4h.parquet")
     p.add_argument("--sol", default="data/SOLUSDT_4h.parquet")
     p.add_argument("--horizon", type=int, default=6)
-    p.add_argument("--threshold", type=float, default=0.00015, help="Forward return threshold (default 0.00015 = 0.015%%)")
-    p.add_argument("--cv-only", action="store_true", help="Run CV only, skip final training")
-    p.add_argument("--output", default="models/xgb_btc_4h.pkl")
+    p.add_argument("--threshold", type=float, default=0.00015)
+    p.add_argument("--cv-only", action="store_true")
+    p.add_argument("--output", default="models/xgb_btc_4h_lead_lag.pkl")
     return p.parse_args()
 
 
 def main():
     args = parse_args()
 
-    # Step 1: Load features
+    print("=== BTC lead-lag model (14 features, iteration 1) ===")
     print("Step 1: Loading features...")
     feat = prepare_features(args.btc, args.eth, args.sol)
     print(f"  Feature matrix: {feat.shape[0]} bars x {feat.shape[1]} columns")
 
-    # Step 2: Prepare training data (labels + alignment)
     print("\nStep 2: Preparing training data...")
     X, y = prepare_training_data(feat, args.horizon, args.threshold)
 
-    # Step 3: Walk-forward CV (optional but recommended)
     if args.cv_only:
-        print("\nStep 3: Running walk-forward CV (--cv-only mode)...")
+        print("\nStep 3: Running walk-forward CV...")
         run_walk_forward_cv(X, y)
-        print("\nCV complete. Re-run without --cv-only to train and save the final model.")
         return
 
-    # Step 4: Train final model + evaluate on test
     print("\nStep 3: Training final model...")
     model, metrics = train_final_model(X, y, test_cutoff="2024-01-01")
 
-    # Step 5: Save
     print("\nStep 4: Saving model...")
     save_model(model, args.output)
-    print(f"\nDone. Model ready for: python scripts/backtest.py --model {args.output}")
+    print(f"\nDone. Model: {args.output}")
 
 
 if __name__ == "__main__":

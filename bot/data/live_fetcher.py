@@ -8,7 +8,11 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 
-from bot.data.features import compute_features, compute_cross_asset_features
+from bot.data.features import (
+    compute_features,
+    compute_cross_asset_features,
+    compute_btc_context_features,
+)
 
 
 class LiveFetcher:
@@ -136,15 +140,15 @@ class LiveFetcher:
         timestamp: int | None = None,
     ) -> None:
         """
-        Append a completed 4H epoch candle to the feature buffer for `pair`.
+        Append a completed 15M epoch candle to the feature buffer for `pair`.
 
-        Called by main.py exactly once per 4H boundary, after all feature pairs
-        have been polled. Uses the last known ticker price as a close-price proxy
+        Called by main.py once per 15M boundary, after all pairs have been polled.
+        Uses the last known ticker price as a close-price proxy
         (O=H=L=C=price, volume=0 — same limitation as Roostoo has no OHLCV).
 
         Args:
             pair: Roostoo pair symbol (e.g. "BTC/USD").
-            price: Close price for this completed 4H bar (from _last_prices).
+            price: Close price for this completed 15M bar (from _last_prices).
             timestamp: Unix seconds for the candle. Defaults to now if omitted.
         """
         if pair not in self._buffers:
@@ -255,6 +259,36 @@ class LiveFetcher:
             if p != pair
         }
         df = compute_cross_asset_features(df, other_dfs)
+
+        # Step 2.5: 15M-specific features. Mirrors prepare_features() in train scripts.
+        if pair == "BTC/USD":
+            eth_raw = other_dfs.get("ETH/USD", pd.DataFrame())
+            sol_raw = other_dfs.get("SOL/USD", pd.DataFrame())
+            for prefix, raw_df in [("eth", eth_raw), ("sol", sol_raw)]:
+                if not raw_df.empty:
+                    log_ret = np.log(raw_df["close"] / raw_df["close"].shift(1))
+                    df[f"{prefix}_return_4h"] = log_ret.shift(16).reindex(df.index)
+                    df[f"{prefix}_return_1d"] = log_ret.shift(96).reindex(df.index)
+            if not eth_raw.empty and not sol_raw.empty:
+                df = compute_btc_context_features(df, eth_raw, sol_raw, window=2880)
+
+        elif pair == "SOL/USD":
+            # Mirrors prepare_features(target="sol") in train_alt_15m.py.
+            btc_raw = other_dfs.get("BTC/USD", pd.DataFrame())
+            eth_raw = other_dfs.get("ETH/USD", pd.DataFrame())
+            for prefix, raw_df in [("btc", btc_raw), ("eth", eth_raw)]:
+                if not raw_df.empty:
+                    log_ret = np.log(raw_df["close"] / raw_df["close"].shift(1))
+                    df[f"{prefix}_return_4h"] = log_ret.shift(16).reindex(df.index)
+                    df[f"{prefix}_return_1d"] = log_ret.shift(96).reindex(df.index)
+            if not btc_raw.empty:
+                sol_ret = np.log(df["close"] / df["close"].shift(1))
+                btc_ret = np.log(btc_raw["close"] / btc_raw["close"].shift(1)).reindex(df.index)
+                corr = sol_ret.rolling(2880).corr(btc_ret)
+                cov = sol_ret.rolling(2880).cov(btc_ret)
+                var_btc = btc_ret.rolling(2880).var()
+                df["sol_btc_corr"] = corr.shift(1)
+                df["sol_btc_beta"] = (cov / (var_btc + 1e-10)).shift(1)
 
         # Step 3: Drop warmup rows (NaN from rolling windows and shift)
         df = df.dropna()

@@ -224,7 +224,7 @@ class RiskManager:
             return False
 
         drawdown = (self._portfolio_hwm - current_portfolio_value) / self._portfolio_hwm
-        cb_threshold = self.config.get("circuit_breaker_drawdown", 0.30)
+        cb_threshold = self.config.get("circuit_breaker", {}).get("halt_threshold", 0.30)
 
         if drawdown >= cb_threshold and not self._circuit_breaker_active:
             self._circuit_breaker_active = True
