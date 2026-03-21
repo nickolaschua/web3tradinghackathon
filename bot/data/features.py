@@ -214,4 +214,93 @@ def compute_btc_context_features(
     return out
 
 
-__all__ = ["compute_features", "compute_cross_asset_features", "compute_btc_context_features"]
+def compute_market_context_features(
+    coin_feat_df: pd.DataFrame,
+    btc_df: pd.DataFrame,
+    eth_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Add BTC and ETH lagged returns as market context features.
+
+    These are the same values for all coins at each timestamp — they capture
+    "what did the market leaders just do?" which is predictive for all coins.
+
+    New columns (all shifted 1 bar):
+      btc_return_4h : BTC 16-bar lagged log return
+      btc_return_1d : BTC 96-bar lagged log return
+      eth_return_4h : ETH 16-bar lagged log return
+      eth_return_1d : ETH 96-bar lagged log return
+    """
+    out = coin_feat_df.copy()
+
+    for prefix, df in [("btc", btc_df), ("eth", eth_df)]:
+        raw = df.copy()
+        raw.columns = raw.columns.str.lower()
+        log_ret = np.log(raw["close"] / raw["close"].shift(1))
+        out[f"{prefix}_return_4h"] = log_ret.shift(16).reindex(out.index)
+        out[f"{prefix}_return_1d"] = log_ret.shift(96).reindex(out.index)
+
+    return out
+
+
+def compute_coin_identity_features(
+    coin_feat_df: pd.DataFrame,
+    btc_df: pd.DataFrame,
+    liquidity_tier: int,
+    all_atr_proxies: dict[str, pd.Series] | None = None,
+    window: int = 2880,
+) -> pd.DataFrame:
+    """
+    Add coin-to-market identity features that tell the model what kind of coin
+    it is looking at.
+
+    New columns:
+      btc_corr_30d    : Rolling correlation of this coin's returns vs BTC (shifted 1 bar)
+      relative_vol    : This coin's atr_proxy / BTC's atr_proxy (shifted 1 bar)
+      vol_rank        : Percentile rank of this coin's atr_proxy across all coins (shifted 1 bar)
+      liquidity_tier  : Static categorical (1=mega, 2=large, 3=mid)
+    """
+    out = coin_feat_df.copy()
+
+    # BTC correlation
+    raw_btc = btc_df.copy()
+    raw_btc.columns = raw_btc.columns.str.lower()
+    btc_ret = np.log(raw_btc["close"] / raw_btc["close"].shift(1)).reindex(out.index)
+    coin_ret = np.log(out["close"] / out["close"].shift(1))
+    out["btc_corr_30d"] = coin_ret.rolling(window).corr(btc_ret).shift(1)
+
+    # Relative volatility
+    btc_atr = (
+        np.log(raw_btc["close"] / raw_btc["close"].shift(1))
+        .rolling(14).std() * raw_btc["close"] * 1.25
+    ).reindex(out.index)
+    out["relative_vol"] = (out["atr_proxy"] / (btc_atr + 1e-10)).shift(1)
+
+    # Vol rank (cross-sectional percentile)
+    if all_atr_proxies is not None and len(all_atr_proxies) > 1:
+        atr_panel = pd.DataFrame(all_atr_proxies).reindex(out.index)
+        coin_col = None
+        for col, series in all_atr_proxies.items():
+            if col == "self":
+                coin_col = col
+                break
+        if coin_col is not None:
+            out["vol_rank"] = atr_panel.rank(axis=1, pct=True)[coin_col].shift(1)
+        else:
+            out["vol_rank"] = atr_panel.rank(axis=1, pct=True).iloc[:, 0].shift(1)
+    else:
+        out["vol_rank"] = 0.5
+
+    # Liquidity tier (static)
+    out["liquidity_tier"] = liquidity_tier
+
+    return out
+
+
+__all__ = [
+    "compute_features",
+    "compute_cross_asset_features",
+    "compute_btc_context_features",
+    "compute_market_context_features",
+    "compute_coin_identity_features",
+]
