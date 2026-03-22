@@ -102,7 +102,7 @@ def prepare_features(
     feat = compute_cross_asset_features(feat, {"ETH/USD": eth, "SOL/USD": sol})
 
     # 4H (16-bar) and 1D (96-bar) cross-asset lags -- must match train_model_15m.py
-    for asset, df in [("eth", eth), ("sol", sol)]:
+    for asset, df in [("btc", btc), ("eth", eth), ("sol", sol)]:
         log_ret = np.log(df["close"] / df["close"].shift(1))
         feat[f"{asset}_return_4h"] = log_ret.shift(16).reindex(feat.index)
         feat[f"{asset}_return_1d"] = log_ret.shift(96).reindex(feat.index)

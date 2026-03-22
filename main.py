@@ -187,13 +187,63 @@ def startup_reconciliation(
                 f"Open order for {pair} on exchange but no position in persisted state"
             )
 
-    # Step 6: Reconcile portfolio value
+    # Step 5b: Adopt orphaned exchange holdings into order manager.
+    # If the wallet holds crypto that the order manager doesn't track (e.g. state.json
+    # was lost), adopt them so the heartbeat and stop-loss logic see them.
+    holdings = live_balance.get("holdings", {})
+    roostoo_to_binance_inv = {v: k for k, v in _BINANCE_TO_ROOSTOO.items()}
+    for asset, qty in holdings.items():
+        pair = f"{asset}/USD"
+        if pair in _BINANCE_TO_ROOSTOO.values() and pair not in persisted_positions and qty > 0:
+            # Fetch current price to use as entry estimate
+            try:
+                ticker = client.get_ticker(pair)
+                current_price = float(ticker.get("Data", {}).get(pair, {}).get("LastPrice", 0.0))
+            except Exception:
+                current_price = 0.0
+            if current_price > 0:
+                # Check filled orders to find the actual entry price
+                actual_entry = current_price
+                try:
+                    resp = client._request("POST", "/v3/query_order", {"pending_only": "FALSE"})
+                    for order in resp.get("OrderMatched", []):
+                        if (order.get("Pair") == pair and order.get("Side") == "BUY"
+                                and order.get("Status") == "FILLED"):
+                            actual_entry = float(order.get("FilledAverPrice", current_price))
+                except Exception:
+                    pass
+
+                from bot.execution.order_manager import Position
+                order_manager._positions[pair] = Position(
+                    pair=pair, quantity=qty, entry_price=actual_entry,
+                )
+                hard_stop_pct = risk_manager.config.get("hard_stop_pct", 0.05)
+                risk_manager.record_entry(pair, actual_entry, actual_entry * (1 - hard_stop_pct))
+                logger.info(
+                    "Adopted orphaned holding: %s qty=%.6f entry=%.4f",
+                    pair, qty, actual_entry,
+                )
+                telegram.send(
+                    f"\U0001f504 Adopted orphaned position: {pair} "
+                    f"qty={qty:.6f} @ entry={actual_entry:.4f}"
+                )
+
+    # Step 6: Reconcile portfolio value (include crypto holdings)
     live_usd = live_balance.get("total_usd", 0.0)
-    hwm = getattr(risk_manager, "_portfolio_hwm", live_usd)
-    if hwm > 0 and abs(live_usd - hwm) / hwm > 0.01:
+    portfolio_value = live_usd
+    for asset, qty in holdings.items():
+        pair = f"{asset}/USD"
+        try:
+            ticker = client.get_ticker(pair)
+            asset_price = float(ticker.get("Data", {}).get(pair, {}).get("LastPrice", 0.0))
+            portfolio_value += qty * asset_price
+        except Exception:
+            pass
+    hwm = getattr(risk_manager, "_portfolio_hwm", portfolio_value)
+    if hwm > 0 and abs(portfolio_value - hwm) / hwm > 0.01:
         discrepancies.append(
-            f"Portfolio value mismatch: live={live_usd:.2f} USD vs persisted_hwm={hwm:.2f} USD "
-            f"(delta {abs(live_usd - hwm) / hwm * 100:.1f}%)"
+            f"Portfolio value mismatch: live={portfolio_value:.2f} USD vs persisted_hwm={hwm:.2f} USD "
+            f"(delta {abs(portfolio_value - hwm) / hwm * 100:.1f}%)"
         )
 
     if discrepancies:
@@ -250,6 +300,7 @@ def _send_heartbeat(
     total_usd: float,
     prices: dict,
     loop_state: dict,
+    holdings: dict | None = None,
 ) -> None:
     """Send a periodic status heartbeat to Telegram."""
     import datetime
@@ -257,10 +308,19 @@ def _send_heartbeat(
     ts = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     positions = order_manager.get_all_positions()
 
+    # Compute total portfolio value: USD cash + crypto holdings at market price
+    portfolio_value = total_usd
+    if holdings:
+        for asset, qty in holdings.items():
+            pair = f"{asset}/USD"
+            asset_price = prices.get(pair, 0.0)
+            portfolio_value += qty * asset_price
+
     lines = [
         "<b>💓 Heartbeat</b>",
         f"🕐 {ts}",
-        f"💵 Balance: ${total_usd:,.2f}",
+        f"💰 Portfolio: ${portfolio_value:,.2f}",
+        f"💵 Cash: ${total_usd:,.2f}",
     ]
 
     if positions:
@@ -357,12 +417,19 @@ def _run_one_cycle(
     # ── Step 2: Balance + circuit breaker check ───────────────────────────────
     total_usd = 0.0
     cb_active = False
+    holdings: dict[str, float] = {}
     try:
         balance_resp = client.get_balance()
         total_usd = float(balance_resp.get("total_usd", 0.0))
-        cb_active = risk_manager.check_circuit_breaker(total_usd)
+        holdings = balance_resp.get("holdings", {})
+        # Compute full portfolio value for circuit breaker (USD + crypto at market)
+        portfolio_value = total_usd
+        for asset, qty in holdings.items():
+            asset_price = prices.get(f"{asset}/USD", 0.0)
+            portfolio_value += qty * asset_price
+        cb_active = risk_manager.check_circuit_breaker(portfolio_value)
         if cb_active:
-            logger.warning("Step 2: circuit breaker active (total_usd=%.2f)", total_usd)
+            logger.warning("Step 2: circuit breaker active (portfolio=%.2f)", portfolio_value)
     except Exception as exc:
         logger.error("Step 2: balance check failed: %s", exc)
 
@@ -565,6 +632,17 @@ def _run_one_cycle(
                         portfolio_weight=portfolio_weight,
                     )
 
+                    # Always log sizing inputs + result for debugging
+                    logger.info(
+                        "Step 4D sizing: %s decision=%s qty=%.6f usd=%.2f | "
+                        "inputs: price=%.2f atr=%.4f free_usd=%.2f total_usd=%.2f "
+                        "regime=%.2f conf=%.2f wt=%.3f open_pos=%s | reason=%s",
+                        pair, sizing.decision.name, sizing.approved_quantity,
+                        sizing.approved_usd_value, current_price, atr,
+                        free_usd, total_usd, regime_mult, confidence,
+                        portfolio_weight, open_pos_usd, sizing.reason,
+                    )
+
                     if sizing.decision.name == "APPROVED":
                         managed = order_manager.place_order(
                             pair=pair,
@@ -578,7 +656,9 @@ def _run_one_cycle(
                             telegram.send(
                                 f"\U0001f7e2 BUY {pair} [{source_tag}]: "
                                 f"qty={sizing.approved_quantity:.6f} "
-                                f"@ ~{current_price:.4f} | stop={sizing.stop_price:.4f}"
+                                f"@ ~{current_price:.4f} | stop={sizing.stop_price:.4f} "
+                                f"| ${sizing.approved_usd_value:,.0f} "
+                                f"(free=${free_usd:,.0f} total=${total_usd:,.0f})"
                             )
                             logger.info(
                                 "Step 4D: BUY %s [%s] qty=%.6f @ %.4f stop=%.4f",
@@ -619,6 +699,59 @@ def _run_one_cycle(
                     "Step 4D: error executing %s: %s", pair, exc, exc_info=True
                 )
 
+    # ── Phase E: micro-trade activity fallback ────────────────────────────
+    # If no trade has been placed today by 20:00 UTC, place a $500 micro-trade
+    # on a liquid coin to guarantee the active-day requirement (8/10 days).
+    # Cost: ~$0.50 in fees. Risk: negligible ($500 of $1M = 0.05%).
+    import datetime as _dt
+
+    utc_now = _dt.datetime.utcnow()
+    today_str = utc_now.strftime("%Y-%m-%d")
+    last_trade_str = loop_state.get("last_trade", "")
+
+    traded_today = today_str in last_trade_str
+    if not traded_today and utc_now.hour >= 20:
+        # Pick first liquid coin without an open position
+        micro_candidates = ["BTC/USD", "ETH/USD", "SOL/USD", "BNB/USD", "XRP/USD"]
+        open_pairs = set(order_manager.get_all_positions().keys())
+
+        for micro_pair in micro_candidates:
+            if micro_pair in open_pairs:
+                continue
+            micro_price = prices.get(micro_pair, 0.0)
+            if micro_price <= 0.0:
+                continue
+
+            micro_qty = round(500.0 / micro_price, 6)
+            if micro_qty <= 0:
+                continue
+
+            # Place micro BUY — registers active trading day
+            micro_stop = micro_price * (1 - 0.05)  # standard 5% hard stop
+            managed = order_manager.place_order(
+                pair=micro_pair,
+                side="BUY",
+                quantity=micro_qty,
+                entry_price=micro_price,
+                initial_stop=micro_stop,
+            )
+            if managed:
+                telegram.send(
+                    f"\U0001f4a4 MICRO-TRADE {micro_pair} [activity]: "
+                    f"qty={micro_qty:.6f} @ ~{micro_price:.4f} | "
+                    f"$500 to ensure active trading day"
+                )
+                logger.info(
+                    "Phase E: micro-trade %s qty=%.6f @ %.4f (activity fallback)",
+                    micro_pair, micro_qty, micro_price,
+                )
+                loop_state["last_trade"] = (
+                    f"BUY {micro_pair} [activity] qty={micro_qty:.6f} "
+                    f"@ {micro_price:.4f} "
+                    f"[{time.strftime('%H:%M:%S UTC', time.gmtime())}]"
+                )
+            break  # one micro-trade per day is enough
+
     # Periodic reconciliation (every 5 min — OrderManager tracks interval internally)
     order_manager.maybe_reconcile()
 
@@ -628,6 +761,7 @@ def _run_one_cycle(
             "risk_manager": risk_manager.dump_state(),
             "order_manager": order_manager.dump_state(),
             "last_signal_epoch": loop_state.get("last_signal_epoch", 0),
+            "last_trade": loop_state.get("last_trade", "None yet"),
             "timestamp": time.time(),
         }
         state_manager.write(state)
@@ -647,7 +781,7 @@ def _run_one_cycle(
     cycle_ts = time.time()
     if cycle_ts - loop_state.get("last_heartbeat_ts", 0.0) >= heartbeat_interval:
         loop_state["last_heartbeat_ts"] = cycle_ts
-        _send_heartbeat(telegram, order_manager, total_usd, prices, loop_state)
+        _send_heartbeat(telegram, order_manager, total_usd, prices, loop_state, holdings)
 
     # ── Step 7: Boundary-aligned sleep ───────────────────────────────────────
     sleep_secs = max(0.0, 60.0 - (time.time() % 60.0))
@@ -833,7 +967,7 @@ def main() -> None:
     loop_state: dict[str, Any] = {
         "last_signal_epoch": saved_state.get("last_signal_epoch", 0),
         "features_cache": {},
-        "last_trade": "None yet",
+        "last_trade": saved_state.get("last_trade", "None yet"),
         "last_heartbeat_ts": 0.0,
     }
 
