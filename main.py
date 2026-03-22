@@ -453,21 +453,33 @@ def _run_one_cycle(
 
                 # Primary: momentum strategy (BTC XGBoost)
                 signal = strategy.generate_signal(pair, features_df)
+                signal_source = "xgb_btc"
 
                 # Secondary: SOL XGBoost model (threshold=0.75)
                 if signal.direction == SignalDirection.HOLD and sol_strategy is not None:
                     signal = sol_strategy.generate_signal(pair, features_df)
+                    if signal.direction != SignalDirection.HOLD:
+                        signal_source = "xgb_sol"
 
                 # Fallback 1: original mean reversion (high precision, rare)
                 if signal.direction == SignalDirection.HOLD:
                     signal = mean_reversion_strategy.generate_signal(pair, features_df)
+                    if signal.direction != SignalDirection.HOLD:
+                        signal_source = "mr"
 
                 # Fallback 2: relaxed mean reversion (activity layer, micro positions)
                 # Ensures 8/10 active trading days across 20 coins
                 if signal.direction == SignalDirection.HOLD:
                     signal = relaxed_mr_strategy.generate_signal(pair, features_df)
+                    if signal.direction != SignalDirection.HOLD:
+                        signal_source = "relaxed_mr"
+
+                if signal.direction == SignalDirection.HOLD:
+                    signal_source = "none"
 
                 signals[pair] = signal
+                # Store source for logging in Phase D
+                signal._source = signal_source
 
             except Exception as exc:
                 logger.error(
@@ -562,12 +574,19 @@ def _run_one_cycle(
                             initial_stop=sizing.stop_price,
                         )
                         if managed:
+                            source_tag = getattr(signal, "_source", "unknown")
                             telegram.send(
-                                f"\U0001f7e2 BUY {pair}: qty={sizing.approved_quantity:.6f} "
+                                f"\U0001f7e2 BUY {pair} [{source_tag}]: "
+                                f"qty={sizing.approved_quantity:.6f} "
                                 f"@ ~{current_price:.4f} | stop={sizing.stop_price:.4f}"
                             )
+                            logger.info(
+                                "Step 4D: BUY %s [%s] qty=%.6f @ %.4f stop=%.4f",
+                                pair, source_tag, sizing.approved_quantity,
+                                current_price, sizing.stop_price,
+                            )
                             loop_state["last_trade"] = (
-                                f"BUY {pair} qty={sizing.approved_quantity:.6f} "
+                                f"BUY {pair} [{source_tag}] qty={sizing.approved_quantity:.6f} "
                                 f"@ {current_price:.4f} "
                                 f"[{time.strftime('%H:%M:%S UTC', time.gmtime())}]"
                             )
