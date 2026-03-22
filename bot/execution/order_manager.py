@@ -167,11 +167,15 @@ class OrderManager:
                 logger.error(f"place_order failed for {pair}: {response}")
                 return None
 
-            # Extract order ID (handle both naming conventions)
+            # Extract order ID (handle multiple response formats)
             order_id = response.get("OrderId") or response.get("order_id")
+            # Some endpoints nest details inside OrderDetail
+            order_detail = response.get("OrderDetail", {})
+            if order_id is None and order_detail:
+                order_id = order_detail.get("OrderID") or order_detail.get("OrderId")
             if order_id is None:
                 logger.error(
-                    f"place_order: response missing OrderId/order_id for {pair}: {response}"
+                    f"place_order: response missing OrderId for {pair}: {response}"
                 )
                 return None
             try:
@@ -185,7 +189,11 @@ class OrderManager:
             managed_order.status = OrderStatus.SUBMITTED
 
             # Extract fill price with explicit None check (CRITICAL)
-            fill_price_raw = response.get("FilledPrice") or response.get("fill_price")
+            fill_price_raw = (
+                response.get("FilledPrice")
+                or response.get("fill_price")
+                or order_detail.get("FilledAverPrice")
+            )
             if fill_price_raw is None:
                 logger.warning(
                     f"fill_price is None for order {order_id}, using entry_price={entry_price} as fallback"
