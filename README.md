@@ -88,6 +88,28 @@ v2 had 20-coin universe with MR fallbacks that diluted the XGBoost edge. Portfol
 
 No MR, no pairs ML, no relaxed MR. XGBoost signals only.
 
+### Position Pyramiding
+
+The bot **adds to existing positions** when the model fires repeated BUY signals. With only 2 coins, blocking repeat entries would leave the bot idle most of the time (both positions open, nothing to do until an exit).
+
+How it works:
+- Each new BUY signal sizes an independent tranche (2% risk, ATR-based)
+- Each tranche gets its own trailing stop
+- New tranches are allowed up to the **40% concentration cap per coin**
+- With 2 coins, max total exposure is ~80% (40% BTC + 40% XRP), 20% stays cash
+
+Why this is acceptable for competition:
+- BTC and XRP are highly liquid -- no execution risk on $400K positions
+- Circuit breaker halves sizing at 10% drawdown, halts at 30%
+- ATR trailing stops protect each tranche independently
+- 10-day competition rewards concentrated bets on best models
+- Backtest max drawdown with this approach: -11.6%
+
+Why you would NOT do this with real money:
+- 80% in 2 correlated crypto assets is extreme concentration
+- A flash crash hits both BTC and XRP simultaneously
+- For real portfolios, diversify across 10+ uncorrelated assets
+
 ### Trade Frequency
 
 | Coin | Entries (2yr OOS) | Active Days | Frequency |
@@ -108,8 +130,7 @@ Recent 10-day windows: 9/10, 11/10, 10/10, 9/10, 10/10 active days. Phase E cove
 | Hard stop floor | 5% below entry |
 | Circuit breaker | 10% DD -> 0.5x / 20% DD -> 0.25x / 30% DD -> halt |
 | Kelly gate | Blocks trades with edge <= 0 |
-| Max positions | 5 concurrent |
-| Max concentration | 40% of portfolio per position |
+| Max concentration | 40% of portfolio per coin (pyramiding allowed up to cap) |
 | Regime scaling | Bull: 1.0x / Sideways: 0.5x / Bear: 0.35x |
 | Micro-trade fallback | $500 BUY at 20:00 UTC if no trade that day |
 
