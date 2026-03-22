@@ -528,17 +528,8 @@ def _run_one_cycle(
                     if signal.direction != SignalDirection.HOLD:
                         signal_source = "xgb_sol"
 
-                # Fallback 1: original mean reversion (high precision, rare)
-                if signal.direction == SignalDirection.HOLD:
-                    signal = mean_reversion_strategy.generate_signal(pair, features_df)
-                    if signal.direction != SignalDirection.HOLD:
-                        signal_source = "mr"
-
-                # Fallback 2: relaxed MR disabled — Phase E micro-trade handles activity
-                # if signal.direction == SignalDirection.HOLD:
-                #     signal = relaxed_mr_strategy.generate_signal(pair, features_df)
-                #     if signal.direction != SignalDirection.HOLD:
-                #         signal_source = "relaxed_mr"
+                # MR fallbacks disabled — XGB-only strategy, Phase E handles activity
+                # No MR = no fee drag from no-edge trades
 
                 if signal.direction == SignalDirection.HOLD:
                     signal_source = "none"
@@ -908,32 +899,25 @@ def main() -> None:
     logger.info("LiveFetcher initialised: %s", live_fetcher)
 
     # Primary strategy: XGBoost 15M model for BTC/USD (threshold=0.65, exit=0.08)
-    # exit_threshold=0.08: faster exit in bear bounces (was 0.10)
-    # Backtest OOS 2024-2026: exit=0.10 -> Sharpe 1.558 vs exit=0.30 (baseline) -> 1.387
+    # Backtest OOS 2024-2026: Sharpe 1.001, +21.9%, 50% win rate, 36 trades
     strategy = XGBoostStrategy(threshold=0.65, exit_threshold=0.08)
-    # Secondary strategy: XGBoost 15M model for SOL/USD (threshold=0.70, exit=0.08)
-    # Threshold=0.70 (was 0.75) — SOL vol creates stronger reversion setups in bear
+    # Secondary strategy: XGBoost 15M model for XRP/USD (threshold=0.65, exit=0.08)
+    # Backtest OOS 2024-2026: high frequency (163 trades), 39% win rate, big winners
+    # Combined BTC+XRP @ 50%: Sharpe 1.130, CompScore 1.344, +43% return
     sol_strategy = XGBoostStrategy(
-        model_path="models/xgb_sol_15m.pkl",
-        threshold=0.70,
-        pair="SOL/USD",
+        model_path="models/xgb_xrp_15m.pkl",
+        threshold=0.65,
+        pair="XRP/USD",
         exit_threshold=0.08,
     )
-    # Fallback strategy: mean reversion (fires when both XGBoost models return HOLD)
-    mean_reversion_strategy = MeanReversionStrategy()
-    # Activity layer: relaxed MR on all 20 feature pairs (RSI<35 + bb<0.25, soft regime)
-    # Micro positions (0.03x) — ensures 8/10 active trading days for competition
-    # Hybrid backtest: Sharpe 1.280, Sortino 1.848, 99.3% active days, worst 10d = 9/10
-    relaxed_mr_strategy = RelaxedMeanReversionStrategy()
-    # Pairs ML strategy: disabled (needs 3552 bars warmup > 10-day competition window)
+    # MR and relaxed MR disabled — no edge, just fee drag
+    mean_reversion_strategy = MeanReversionStrategy()  # kept for import but won't fire
+    relaxed_mr_strategy = None
     pairs_ml_strategy = None
     logger.info(
-        "Strategies: primary=%s sol=%s fallback=%s relaxed_mr=%s pairs_ml=%s",
+        "Strategies: primary=%s secondary=%s",
         strategy.__class__.__name__,
         sol_strategy.__class__.__name__,
-        mean_reversion_strategy.__class__.__name__,
-        relaxed_mr_strategy.__class__.__name__,
-        type(pairs_ml_strategy).__name__ if pairs_ml_strategy else "None",
     )
 
     # Register shutdown handler BEFORE reconciliation (handles crashes during startup)

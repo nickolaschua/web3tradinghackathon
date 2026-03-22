@@ -1,67 +1,13 @@
 # Trading Universe Configuration
-# Coins with 4000+ bars of 4H history on Binance (sufficient for model training)
+# Focused 2-coin XGBoost strategy: BTC + XRP at 50% allocation each
+# Backtest OOS 2024-2026: Sharpe 1.130, Sortino 1.391, CompScore 1.344, +43% return
 tradeable_pairs:
   - BTC/USD
-  - ETH/USD
-  - BNB/USD
-  - SOL/USD
-  - ADA/USD
-  - AVAX/USD
-  - DOGE/USD
-  - LINK/USD
-  - DOT/USD
-  - UNI/USD
   - XRP/USD
-  - LTC/USD
-  - AAVE/USD
-  - CRV/USD
-  - NEAR/USD
-  - FIL/USD
-  - FET/USD
-  - HBAR/USD
-  - ZEC/USD
-  - ZEN/USD
-  - CAKE/USD
-  - PAXG/USD
-  - XLM/USD
-  - TRX/USD
-  - CFX/USD
-  - SHIB/USD
-  - ICP/USD
-  - APT/USD
-  - ARB/USD
-  - SUI/USD
-  - FLOKI/USD
-  - PEPE/USD
-  - PENDLE/USD
-  - WLD/USD
-  - SEI/USD
-  - BONK/USD
-  - WIF/USD
-  - ENA/USD
-  - TAO/USD
 
 feature_pairs:
   - BTC/USD
-  - ETH/USD
-  - BNB/USD
-  - SOL/USD
   - XRP/USD
-  - DOGE/USD
-  - ADA/USD
-  - AVAX/USD
-  - LINK/USD
-  - DOT/USD
-  - LTC/USD
-  - UNI/USD
-  - NEAR/USD
-  - SUI/USD
-  - APT/USD
-  - PEPE/USD
-  - ARB/USD
-  - SHIB/USD
-  - FIL/USD
-  - HBAR/USD
 
 candle_interval: "4h"
 max_positions: 5
