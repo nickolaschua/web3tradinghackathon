@@ -587,11 +587,21 @@ def _run_one_cycle(
                         logger.info("Step 4D: CB active, skipping BUY for %s", pair)
                         continue
 
-                    if pair in order_manager.get_all_positions():
-                        logger.debug(
-                            "Step 4D: already in position for %s, skipping BUY", pair
+                    existing_pos = order_manager.get_all_positions().get(pair)
+                    if existing_pos:
+                        existing_usd = existing_pos.quantity * current_price
+                        # Skip if existing position is already meaningful (>1% of portfolio)
+                        if existing_usd > total_usd * 0.01:
+                            logger.debug(
+                                "Step 4D: already in position for %s ($%.0f), skipping BUY",
+                                pair, existing_usd,
+                            )
+                            continue
+                        # Dust position (<1% of portfolio) — allow new entry on top
+                        logger.info(
+                            "Step 4D: dust position for %s ($%.0f) — allowing new BUY",
+                            pair, existing_usd,
                         )
-                        continue
 
                     atr = features_cache.get(pair, {}).get("atr_proxy", current_price * 0.02)
                     confidence = signal.confidence if signal.confidence > 0.0 else 0.5
