@@ -590,16 +590,16 @@ def _run_one_cycle(
                     existing_pos = order_manager.get_all_positions().get(pair)
                     if existing_pos:
                         existing_usd = existing_pos.quantity * current_price
-                        # Skip if existing position is already meaningful (>1% of portfolio)
-                        if existing_usd > total_usd * 0.01:
+                        # Skip if already at max concentration (40% of portfolio)
+                        if existing_usd > total_usd * 0.40:
                             logger.debug(
-                                "Step 4D: already in position for %s ($%.0f), skipping BUY",
-                                pair, existing_usd,
+                                "Step 4D: %s at max concentration ($%.0f / %.0f%%), skipping BUY",
+                                pair, existing_usd, existing_usd / total_usd * 100,
                             )
                             continue
-                        # Dust position (<1% of portfolio) — allow new entry on top
+                        # Allow adding to position if under concentration cap
                         logger.info(
-                            "Step 4D: dust position for %s ($%.0f) — allowing new BUY",
+                            "Step 4D: adding to %s position ($%.0f -> sizing new tranche)",
                             pair, existing_usd,
                         )
 
