@@ -22,8 +22,7 @@ from bot.persistence.state_manager import StateManager
 from bot.strategy.base import SignalDirection
 from bot.config.unlock_screen import apply_unlock_screen
 from bot.strategy.mean_reversion import MeanReversionStrategy
-from bot.strategy.relaxed_mean_reversion import RelaxedMeanReversionStrategy
-from bot.strategy.pairs_ml_strategy import PairsMLStrategy
+# Removed: RelaxedMeanReversionStrategy, PairsMLStrategy (v3: XGB-only)
 from bot.strategy.xgboost_strategy import XGBoostStrategy
 
 _CANDLE_15M_SECONDS = 15 * 60  # seconds per 15M candle period
@@ -361,7 +360,7 @@ def _run_one_cycle(
     sol_strategy: Any,
     mean_reversion_strategy: MeanReversionStrategy,
     relaxed_mr_strategy: Any,
-    pairs_ml_strategy: PairsMLStrategy,
+    pairs_ml_strategy: Any,
     regime_detector: RegimeDetector,
     tradeable_pairs: list[str],
     feature_pairs: list[str],

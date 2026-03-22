@@ -63,10 +63,14 @@ sys.path.insert(0, str(project_root))
 from bot.data.features import compute_btc_context_features, compute_cross_asset_features, compute_features
 from bot.strategy.base import SignalDirection
 from bot.strategy.mean_reversion import MeanReversionStrategy
-from bot.strategy.pairs_trading import PairState, PairsTradingStrategy
-from bot.strategy.pairs_ml_strategy import PairsMLStrategy
-from bot.data.pairs_features import compute_pairs_features
-from bot.config.unlock_screen import should_exclude
+try:
+    from bot.config.unlock_screen import should_exclude
+except ImportError:
+    should_exclude = lambda pair: False
+
+# Pairs strategies removed in v3 — set to None for backward compat
+PairsTradingStrategy = None
+PairsMLStrategy = None
 
 # 15M annualisation constant: 365.25 days x 24 h x 4 bars/h
 PERIODS_15M = 35_040

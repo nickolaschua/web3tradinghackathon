@@ -1,13 +1,11 @@
 from bot.strategy.base import BaseStrategy, SignalDirection, TradingSignal
-from bot.strategy.momentum import MomentumStrategy
 from bot.strategy.mean_reversion import MeanReversionStrategy
-from bot.strategy.intraday_momentum import IntradayMomentumStrategy
+from bot.strategy.xgboost_strategy import XGBoostStrategy
 
 __all__ = [
     "BaseStrategy",
     "SignalDirection",
     "TradingSignal",
-    "MomentumStrategy",
     "MeanReversionStrategy",
-    "IntradayMomentumStrategy",
+    "XGBoostStrategy",
 ]

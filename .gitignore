@@ -31,3 +31,7 @@ Thumbs.db
 *.swp
 *.swo
 .worktrees/
+
+# Local config
+.claude/
+everything-claude-code/
