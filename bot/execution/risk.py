@@ -358,7 +358,7 @@ class RiskManager:
         atr_mult = self.config.get("atr_stop_multiplier", 2.0)
         atr_stop = (
             (current_price - atr_mult * current_atr)
-            if (not math.isnan(current_atr) and current_atr > 0)
+            if (current_atr is not None and not math.isnan(current_atr) and current_atr > 0)
             else hard_stop
         )
         initial_stop = max(hard_stop, atr_stop)

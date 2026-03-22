@@ -68,7 +68,7 @@ def compute_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # --- EMA slope (manual — df.ta.slope(close="EMA_20") kwarg form is unverified) ---
     # Rate of change of EMA_20: (EMA_20[t] - EMA_20[t-1]) / EMA_20[t-1]
-    out["ema_slope"] = (out["EMA_20"] - out["EMA_20"].shift(1)) / out["EMA_20"].shift(1)
+    out["ema_slope"] = (out["EMA_20"] - out["EMA_20"].shift(1)) / (out["EMA_20"].shift(1) + 1e-10)
 
     # --- Bollinger Band width and position (manual to avoid bbands column-name ambiguity) ---
     sma20 = out["close"].rolling(20).mean()

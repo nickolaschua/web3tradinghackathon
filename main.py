@@ -191,7 +191,6 @@ def startup_reconciliation(
     # If the wallet holds crypto that the order manager doesn't track (e.g. state.json
     # was lost), adopt them so the heartbeat and stop-loss logic see them.
     holdings = live_balance.get("holdings", {})
-    roostoo_to_binance_inv = {v: k for k, v in _BINANCE_TO_ROOSTOO.items()}
     for asset, qty in holdings.items():
         pair = f"{asset}/USD"
         if pair in _BINANCE_TO_ROOSTOO.values() and pair not in persisted_positions and qty > 0:
@@ -610,8 +609,9 @@ def _run_one_cycle(
                         pair, n_active_pairs=len(feature_pairs)
                     )
                     # Scale position by signal.size (relaxed MR uses 0.01 for micro positions)
-                    sig_size = getattr(signal, "size", 1.0) or 1.0
-                    portfolio_weight *= sig_size
+                    sig_size = getattr(signal, "size", 1.0)
+                    if sig_size > 0:
+                        portfolio_weight *= sig_size
 
                     open_pos = order_manager.get_all_positions()
                     open_pos_usd: dict[str, float] = {
@@ -933,7 +933,7 @@ def main() -> None:
         sol_strategy.__class__.__name__,
         mean_reversion_strategy.__class__.__name__,
         relaxed_mr_strategy.__class__.__name__,
-        pairs_ml_strategy.__class__.__name__,
+        type(pairs_ml_strategy).__name__ if pairs_ml_strategy else "None",
     )
 
     # Register shutdown handler BEFORE reconciliation (handles crashes during startup)
