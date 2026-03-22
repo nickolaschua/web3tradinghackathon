@@ -535,12 +535,11 @@ def _run_one_cycle(
                     if signal.direction != SignalDirection.HOLD:
                         signal_source = "mr"
 
-                # Fallback 2: relaxed mean reversion (activity layer, micro positions)
-                # Ensures 8/10 active trading days across 20 coins
-                if signal.direction == SignalDirection.HOLD:
-                    signal = relaxed_mr_strategy.generate_signal(pair, features_df)
-                    if signal.direction != SignalDirection.HOLD:
-                        signal_source = "relaxed_mr"
+                # Fallback 2: relaxed MR disabled — Phase E micro-trade handles activity
+                # if signal.direction == SignalDirection.HOLD:
+                #     signal = relaxed_mr_strategy.generate_signal(pair, features_df)
+                #     if signal.direction != SignalDirection.HOLD:
+                #         signal_source = "relaxed_mr"
 
                 if signal.direction == SignalDirection.HOLD:
                     signal_source = "none"
