@@ -290,6 +290,18 @@ class LiveFetcher:
                 df["sol_btc_corr"] = corr.shift(1)
                 df["sol_btc_beta"] = (cov / (var_btc + 1e-10)).shift(1)
 
+        else:
+            # All other coins (XRP, etc): same cross-asset feature pattern as BTC
+            eth_raw = other_dfs.get("ETH/USD", pd.DataFrame())
+            sol_raw = other_dfs.get("SOL/USD", pd.DataFrame())
+            for prefix, raw_df in [("eth", eth_raw), ("sol", sol_raw)]:
+                if not raw_df.empty:
+                    log_ret = np.log(raw_df["close"] / raw_df["close"].shift(1))
+                    df[f"{prefix}_return_4h"] = log_ret.shift(16).reindex(df.index)
+                    df[f"{prefix}_return_1d"] = log_ret.shift(96).reindex(df.index)
+            if not eth_raw.empty and not sol_raw.empty:
+                df = compute_btc_context_features(df, eth_raw, sol_raw, window=2880)
+
         # Step 3: Drop warmup rows (NaN from rolling windows and shift)
         df = df.dropna()
 
