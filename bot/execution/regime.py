@@ -18,14 +18,14 @@ class RegimeState(Enum):
     @property
     def size_multiplier(self) -> float:
         """Return the position size multiplier for this regime."""
-        if self == RegimeState.BULL_TREND:
-            return 1.0
-        elif self == RegimeState.SIDEWAYS:
-            return 0.5
-        elif self == RegimeState.BEAR_TREND:
-            return 0.0
-        else:
-            return 0.5  # Fallback
+        return REGIME_MULTIPLIERS.get(self, 0.50)
+
+
+REGIME_MULTIPLIERS = {
+    RegimeState.BULL_TREND: 1.00,
+    RegimeState.SIDEWAYS:   0.50,
+    RegimeState.BEAR_TREND: 0.35,
+}
 
 
 class RegimeDetector:
