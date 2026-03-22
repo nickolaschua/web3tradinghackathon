@@ -141,30 +141,40 @@ class RoostooClient:
         """Return normalised portfolio balances.
 
         Normalises the API response (SpotWallet or Wallet key) into a flat dict:
-          total_usd  – float, USD Free + Lock
-          USD        – {"Free": float, "Lock": float}
-          BTC        – {"Free": float, "Lock": float}
-          Data       – {asset: {"Free", "Lock", "Total"}} for order_manager reconcile
-          Success    – bool
+          total_usd      – float, USD cash only (Free + Lock)
+          holdings       – dict of non-USD assets: {asset: total_qty} (e.g. {"BTC": 0.001})
+          USD            – {"Free": float, "Lock": float}
+          Data           – {asset: {"Free", "Lock", "Total"}} for order_manager reconcile
+          Success        – bool
         """
         resp = self._request("GET", "/v3/balance", {})
         wallet = resp.get("SpotWallet") or resp.get("Wallet") or {}
         usd = wallet.get("USD", {})
-        btc = wallet.get("BTC", {})
         usd_free = float(usd.get("Free", 0))
         usd_lock = float(usd.get("Lock", 0))
-        btc_free = float(btc.get("Free", 0))
-        btc_lock = float(btc.get("Lock", 0))
+
+        # Build Data dict and holdings for all assets in the wallet
+        data: dict = {
+            "USD": {"Free": usd_free, "Lock": usd_lock, "Total": str(usd_free + usd_lock)},
+        }
+        holdings: dict[str, float] = {}
+        for asset, balances in wallet.items():
+            if asset == "USD":
+                continue
+            a_free = float(balances.get("Free", 0))
+            a_lock = float(balances.get("Lock", 0))
+            total = a_free + a_lock
+            data[asset] = {"Free": a_free, "Lock": a_lock, "Total": str(total)}
+            if total > 0:
+                holdings[asset] = total
+
         return {
             "Success": resp.get("Success", False),
             "ErrMsg": resp.get("ErrMsg", ""),
             "total_usd": usd_free + usd_lock,
+            "holdings": holdings,
             "USD": usd,
-            "BTC": btc,
-            "Data": {
-                "USD": {"Free": usd_free, "Lock": usd_lock, "Total": str(usd_free + usd_lock)},
-                "BTC": {"Free": btc_free, "Lock": btc_lock, "Total": str(btc_free + btc_lock)},
-            },
+            "Data": data,
         }
 
     def place_order(self, pair: str, side: str, quantity: float) -> dict:
