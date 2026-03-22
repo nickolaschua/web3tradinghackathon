@@ -22,7 +22,6 @@ from bot.persistence.state_manager import StateManager
 from bot.strategy.base import SignalDirection
 from bot.config.unlock_screen import apply_unlock_screen
 from bot.strategy.mean_reversion import MeanReversionStrategy
-from bot.strategy.pairs_ml_strategy import PairsMLStrategy
 from bot.strategy.xgboost_strategy import XGBoostStrategy
 
 _CANDLE_15M_SECONDS = 15 * 60  # seconds per 15M candle period
@@ -300,7 +299,7 @@ def _run_one_cycle(
     strategy: Any,
     sol_strategy: Any,
     mean_reversion_strategy: MeanReversionStrategy,
-    pairs_ml_strategy: PairsMLStrategy,
+    pairs_ml_strategy,
     regime_detector: RegimeDetector,
     tradeable_pairs: list[str],
     feature_pairs: list[str],
@@ -759,14 +758,12 @@ def main() -> None:
     )
     # Fallback strategy: mean reversion (fires when both XGBoost models return HOLD)
     mean_reversion_strategy = MeanReversionStrategy()
-    # Pairs ML strategy: disabled (needs 3552 bars warmup > 10-day competition window)
     pairs_ml_strategy = None
     logger.info(
-        "Strategies: primary=%s sol=%s fallback=%s pairs_ml=%s",
+        "Strategies: primary=%s sol=%s fallback=%s",
         strategy.__class__.__name__,
         sol_strategy.__class__.__name__,
         mean_reversion_strategy.__class__.__name__,
-        pairs_ml_strategy.__class__.__name__,
     )
 
     # Register shutdown handler BEFORE reconciliation (handles crashes during startup)
