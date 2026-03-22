@@ -309,7 +309,7 @@ class RiskManager:
             )
 
         # Gate 2: Regime multiplier
-        if regime_multiplier == 0.0:
+        if regime_multiplier < 0.10:
             return SizingResult(
                 RiskDecision.BLOCKED_ZERO_REGIME_MULTIPLIER,
                 0.0, 0.0, 0.0, 0.0,
