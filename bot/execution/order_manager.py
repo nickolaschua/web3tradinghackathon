@@ -67,6 +67,50 @@ class OrderManager:
         self._open_orders: Dict[int, ManagedOrder] = {}
         self._positions: Dict[str, Position] = {}
         self._last_reconcile_ts: float = 0.0
+
+        # Quantity step sizes per pair (Roostoo exchange requirements)
+        # Rounds DOWN to avoid exceeding available balance
+        self._step_sizes: Dict[str, int] = {
+            "BTC/USD": 3,    # 0.001
+            "ETH/USD": 2,    # 0.01
+            "BNB/USD": 2,    # 0.01
+            "SOL/USD": 2,    # 0.01
+            "XRP/USD": 0,    # 1
+            "DOGE/USD": 0,   # 1
+            "ADA/USD": 0,    # 1
+            "AVAX/USD": 1,   # 0.1
+            "LINK/USD": 1,   # 0.1
+            "DOT/USD": 1,    # 0.1
+            "LTC/USD": 2,    # 0.01
+            "UNI/USD": 1,    # 0.1
+            "NEAR/USD": 1,   # 0.1
+            "SUI/USD": 1,    # 0.1
+            "APT/USD": 1,    # 0.1
+            "PEPE/USD": 0,   # 1 (priced in fractions of a cent)
+            "ARB/USD": 0,    # 1
+            "SHIB/USD": 0,   # 1
+            "FIL/USD": 1,    # 0.1
+            "HBAR/USD": 0,   # 1
+            "AAVE/USD": 2,   # 0.01
+            "CRV/USD": 0,    # 1
+            "FET/USD": 0,    # 1
+            "ZEC/USD": 2,    # 0.01
+            "ZEN/USD": 1,    # 0.1
+            "CAKE/USD": 1,   # 0.1
+            "PAXG/USD": 3,   # 0.001
+            "XLM/USD": 0,    # 1
+            "TRX/USD": 0,    # 1
+            "CFX/USD": 0,    # 1
+            "ICP/USD": 1,    # 0.1
+            "PENDLE/USD": 1, # 0.1
+            "WLD/USD": 1,    # 0.1
+            "SEI/USD": 0,    # 1
+            "BONK/USD": 0,   # 1
+            "WIF/USD": 0,    # 1
+            "ENA/USD": 0,    # 1
+            "TAO/USD": 2,    # 0.01
+            "FLOKI/USD": 0,  # 1
+        }
         self.RECONCILE_INTERVAL = 300  # 5 minutes
 
     def place_order(
@@ -91,8 +135,11 @@ class OrderManager:
             ManagedOrder if successful, None otherwise
         """
         try:
-            # Round quantity to 6 decimal places (crypto precision)
-            quantity = round(quantity, 6)
+            # Round quantity DOWN to exchange step size (avoid exceeding balance)
+            import math
+            decimals = self._step_sizes.get(pair, 3)  # default 0.001
+            factor = 10 ** decimals
+            quantity = math.floor(quantity * factor) / factor
 
             # Validate quantity
             if quantity <= 0:
