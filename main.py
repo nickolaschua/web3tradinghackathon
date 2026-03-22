@@ -770,17 +770,17 @@ def main() -> None:
     live_fetcher = LiveFetcher(seed_dfs=seed_dfs, maxlen=4000)
     logger.info("LiveFetcher initialised: %s", live_fetcher)
 
-    # Primary strategy: XGBoost 15M model for BTC/USD (threshold=0.65, exit=0.10)
-    # exit_threshold=0.10: only exit on conviction decay when model is very bearish (P<10%)
+    # Primary strategy: XGBoost 15M model for BTC/USD (threshold=0.65, exit=0.08)
+    # exit_threshold=0.08: faster exit in bear bounces (was 0.10)
     # Backtest OOS 2024-2026: exit=0.10 -> Sharpe 1.558 vs exit=0.30 (baseline) -> 1.387
-    strategy = XGBoostStrategy(threshold=0.65, exit_threshold=0.10)
-    # Secondary strategy: XGBoost 15M model for SOL/USD (threshold=0.75, exit=0.10)
-    # Threshold=0.75 per portfolio backtest OOS 2024-2026 (Sharpe 1.667 combined)
+    strategy = XGBoostStrategy(threshold=0.65, exit_threshold=0.08)
+    # Secondary strategy: XGBoost 15M model for SOL/USD (threshold=0.70, exit=0.08)
+    # Threshold=0.70 (was 0.75) — SOL vol creates stronger reversion setups in bear
     sol_strategy = XGBoostStrategy(
         model_path="models/xgb_sol_15m.pkl",
-        threshold=0.75,
+        threshold=0.70,
         pair="SOL/USD",
-        exit_threshold=0.10,
+        exit_threshold=0.08,
     )
     # Fallback strategy: mean reversion (fires when both XGBoost models return HOLD)
     mean_reversion_strategy = MeanReversionStrategy()
