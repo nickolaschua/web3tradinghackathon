@@ -610,6 +610,9 @@ def _run_one_cycle(
                     portfolio_weight = portfolio_allocator.get_pair_weight(
                         pair, n_active_pairs=len(feature_pairs)
                     )
+                    # Scale position by signal.size (relaxed MR uses 0.01 for micro positions)
+                    sig_size = getattr(signal, "size", 1.0) or 1.0
+                    portfolio_weight *= sig_size
 
                     open_pos = order_manager.get_all_positions()
                     open_pos_usd: dict[str, float] = {
