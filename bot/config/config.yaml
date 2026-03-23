@@ -1,16 +1,24 @@
 # Trading Universe Configuration
-# Focused 2-coin XGBoost strategy: BTC + XRP at 50% allocation each
-# ETH + SOL included for cross-asset feature computation (not traded)
-# Backtest OOS 2024-2026: Sharpe 1.130, Sortino 1.391, CompScore 1.344, +43% return
+# XGBoost strategy: BTC + XRP (existing) + ADA + HBAR + LTC (validated new models)
+# ETH + SOL included for cross-asset feature computation (not directly traded)
+# BTC/USD: 0 recent signals but kept for position management + occasional fires
+# XRP/USD: negative recent edge but provides trade volume for active-day requirement
+# ADA/HBAR/LTC: validated positive edge on unseen 2025-H2 data
 tradeable_pairs:
   - BTC/USD
   - XRP/USD
+  - ADA/USD
+  - HBAR/USD
+  - LTC/USD
   - ETH/USD
   - SOL/USD
 
 feature_pairs:
   - BTC/USD
   - XRP/USD
+  - ADA/USD
+  - HBAR/USD
+  - LTC/USD
 
 candle_interval: "4h"
 max_positions: 5

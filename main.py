@@ -378,8 +378,7 @@ def _run_one_cycle(
     portfolio_allocator: PortfolioAllocator,
     telegram: TelegramAlerter,
     state_manager: StateManager,
-    strategy: Any,
-    sol_strategy: Any,
+    xgb_strategies: dict[str, Any],
     mean_reversion_strategy: MeanReversionStrategy,
     relaxed_mr_strategy: Any,
     pairs_ml_strategy: Any,
@@ -412,9 +411,8 @@ def _run_one_cycle(
         "pair_regime_detectors", {}
     )
 
-    # ── Step 1: Poll ticker for all tradeable pairs every cycle ───────────────
-    # With only 4 pairs, no rotation needed — poll all every 60s.
-    # ETH/SOL needed for cross-asset features (eth_return_4h, eth_btc_corr, etc.)
+    # ── Step 1: Poll ticker for ALL pairs every cycle (60s) ──────────────────
+    # All 7 pairs polled: BTC, XRP, ADA, HBAR, LTC + ETH, SOL (cross-asset features)
     prices: dict[str, float] = {}
 
     open_position_pairs = set(order_manager.get_all_positions().keys())
@@ -548,21 +546,16 @@ def _run_one_cycle(
                     regime.name, regime.size_multiplier, pair,
                 )
 
-                # Primary: momentum strategy (BTC XGBoost)
-                signal = strategy.generate_signal(pair, features_df)
-                signal_source = "xgb_btc"
-
-                # Secondary: SOL XGBoost model (threshold=0.75)
-                if signal.direction == SignalDirection.HOLD and sol_strategy is not None:
-                    signal = sol_strategy.generate_signal(pair, features_df)
-                    if signal.direction != SignalDirection.HOLD:
-                        signal_source = "xgb_sol"
-
-                # MR fallbacks disabled — XGB-only strategy, Phase E handles activity
-                # No MR = no fee drag from no-edge trades
-
-                if signal.direction == SignalDirection.HOLD:
-                    signal_source = "none"
+                # Direct strategy lookup — each pair has at most one XGB strategy.
+                # Pairs without a strategy (ETH/SOL) get HOLD.
+                signal = TradingSignal(pair=pair)
+                signal_source = "none"
+                strat = xgb_strategies.get(pair)
+                if strat is not None:
+                    sig = strat.generate_signal(pair, features_df)
+                    if sig.direction != SignalDirection.HOLD:
+                        signal = sig
+                        signal_source = f"xgb_{pair.split('/')[0].lower()}"
 
                 signals[pair] = signal
                 # Store source for logging in Phase D
@@ -847,6 +840,112 @@ def _run_one_cycle(
     time.sleep(sleep_secs)
 
 
+def _refresh_seed_data(config: dict) -> None:
+    """
+    Incrementally update 15M parquet files with latest Binance data on startup.
+
+    For each tradeable pair, reads the existing parquet, finds the last timestamp,
+    downloads only the new bars, and appends. Skips pairs with no existing file.
+    Tolerates failures gracefully — stale data is better than no data.
+    """
+    import requests
+    import pandas as pd
+
+    logger = logging.getLogger(__name__)
+    data_dir = Path(config.get("data_dir", "data"))
+    roostoo_to_binance = {v: k for k, v in _BINANCE_TO_ROOSTOO.items()}
+    all_pairs: list[str] = config.get("tradeable_pairs", ["BTC/USD"])
+
+    BINANCE_API = "https://data-api.binance.vision/api/v3"
+    BATCH_SIZE = 1000
+
+    for pair in all_pairs:
+        binance_sym = roostoo_to_binance.get(pair)
+        if not binance_sym:
+            continue
+
+        parquet_path = data_dir / f"{binance_sym}_15m.parquet"
+        if not parquet_path.exists():
+            logger.info("Refresh: no parquet for %s, skipping", pair)
+            continue
+
+        try:
+            existing = pd.read_parquet(parquet_path)
+            if existing.empty:
+                continue
+
+            last_ts = existing.index[-1]
+            if hasattr(last_ts, "timestamp"):
+                start_ms = int(last_ts.timestamp() * 1000) + 1
+            else:
+                start_ms = int(last_ts) + 1
+
+            end_ms = int(time.time() * 1000)
+
+            # Skip if data is already recent (within 30 minutes)
+            if end_ms - start_ms < 30 * 60 * 1000:
+                logger.info("Refresh: %s already up-to-date (%s)", pair, last_ts)
+                continue
+
+            logger.info("Refresh: updating %s from %s ...", pair, last_ts)
+
+            all_rows = []
+            current_start = start_ms
+            while current_start < end_ms:
+                resp = requests.get(
+                    f"{BINANCE_API}/klines",
+                    params={
+                        "symbol": binance_sym,
+                        "interval": "15m",
+                        "startTime": current_start,
+                        "endTime": end_ms,
+                        "limit": BATCH_SIZE,
+                    },
+                    timeout=15,
+                )
+                resp.raise_for_status()
+                batch = resp.json()
+                if not batch:
+                    break
+                all_rows.extend(batch)
+                if len(batch) < BATCH_SIZE:
+                    break
+                current_start = int(batch[-1][0]) + 1
+                time.sleep(0.15)
+
+            if not all_rows:
+                logger.info("Refresh: %s — no new bars", pair)
+                continue
+
+            new_df = pd.DataFrame({
+                "open":   [float(r[1]) for r in all_rows],
+                "high":   [float(r[2]) for r in all_rows],
+                "low":    [float(r[3]) for r in all_rows],
+                "close":  [float(r[4]) for r in all_rows],
+                "volume": [float(r[7]) for r in all_rows],
+            })
+            new_df.index = pd.to_datetime([int(r[0]) for r in all_rows], unit="ms", utc=True)
+            new_df.index.name = "timestamp"
+            new_df = new_df.astype("float64")
+
+            # Deduplicate and append
+            combined = pd.concat([existing, new_df])
+            before_dedup = len(combined)
+            combined = combined[~combined.index.duplicated(keep="last")]
+            combined = combined.sort_index()
+            n_dupes = before_dedup - len(combined)
+            if n_dupes > 0:
+                logger.warning("Refresh: %s — %d duplicate timestamps overwritten", pair, n_dupes)
+            combined.to_parquet(parquet_path)
+
+            logger.info("Refresh: %s — added %d new bars (total %d)", pair, len(new_df) - n_dupes, len(combined))
+
+        except Exception as exc:
+            logger.error(
+                "Refresh: FAILED to update %s: %s (continuing with stale data)", pair, exc
+            )
+
+
 def _load_seed_data(config: dict) -> dict[str, Any]:
     """
     Load historical Parquet seed data for the configured feature pairs.
@@ -953,34 +1052,63 @@ def main() -> None:
     order_manager = OrderManager(client=client, risk_manager=risk_manager, config=config)
     portfolio_allocator = PortfolioAllocator(config=config)
 
+    # Refresh seed parquets with latest Binance data before loading
+    logger.info("Refreshing seed data from Binance...")
+    _refresh_seed_data(config)
+
     # Load seed data and initialise LiveFetcher
-    # maxlen=4000 (~41 days at 15M):
+    # maxlen=8000 (~83 days at 15M):
     # - compute_btc_context_features requires window=2880 (30d)
-    # - pairs ML features require ols_window(2880) + zscore_window(672) = 3552 bars minimum
+    # - target_btc_corr/beta requires window=2880 (30d)
     seed_dfs = _load_seed_data(config)
     live_fetcher = LiveFetcher(seed_dfs=seed_dfs, maxlen=8000)
     logger.info("LiveFetcher initialised: %s", live_fetcher)
 
-    # Primary strategy: XGBoost 15M model for BTC/USD (threshold=0.65, exit=0.08)
-    # Backtest OOS 2024-2026: Sharpe 1.001, +21.9%, 50% win rate, 36 trades
-    strategy = XGBoostStrategy(threshold=0.65, exit_threshold=0.08)
-    # Secondary strategy: XGBoost 15M model for XRP/USD (threshold=0.65, exit=0.08)
-    # Backtest OOS 2024-2026: high frequency (163 trades), 39% win rate, big winners
-    # Combined BTC+XRP @ 50%: Sharpe 1.130, CompScore 1.344, +43% return
+    # Primary strategy: XGBoost 15M model for BTC/USD
+    # exit_threshold=0.10 (was 0.08): validated on recent 6-month backtest window
+    strategy = XGBoostStrategy(threshold=0.65, exit_threshold=0.10)
+    # XRP: uses BTC pipeline features (eth_btc_corr/beta, NOT xrp_btc_corr)
+    # Trained with train_model_15m.py, same feature set as BTC model
     sol_strategy = XGBoostStrategy(
         model_path="models/xgb_xrp_15m.pkl",
         threshold=0.65,
         pair="XRP/USD",
-        exit_threshold=0.08,
+        exit_threshold=0.10,
     )
+    # New validated models: ADA, HBAR, LTC — positive edge on unseen 2025-H2 data
+    ada_strategy = XGBoostStrategy(
+        model_path="models/xgb_ada_15m.pkl",
+        threshold=0.70,
+        pair="ADA/USD",
+        exit_threshold=0.10,
+    )
+    hbar_strategy = XGBoostStrategy(
+        model_path="models/xgb_hbar_15m.pkl",
+        threshold=0.70,
+        pair="HBAR/USD",
+        exit_threshold=0.10,
+    )
+    ltc_strategy = XGBoostStrategy(
+        model_path="models/xgb_ltc_15m.pkl",
+        threshold=0.70,
+        pair="LTC/USD",
+        exit_threshold=0.10,
+    )
+    # Dict of all XGB strategies for cascade lookup in _run_one_cycle
+    xgb_strategies: dict[str, XGBoostStrategy] = {
+        "BTC/USD": strategy,
+        "XRP/USD": sol_strategy,
+        "ADA/USD": ada_strategy,
+        "HBAR/USD": hbar_strategy,
+        "LTC/USD": ltc_strategy,
+    }
     # MR and relaxed MR disabled — no edge, just fee drag
     mean_reversion_strategy = MeanReversionStrategy()  # kept for import but won't fire
     relaxed_mr_strategy = None
     pairs_ml_strategy = None
     logger.info(
-        "Strategies: primary=%s secondary=%s",
-        strategy.__class__.__name__,
-        sol_strategy.__class__.__name__,
+        "Strategies: %s",
+        {pair: f"thresh={s._threshold}" for pair, s in xgb_strategies.items()},
     )
 
     # Startup reconciliation
@@ -1084,8 +1212,7 @@ def main() -> None:
                 portfolio_allocator=portfolio_allocator,
                 telegram=telegram,
                 state_manager=state_manager,
-                strategy=strategy,
-                sol_strategy=sol_strategy,
+                xgb_strategies=xgb_strategies,
                 mean_reversion_strategy=mean_reversion_strategy,
                 relaxed_mr_strategy=relaxed_mr_strategy,
                 pairs_ml_strategy=pairs_ml_strategy,

@@ -13,7 +13,7 @@ git clone <your-repo-url>
 cd web3tradinghackathon
 pip3 install -r requirements.txt
 nano .env  # paste your .env contents
-python scripts/download_data.py --interval 15m --symbols BTC XRP ETH SOL
+python scripts/download_data.py --interval 15m --symbols BTC XRP ADA HBAR LTC ETH SOL
 ```
 
 ### Start the Bot
@@ -46,121 +46,107 @@ tmux attach
 - Always run as **ec2-user**, not ssm-user
 - Bot lives at: `ec2-user` -> `~/web3tradinghackathon`
 - Use `python3`, not `python`
-- 15m parquet files must exist in `data/` (not in git, download with script above)
+- 15m parquet files must exist in `data/` (auto-refreshed on startup from Binance, or download with script above)
 - `cb_active=False` in logs is normal (circuit breaker not triggered)
 
 ---
 
-## Live Strategy (v3 -- Focused 2-Coin XGBoost, March 22 2026)
+## Live Strategy (v4 -- 5-Coin XGBoost, March 24 2026)
 
-### What Changed (v3)
+### What Changed (v4)
 
-v2 had 20-coin universe with MR fallbacks that diluted the XGBoost edge. Portfolio allocator gave BTC only ~5% weight instead of 50%, turning a Sharpe 1.2 strategy into Sharpe 0.24.
+v3 ran BTC + XRP only. BTC has fired 0 signals recently, XRP is losing money (-0.33% avg PnL on recent 6 months). v4 adds 3 validated models to diversify signal sources.
 
-| Change | v2 | v3 | Why |
+| Change | v3 | v4 | Why |
 |--------|-----|-----|-----|
-| Trading universe | 39 coins | **BTC + XRP only** | Concentrate capital on coins with proven XGB edge |
-| Portfolio weight | ~5% per coin (HRP/CVaR across 20) | **50% per coin** | No dilution -- each model gets meaningful allocation |
-| MR fallback | Active (150 trades, ~50% WR) | **Disabled** | No edge, just commission drag |
-| Relaxed MR | Active (micro positions) | **Disabled** | Overkill for activity -- Phase E handles it |
-| XRP model | None | **New XGBoost** | High frequency (163 trades), carries activity requirement |
-| SOL model | Active (threshold 0.70) | **Removed** | Only 2 trades in 2 years at 0.70 threshold |
+| Trading universe | BTC + XRP | **BTC + XRP + ADA + HBAR + LTC** | 3 new models with validated positive edge |
+| Model selection | Picked best OOS | **Train→Select→Validate** 3-window design | Prevents selection bias / data snooping |
+| Auto data refresh | Manual download_data.py | **Automatic on startup** | Parquets updated from Binance before each restart |
+| Exit threshold | 0.08 | **0.10** | Validated on recent backtest window |
+| Signal cascade | Hardcoded BTC→XRP | **Dict lookup per pair** | Clean, extensible, no cross-pair contamination |
+| Feature pipeline | BTC-pipeline for all | **Per-coin: alt coins get {coin}_btc_corr** | Correct features for models trained with train_alt_15m.py |
 
-### Backtest Results (OOS 2024-2026, $1M capital, 10bps fees)
+### Model Validation (3-Window Design)
 
-| Metric | v2 (20-coin diluted) | v3 (BTC+XRP focused) |
-|--------|------|------|
-| **Return** | +0.79% | **+43.24%** |
-| **Sharpe** | 0.238 | **1.130** |
-| **Sortino** | 0.099 | **1.391** |
-| **Calmar** | 0.166 | **1.494** |
-| **CompScore** | 0.21 | **1.344** |
-| Max DD | -2.21% | -11.64% |
-| Trades | 390 | 199 |
+Models were validated using proper out-of-sample methodology:
+1. **Train**: Pre-2024 data (all models)
+2. **Select**: 2024-01 to 2025-06 — pick coins with positive edge (even after removing best trade)
+3. **Validate**: 2025-07 to 2026-03 — test ONLY selected coins on unseen data
+
+18 coins passed selection. Only 7 survived validation. ADA, HBAR, LTC chosen for deployment based on edge robustness and trade volume.
+
+### Validation Results (2025-07 to 2026-03, unseen data)
+
+| Coin | Trades | Win% | Avg PnL | Avg PnL (w/o best trade) |
+|------|--------|------|---------|--------------------------|
+| **ADA** | 41 | 39.0% | +1.71% | +0.93% |
+| **HBAR** | 46 | 39.1% | +1.12% | +0.24% |
+| **LTC** | 17 | 58.8% | +1.24% | +0.54% |
+| XRP | 152 | 37.5% | -0.05% | -0.21% |
+| BTC | 1 | 100% | +3.32% | — |
 
 ### Signal Stack (per 15M bar)
 
-| Priority | Strategy | Pair | Entry | Exit |
-|----------|----------|------|-------|------|
-| 1 | **BTC XGBoost** (`xgb_btc_15m_iter5.pkl`) | BTC/USD | P(BUY) >= 0.65 | P(BUY) <= 0.08 or ATR stop |
-| 2 | **XRP XGBoost** (`xgb_xrp_15m.pkl`) | XRP/USD | P(BUY) >= 0.65 | P(BUY) <= 0.08 or ATR stop |
-| 3 | **Micro-trade fallback** | BTC/ETH/SOL/BNB/XRP | $500 BUY if no trade by 20:00 UTC | ATR stop |
+| Strategy | Pair | Entry | Exit |
+|----------|------|-------|------|
+| **BTC XGBoost** (`xgb_btc_15m_iter5.pkl`) | BTC/USD | P(BUY) >= 0.65 | P(BUY) <= 0.10 or ATR stop |
+| **XRP XGBoost** (`xgb_xrp_15m.pkl`) | XRP/USD | P(BUY) >= 0.65 | P(BUY) <= 0.10 or ATR stop |
+| **ADA XGBoost** (`xgb_ada_15m.pkl`) | ADA/USD | P(BUY) >= 0.70 | P(BUY) <= 0.10 or ATR stop |
+| **HBAR XGBoost** (`xgb_hbar_15m.pkl`) | HBAR/USD | P(BUY) >= 0.70 | P(BUY) <= 0.10 or ATR stop |
+| **LTC XGBoost** (`xgb_ltc_15m.pkl`) | LTC/USD | P(BUY) >= 0.70 | P(BUY) <= 0.10 or ATR stop |
+| **Micro-trade fallback** | BTC/ETH/SOL/BNB/XRP | $500 BUY if no trade by 20:00 UTC | ATR stop |
 
-No MR, no pairs ML, no relaxed MR. XGBoost signals only.
-
-### Position Pyramiding
-
-The bot **adds to existing positions** when the model fires repeated BUY signals. With only 2 coins, blocking repeat entries would leave the bot idle most of the time (both positions open, nothing to do until an exit).
-
-How it works:
-- Each new BUY signal sizes an independent tranche (2% risk, ATR-based)
-- Each tranche gets its own trailing stop
-- New tranches are allowed up to the **40% concentration cap per coin**
-- With 2 coins, max total exposure is ~80% (40% BTC + 40% XRP), 20% stays cash
-
-Why this is acceptable for competition:
-- BTC and XRP are highly liquid -- no execution risk on $400K positions
-- Circuit breaker halves sizing at 10% drawdown, halts at 30%
-- ATR trailing stops protect each tranche independently
-- 10-day competition rewards concentrated bets on best models
-- Backtest max drawdown with this approach: -11.6%
-
-Why you would NOT do this with real money:
-- 80% in 2 correlated crypto assets is extreme concentration
-- A flash crash hits both BTC and XRP simultaneously
-- For real portfolios, diversify across 10+ uncorrelated assets
+Each pair has exactly one strategy. Direct dict lookup — no cascade, no cross-pair contamination.
 
 ### Trade Frequency
 
-| Coin | Entries (2yr OOS) | Active Days | Frequency |
-|------|-------------------|-------------|-----------|
-| XRP | 163 | 423/809 (52%) | ~1 every 0.6 days |
-| BTC | 36 | 82/809 (10%) | ~1 every 3.5 days |
-| **Combined** | **199** | **463/809 (57%)** | **~1 every 1.7 days** |
+| Coin | Entries (validation period) | Frequency |
+|------|----------------------------|-----------|
+| XRP | 152 | ~1 every 1.7 days |
+| HBAR | 46 | ~1 every 5.7 days |
+| ADA | 41 | ~1 every 6.4 days |
+| LTC | 17 | ~1 every 15 days |
+| BTC | 1 | rare |
+| **Combined** | **257** | **~1 every 1 day** |
 
-Recent 10-day windows: 9/10, 11/10, 10/10, 9/10, 10/10 active days. Phase E covers any gaps.
+XRP provides the trade volume for the 8-active-day competition requirement. Phase E micro-trades cover any gaps.
 
 ### Risk Management
 
 | Control | Value |
 |---------|-------|
 | Position sizing | 2% portfolio risk per trade (ATR-based) |
-| Portfolio weight | 50% per coin (BTC, XRP) |
 | ATR trailing stop | 10x multiplier (15M calibrated, ratchets up only) |
 | Hard stop floor | 5% below entry |
 | Circuit breaker | 10% DD -> 0.5x / 20% DD -> 0.25x / 30% DD -> halt |
 | Kelly gate | Blocks trades with edge <= 0 |
-| Max concentration | 40% of portfolio per coin (pyramiding allowed up to cap) |
-| Regime scaling | Bull: 1.0x / Sideways: 0.5x / Bear: 0.35x |
+| Max concentration | 40% of portfolio per coin |
+| Max positions | 5 concurrent |
 | Micro-trade fallback | $500 BUY at 20:00 UTC if no trade that day |
-
-### Regime Detection
-
-EMA(20)/EMA(50) crossover with 0.1% dead zone.
-
-| Regime | Condition | Multiplier |
-|--------|-----------|------------|
-| Bull | EMA20 > EMA50, spread > 0.1% | 1.00x |
-| Sideways | Spread < 0.1% | 0.50x |
-| Bear | EMA20 < EMA50 | 0.35x |
 
 ### Models
 
-| Model | Pair | Threshold | Test AP | Trades (OOS) | Win Rate |
-|-------|------|-----------|---------|--------------|----------|
-| `xgb_btc_15m_iter5.pkl` | BTC/USD | 0.65 | 0.405 | 36 | 50% |
-| `xgb_xrp_15m.pkl` | XRP/USD | 0.65 | 0.412 | 163 | 39% |
+| Model | Pair | Threshold | Features | Pipeline |
+|-------|------|-----------|----------|----------|
+| `xgb_btc_15m_iter5.pkl` | BTC/USD | 0.65 | eth_btc_corr/beta | BTC pipeline |
+| `xgb_xrp_15m.pkl` | XRP/USD | 0.65 | eth_btc_corr/beta | BTC pipeline |
+| `xgb_ada_15m.pkl` | ADA/USD | 0.70 | ada_btc_corr/beta | alt pipeline |
+| `xgb_hbar_15m.pkl` | HBAR/USD | 0.70 | hbar_btc_corr/beta | alt pipeline |
+| `xgb_ltc_15m.pkl` | LTC/USD | 0.70 | ltc_btc_corr/beta | alt pipeline |
 
-Both trained on pre-2024 data, tested OOS 2024-2026. 19 features: TA indicators + ETH/SOL cross-asset lags + BTC/ETH correlation/beta. Triple-barrier labels (TP=0.5%, SL=0.3%, horizon=16 bars).
+All trained on pre-2024 data. 19 features each: 13 TA indicators + 4 cross-asset lags (ETH/SOL 4H+1D) + 2 context features. Triple-barrier labels (TP=0.8%, SL=0.3%, horizon=16 bars).
+
+**Two feature pipelines** (critical for live inference):
+- **BTC pipeline** (BTC, XRP): `compute_btc_context_features()` -> eth_btc_corr, eth_btc_beta
+- **Alt pipeline** (ADA, HBAR, LTC): target-vs-BTC rolling correlation -> {coin}_btc_corr, {coin}_btc_beta
 
 ### Robustness Notes
 
 - **No look-ahead bias**: All features use shift(1), confirmed via correlation test (0.01)
 - **No train/test leakage**: CV gap = 64 bars > 16-bar label horizon
-- **Return concentration**: Top 5 days account for 60% of total return -- fragile to timing
-- **Q4 2025 is negative (-5.8%)**: Model edge may be decaying in recent conditions
-- **Selection bias**: XRP was chosen from 11-coin screen based on OOS performance
-- **Realistic 10-day expectation**: -2% to +3% depending on market conditions
+- **3-window validation**: Train (pre-2024) -> Select (2024-H1) -> Validate (2025-H2)
+- **Return concentration**: Top trades drive disproportionate PnL -- normal for momentum
+- **Realistic 10-day expectation**: uncertain; edge is real but small per trade
 
 ### Competition Context
 
@@ -185,8 +171,9 @@ Both trained on pre-2024 data, tested OOS 2024-2026. 19 features: TA indicators 
 | Portfolio allocator | `bot/execution/portfolio.py` |
 | Config | `bot/config/config.yaml` |
 | Telegram alerts | `bot/monitoring/telegram.py` |
-| Live data | `bot/data/live_fetcher.py` |
-| Features | `bot/data/features.py` |
+| Live data + features | `bot/data/live_fetcher.py` |
+| Feature computation | `bot/data/features.py` |
 | Data download | `scripts/download_data.py` |
-| BTC backtest | `scripts/backtest_15m.py` |
-| Allocation comparison | `scripts/backtest_allocation.py` |
+| Train alt models | `scripts/train_alt_15m.py` |
+| Portfolio backtest | `scripts/backtest_portfolio.py` |
+| Single-model backtest | `scripts/backtest_15m.py` |

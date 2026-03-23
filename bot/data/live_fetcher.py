@@ -318,16 +318,45 @@ class LiveFetcher:
                 df["sol_btc_beta"] = (cov / (var_btc + 1e-10)).shift(1)
 
         else:
-            # All other coins (XRP, etc): same cross-asset feature pattern as BTC
+            coin = pair.split("/")[0].lower()
             eth_raw = other_dfs.get("ETH/USD", pd.DataFrame())
             sol_raw = other_dfs.get("SOL/USD", pd.DataFrame())
+            btc_raw = other_dfs.get("BTC/USD", pd.DataFrame())
+
+            # Coins trained with train_alt_15m.py use:
+            #   ETH+SOL 4H/1D return lags + {coin}_btc_corr/beta (target vs BTC)
+            # XRP (and ETH) trained with BTC pipeline use:
+            #   ETH+SOL 4H/1D return lags + eth_btc_corr/beta (via compute_btc_context_features)
+            _ALT_MODEL_COINS = {"ada", "hbar", "ltc", "bnb", "doge", "shib", "fet",
+                                "cake", "crv", "avax", "dot", "link", "near", "uni",
+                                "sui", "xlm", "zen", "icp"}
+            _BTC_PIPELINE_COINS = {"xrp", "eth"}
+
+            # All non-BTC/SOL coins need ETH+SOL return lags
             for prefix, raw_df in [("eth", eth_raw), ("sol", sol_raw)]:
                 if not raw_df.empty:
                     log_ret = np.log(raw_df["close"] / raw_df["close"].shift(1))
                     df[f"{prefix}_return_4h"] = log_ret.shift(16).reindex(df.index)
                     df[f"{prefix}_return_1d"] = log_ret.shift(96).reindex(df.index)
-            if not eth_raw.empty and not sol_raw.empty:
-                df = compute_btc_context_features(df, eth_raw, sol_raw, window=2880)
+
+            if coin in _ALT_MODEL_COINS:
+                # Target-vs-BTC correlation and beta
+                if not btc_raw.empty:
+                    target_ret = np.log(df["close"] / df["close"].shift(1))
+                    btc_ret = np.log(btc_raw["close"] / btc_raw["close"].shift(1)).reindex(df.index)
+                    corr = target_ret.rolling(2880).corr(btc_ret)
+                    cov = target_ret.rolling(2880).cov(btc_ret)
+                    var_btc = btc_ret.rolling(2880).var()
+                    df[f"{coin}_btc_corr"] = corr.shift(1)
+                    df[f"{coin}_btc_beta"] = (cov / (var_btc + 1e-10)).shift(1)
+            elif coin in _BTC_PIPELINE_COINS:
+                # XRP/ETH: eth_btc_corr/beta via compute_btc_context_features
+                if not eth_raw.empty and not sol_raw.empty:
+                    df = compute_btc_context_features(df, eth_raw, sol_raw, window=2880)
+            else:
+                # Unknown coin: try compute_btc_context_features as safe default
+                if not eth_raw.empty and not sol_raw.empty:
+                    df = compute_btc_context_features(df, eth_raw, sol_raw, window=2880)
 
         # Step 3: Drop warmup rows (NaN from rolling windows and shift)
         df = df.dropna()
