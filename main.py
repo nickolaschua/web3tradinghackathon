@@ -412,21 +412,14 @@ def _run_one_cycle(
         "pair_regime_detectors", {}
     )
 
-    # ── Step 1: Poll ticker — rotating budget to stay within 30 calls/min ────
-    # Always poll: feature_pairs (3) + open-position pairs.
-    # Rotate: 36 non-feature pairs split into 3 batches of 12; one batch/cycle.
+    # ── Step 1: Poll ticker for all tradeable pairs every cycle ───────────────
+    # With only 4 pairs, no rotation needed — poll all every 60s.
+    # ETH/SOL needed for cross-asset features (eth_return_4h, eth_btc_corr, etc.)
     prices: dict[str, float] = {}
-
-    non_feature_pairs = [p for p in tradeable_pairs if p not in feature_pairs]
-    rotation_idx = loop_state.get("poll_rotation_idx", 0)
-    batch_size = 12
-    batch_start = (rotation_idx % 3) * batch_size
-    rotating_batch = non_feature_pairs[batch_start: batch_start + batch_size]
-    loop_state["poll_rotation_idx"] = rotation_idx + 1
 
     open_position_pairs = set(order_manager.get_all_positions().keys())
     pairs_to_poll = list(dict.fromkeys(
-        feature_pairs + rotating_batch + list(open_position_pairs)
+        tradeable_pairs + list(open_position_pairs)
     ))
 
     for pair in pairs_to_poll:
