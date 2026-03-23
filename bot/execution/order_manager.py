@@ -119,17 +119,23 @@ class OrderManager:
         side: str,
         quantity: float,
         entry_price: float,
-        initial_stop: float
+        initial_stop: float,
+        prefer_limit: bool = False,
     ) -> Optional[ManagedOrder]:
         """
-        Submit a MARKET order to the exchange and track it.
+        Submit an order to the exchange and track it.
+
+        Uses LIMIT order with MARKET fallback when prefer_limit=True (BUY entries),
+        saving ~50% on commission. Stop-loss SELLs should use prefer_limit=False
+        for guaranteed fills.
 
         Args:
             pair: Trading pair (e.g., "BTC/USD")
             side: "BUY" or "SELL"
             quantity: Quantity in coin units (e.g., BTC, not USD)
-            entry_price: Expected entry price (used if fill_price is missing)
+            entry_price: Expected entry price (used for LIMIT price and fill fallback)
             initial_stop: Initial stop loss price
+            prefer_limit: If True, try LIMIT order first for lower fees
 
         Returns:
             ManagedOrder if successful, None otherwise
@@ -155,12 +161,20 @@ class OrderManager:
                 submitted_at=time.time()
             )
 
-            # Submit to exchange
-            response = self.client.place_order(
-                pair=pair,
-                side=side,
-                quantity=quantity
-            )
+            # Submit to exchange — LIMIT with MARKET fallback for entries
+            if prefer_limit and side == "BUY":
+                response = self.client.place_limit_with_fallback(
+                    pair=pair,
+                    side=side,
+                    quantity=quantity,
+                    price=entry_price,
+                )
+            else:
+                response = self.client.place_order(
+                    pair=pair,
+                    side=side,
+                    quantity=quantity
+                )
 
             # Check if submission was successful
             if not response.get("Success", False):
@@ -202,23 +216,57 @@ class OrderManager:
             else:
                 managed_order.fill_price = float(fill_price_raw)
 
-            # Update order tracking
+            # Extract actual filled quantity from response (partial fill handling).
+            # Fall back to requested quantity if the field is absent (most MARKET fills).
+            filled_qty_raw = (
+                order_detail.get("FilledQuantity")
+                or order_detail.get("ExecutedQty")
+                or response.get("FilledQuantity")
+            )
+            if filled_qty_raw is not None:
+                actual_filled = float(filled_qty_raw)
+                if actual_filled > 0:
+                    quantity = actual_filled
+                    if actual_filled < managed_order.quantity:
+                        logger.warning(
+                            f"Partial fill for {pair}: requested={managed_order.quantity:.6f} "
+                            f"filled={actual_filled:.6f}"
+                        )
+
             managed_order.filled_quantity = quantity
             managed_order.status = OrderStatus.FILLED
 
-            # Update position tracking
-            if pair in self._positions:
-                self._positions[pair].quantity += quantity
-                self._positions[pair].entry_price = managed_order.fill_price
-            else:
-                self._positions[pair] = Position(
-                    pair=pair,
-                    quantity=quantity,
-                    entry_price=managed_order.fill_price
-                )
-
-            # Record with risk manager
-            self.risk_manager.record_entry(pair, managed_order.fill_price, initial_stop)
+            # Update position tracking (VWAP entry price on pyramid adds)
+            if side == "BUY":
+                if pair in self._positions:
+                    old_qty = self._positions[pair].quantity
+                    old_entry = self._positions[pair].entry_price
+                    new_qty = old_qty + quantity
+                    # Volume-weighted average price
+                    vwap_entry = (old_entry * old_qty + managed_order.fill_price * quantity) / new_qty
+                    self._positions[pair].quantity = new_qty
+                    self._positions[pair].entry_price = vwap_entry
+                    logger.info(
+                        f"Pyramid add {pair}: {old_qty:.6f}@{old_entry:.4f} + "
+                        f"{quantity:.6f}@{managed_order.fill_price:.4f} = "
+                        f"{new_qty:.6f}@{vwap_entry:.4f} (VWAP)"
+                    )
+                    # On pyramid add, record entry for the new tranche but preserve
+                    # existing trailing stop if it's already been ratcheted higher.
+                    # initial_stop is computed fresh per call by size_new_position()
+                    # using the current ATR — it is NOT a stale value from the first tranche.
+                    self.risk_manager.record_pyramid_entry(
+                        pair, vwap_entry, managed_order.fill_price, initial_stop
+                    )
+                else:
+                    self._positions[pair] = Position(
+                        pair=pair,
+                        quantity=quantity,
+                        entry_price=managed_order.fill_price,
+                    )
+                    # Fresh position — set initial stop normally
+                    self.risk_manager.record_entry(pair, managed_order.fill_price, initial_stop)
+            # SELL orders don't update position tracking — close_position handles removal
 
             # Store in order tracking
             self._open_orders[order_id] = managed_order
@@ -251,6 +299,9 @@ class OrderManager:
         """
         Close (sell) an open position.
 
+        Submits a MARKET SELL directly to the exchange without routing through
+        place_order(), which would incorrectly update position tracking for BUY logic.
+
         Args:
             pair: Trading pair
             quantity: Quantity to close
@@ -259,20 +310,63 @@ class OrderManager:
         Returns:
             ManagedOrder if successful, None otherwise
         """
-        result = self.place_order(
-            pair=pair,
-            side="SELL",
-            quantity=quantity,
-            entry_price=current_price,
-            initial_stop=0.0
-        )
+        try:
+            import math as _math
+            decimals = self._step_sizes.get(pair, 3)
+            factor = 10 ** decimals
+            quantity = _math.floor(quantity * factor) / factor
 
-        if result:
+            if quantity <= 0:
+                logger.warning(f"close_position: quantity<=0 for {pair}, skipping")
+                return None
+
+            # Skip the 65s trade cooldown for speed, but the 30-call/min rate
+            # limiter still applies. Multiple stops in the same cycle will queue
+            # at the rate limiter, not the cooldown.
+            response = self.client.place_order(
+                pair=pair,
+                side="SELL",
+                quantity=quantity,
+                skip_cooldown=True,
+            )
+
+            if not response.get("Success", False):
+                logger.error(f"close_position SELL failed for {pair}: {response}")
+                return None
+
+            # Extract order ID
+            order_id = response.get("OrderId") or response.get("order_id")
+            order_detail = response.get("OrderDetail", {})
+            if order_id is None and order_detail:
+                order_id = order_detail.get("OrderID") or order_detail.get("OrderId")
+
+            managed_order = ManagedOrder(
+                order_id=int(order_id) if order_id is not None else None,
+                pair=pair,
+                side="SELL",
+                quantity=quantity,
+                submitted_at=time.time(),
+                status=OrderStatus.FILLED,
+                fill_price=current_price,
+                filled_quantity=quantity,
+            )
+
+            # Remove position and risk tracking
             if pair in self._positions:
                 del self._positions[pair]
             self.risk_manager.record_exit(pair)
 
-        return result
+            if managed_order.order_id is not None:
+                self._open_orders[managed_order.order_id] = managed_order
+
+            logger.info(
+                f"Position closed: SELL {quantity:.6f} {pair} @ {current_price:.4f}"
+            )
+            return managed_order
+
+        except Exception as e:
+            logger.error(f"close_position exception for {pair}: {e}")
+            return None
 
     def _resync_from_exchange(self, force: bool = False) -> None:
         """
@@ -432,3 +526,21 @@ class OrderManager:
     def maybe_reconcile(self) -> None:
         """Convenience method for main loop to trigger periodic reconciliation."""
         self._resync_from_exchange(force=False)
+        self._prune_completed_orders()
+
+    def _prune_completed_orders(self, max_age_secs: float = 3600.0) -> None:
+        """Remove FILLED and CANCELED orders older than max_age_secs from tracking.
+
+        Prevents _open_orders from growing unboundedly over days of trading.
+        Only prunes terminal-state orders — PENDING/SUBMITTED orders are kept.
+        """
+        now = time.time()
+        terminal = {OrderStatus.FILLED, OrderStatus.CANCELED, OrderStatus.REJECTED}
+        to_prune = [
+            oid for oid, o in self._open_orders.items()
+            if o.status in terminal and (now - o.submitted_at) > max_age_secs
+        ]
+        if to_prune:
+            for oid in to_prune:
+                del self._open_orders[oid]
+            logger.debug("Pruned %d completed orders (>%.0fs old)", len(to_prune), max_age_secs)

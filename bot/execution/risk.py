@@ -142,6 +142,32 @@ class RiskManager:
         self._trailing_stops[pair] = initial_stop
         logger.info(f"Recorded entry for {pair} at {entry_price:.4f}, initial stop {initial_stop:.4f}")
 
+    def record_pyramid_entry(
+        self, pair: str, vwap_entry: float, tranche_price: float, tranche_stop: float,
+    ) -> None:
+        """
+        Record a pyramid add without clobbering an already-ratcheted trailing stop.
+
+        Updates the entry price to the VWAP across all tranches. The trailing stop
+        is only raised (never lowered) — if the existing trailing stop from prior
+        price appreciation is above the new tranche's initial stop, keep the higher one.
+
+        Args:
+            pair: Trading pair
+            vwap_entry: Volume-weighted average entry price across all tranches
+            tranche_price: Fill price of this new tranche
+            tranche_stop: Initial stop for this tranche (from ATR computation)
+        """
+        self._entry_prices[pair] = vwap_entry
+        existing_trail = self._trailing_stops.get(pair, 0.0)
+        # Only raise the trailing stop, never lower it
+        self._trailing_stops[pair] = max(existing_trail, tranche_stop)
+        logger.info(
+            f"Pyramid entry for {pair}: vwap={vwap_entry:.4f}, "
+            f"trail={self._trailing_stops[pair]:.4f} "
+            f"(existing={existing_trail:.4f}, tranche_stop={tranche_stop:.4f})"
+        )
+
     def record_exit(self, pair: str) -> None:
         """
         Record a position exit (remove from tracking).

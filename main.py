@@ -169,27 +169,37 @@ def startup_reconciliation(
         telegram.send(f"\u26a0\ufe0f WARN: startup_reconciliation() could not fetch live state: {exc}")
         return
 
-    # Step 5: Reconcile positions
+    # Step 5: Reconcile persisted positions against live wallet holdings.
+    # Positions are filled crypto balances — compare against wallet, NOT open orders.
+    # Open orders are pending/unfilled and should be tracked separately.
     persisted_positions = order_manager.get_all_positions()
-    live_order_pairs = {o.get("pair") or o.get("Symbol", "") for o in live_orders}
+    holdings = live_balance.get("holdings", {})
 
     discrepancies = []
     for pair, pos in persisted_positions.items():
-        if pair not in live_order_pairs and pos.quantity > 0:
+        asset = pair.split("/")[0]
+        live_qty = holdings.get(asset, 0.0)
+        if pos.quantity > 0 and live_qty < 1e-8:
             discrepancies.append(
-                f"Position {pair} qty={pos.quantity:.6f} in state but no open order on exchange"
+                f"Position {pair} qty={pos.quantity:.6f} in state but "
+                f"wallet shows zero {asset} balance"
+            )
+        elif pos.quantity > 0 and abs(live_qty - pos.quantity) / pos.quantity > 0.01:
+            discrepancies.append(
+                f"Position {pair} qty mismatch: state={pos.quantity:.6f} "
+                f"wallet={live_qty:.6f} (delta {abs(live_qty - pos.quantity) / pos.quantity * 100:.1f}%)"
             )
 
-    for pair in live_order_pairs:
-        if pair and pair not in persisted_positions:
+    for asset, qty in holdings.items():
+        pair = f"{asset}/USD"
+        if qty > 0 and pair in _BINANCE_TO_ROOSTOO.values() and pair not in persisted_positions:
             discrepancies.append(
-                f"Open order for {pair} on exchange but no position in persisted state"
+                f"Wallet holds {asset}={qty:.6f} but no position tracked in persisted state"
             )
 
     # Step 5b: Adopt orphaned exchange holdings into order manager.
     # If the wallet holds crypto that the order manager doesn't track (e.g. state.json
     # was lost), adopt them so the heartbeat and stop-loss logic see them.
-    holdings = live_balance.get("holdings", {})
     for asset, qty in holdings.items():
         pair = f"{asset}/USD"
         if pair in _BINANCE_TO_ROOSTOO.values() and pair not in persisted_positions and qty > 0:
@@ -261,12 +271,16 @@ def _register_shutdown_handler(
     risk_manager: RiskManager,
     order_manager: OrderManager,
     telegram: TelegramAlerter,
+    loop_state: dict,
 ) -> None:
     """
     Register SIGTERM and SIGINT handlers that flush state before exit.
 
     systemd sends SIGTERM on service stop. Ctrl-C sends SIGINT.
     Both must write state to disk so the next startup can reconcile correctly.
+
+    loop_state is a mutable dict — the closure captures the reference, so it
+    always sees the latest values even though registration happens early.
     """
     logger = logging.getLogger(__name__)
 
@@ -274,9 +288,17 @@ def _register_shutdown_handler(
         sig_name = signal.Signals(signum).name
         logger.info("Received %s — flushing state before exit", sig_name)
         try:
+            regime_states = {
+                pair: det.dump_state()
+                for pair, det in loop_state.get("pair_regime_detectors", {}).items()
+            }
             state = {
                 "risk_manager": risk_manager.dump_state(),
                 "order_manager": order_manager.dump_state(),
+                "regime_detectors": regime_states,
+                "last_signal_epoch": loop_state.get("last_signal_epoch", 0),
+                "last_trade": loop_state.get("last_trade", "None yet"),
+                "last_trade_date": loop_state.get("last_trade_date", ""),
                 "shutdown_signal": sig_name,
                 "shutdown_time": time.time(),
             }
@@ -361,7 +383,6 @@ def _run_one_cycle(
     mean_reversion_strategy: MeanReversionStrategy,
     relaxed_mr_strategy: Any,
     pairs_ml_strategy: Any,
-    regime_detector: RegimeDetector,
     tradeable_pairs: list[str],
     feature_pairs: list[str],
     loop_state: dict,
@@ -385,6 +406,11 @@ def _run_one_cycle(
     """
     logger = logging.getLogger(__name__)
     warmup_bars = config.get("warmup_bars", 35)
+
+    # Per-pair regime detectors — persisted in loop_state across cycles
+    _pair_regime_detectors: dict[str, RegimeDetector] = loop_state.setdefault(
+        "pair_regime_detectors", {}
+    )
 
     # ── Step 1: Poll ticker — rotating budget to stay within 30 calls/min ────
     # Always poll: feature_pairs (3) + open-position pairs.
@@ -415,6 +441,7 @@ def _run_one_cycle(
 
     # ── Step 2: Balance + circuit breaker check ───────────────────────────────
     total_usd = 0.0
+    portfolio_value = 0.0
     cb_active = False
     holdings: dict[str, float] = {}
     try:
@@ -450,6 +477,13 @@ def _run_one_cycle(
                     pair, stop_result.exit_reason, stop_result.exit_type,
                 )
                 order_manager.close_position(pair, pos.quantity, current_price)
+                # Record stop-loss exit as a trade so Phase E activity check sees it
+                loop_state["last_trade"] = (
+                    f"SELL {pair} [stop:{stop_result.exit_type}] qty={pos.quantity:.6f} "
+                    f"@ {current_price:.4f} "
+                    f"[{time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}]"
+                )
+                loop_state["last_trade_date"] = time.strftime("%Y-%m-%d", time.gmtime())
                 telegram.send(
                     f"\U0001f534 Stop triggered: {pair} | {stop_result.exit_type} | "
                     f"price={current_price:.4f}"
@@ -509,8 +543,10 @@ def _run_one_cycle(
                 # Update cache — ATR available for step 3 in next cycle
                 features_cache[pair] = features_df.iloc[-1].to_dict()
 
-                # Regime detection
-                regime = regime_detector.update(df)
+                # Regime detection — per-pair detector to avoid cross-contamination
+                if pair not in _pair_regime_detectors:
+                    _pair_regime_detectors[pair] = RegimeDetector(config=config)
+                regime = _pair_regime_detectors[pair].update(df)
                 regime_mults[pair] = regime.size_multiplier
                 logger.debug(
                     "Step 4A: regime=%s (mult=%.1f) for %s",
@@ -590,11 +626,11 @@ def _run_one_cycle(
                     existing_pos = order_manager.get_all_positions().get(pair)
                     if existing_pos:
                         existing_usd = existing_pos.quantity * current_price
-                        # Skip if already at max concentration (40% of portfolio)
-                        if existing_usd > total_usd * 0.40:
+                        # Skip if already at max concentration (40% of portfolio value)
+                        if portfolio_value > 0 and existing_usd > portfolio_value * 0.40:
                             logger.debug(
-                                "Step 4D: %s at max concentration ($%.0f / %.0f%%), skipping BUY",
-                                pair, existing_usd, existing_usd / total_usd * 100,
+                                "Step 4D: %s at max concentration ($%.0f / %.0f%% of $%.0f), skipping BUY",
+                                pair, existing_usd, existing_usd / portfolio_value * 100, portfolio_value,
                             )
                             continue
                         # Allow adding to position if under concentration cap
@@ -622,7 +658,9 @@ def _run_one_cycle(
                         )
                         for p, pos_obj in open_pos.items()
                     }
-                    free_usd = max(0.0, total_usd - sum(open_pos_usd.values()))
+                    # total_usd is already cash-only (excludes crypto holdings),
+                    # so it IS the free balance available for new orders.
+                    free_usd = max(0.0, total_usd)
 
                     sizing = risk_manager.size_new_position(
                         pair=pair,
@@ -653,6 +691,7 @@ def _run_one_cycle(
                             quantity=sizing.approved_quantity,
                             entry_price=current_price,
                             initial_stop=sizing.stop_price,
+                            prefer_limit=True,
                         )
                         if managed:
                             source_tag = getattr(signal, "_source", "unknown")
@@ -671,8 +710,9 @@ def _run_one_cycle(
                             loop_state["last_trade"] = (
                                 f"BUY {pair} [{source_tag}] qty={sizing.approved_quantity:.6f} "
                                 f"@ {current_price:.4f} "
-                                f"[{time.strftime('%H:%M:%S UTC', time.gmtime())}]"
+                                f"[{time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}]"
                             )
+                            loop_state["last_trade_date"] = time.strftime("%Y-%m-%d", time.gmtime())
                     else:
                         logger.info(
                             "Step 4D: BUY blocked for %s: %s (%s)",
@@ -694,8 +734,9 @@ def _run_one_cycle(
                         loop_state["last_trade"] = (
                             f"SELL {pair} qty={pos.quantity:.6f} "
                             f"@ {current_price:.4f} "
-                            f"[{time.strftime('%H:%M:%S UTC', time.gmtime())}]"
+                            f"[{time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}]"
                         )
+                        loop_state["last_trade_date"] = time.strftime("%Y-%m-%d", time.gmtime())
 
             except Exception as exc:
                 logger.error(
@@ -710,9 +751,9 @@ def _run_one_cycle(
 
     utc_now = _dt.datetime.utcnow()
     today_str = utc_now.strftime("%Y-%m-%d")
-    last_trade_str = loop_state.get("last_trade", "")
 
-    traded_today = today_str in last_trade_str
+    # Use explicit date flag instead of parsing last_trade string
+    traded_today = loop_state.get("last_trade_date", "") == today_str
     if not traded_today and utc_now.hour >= 20:
         # Pick first liquid coin without an open position
         micro_candidates = ["BTC/USD", "ETH/USD", "SOL/USD", "BNB/USD", "XRP/USD"]
@@ -737,6 +778,7 @@ def _run_one_cycle(
                 quantity=micro_qty,
                 entry_price=micro_price,
                 initial_stop=micro_stop,
+                prefer_limit=True,
             )
             if managed:
                 telegram.send(
@@ -751,8 +793,9 @@ def _run_one_cycle(
                 loop_state["last_trade"] = (
                     f"BUY {micro_pair} [activity] qty={micro_qty:.6f} "
                     f"@ {micro_price:.4f} "
-                    f"[{time.strftime('%H:%M:%S UTC', time.gmtime())}]"
+                    f"[{time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime())}]"
                 )
+                loop_state["last_trade_date"] = time.strftime("%Y-%m-%d", time.gmtime())
             break  # one micro-trade per day is enough
 
     # Periodic reconciliation (every 5 min — OrderManager tracks interval internally)
@@ -760,11 +803,18 @@ def _run_one_cycle(
 
     # ── Step 5: Write state.json ──────────────────────────────────────────────
     try:
+        # Serialize per-pair regime detector state
+        regime_states = {
+            pair: det.dump_state()
+            for pair, det in loop_state.get("pair_regime_detectors", {}).items()
+        }
         state = {
             "risk_manager": risk_manager.dump_state(),
             "order_manager": order_manager.dump_state(),
+            "regime_detectors": regime_states,
             "last_signal_epoch": loop_state.get("last_signal_epoch", 0),
             "last_trade": loop_state.get("last_trade", "None yet"),
+            "last_trade_date": loop_state.get("last_trade_date", ""),
             "timestamp": time.time(),
         }
         state_manager.write(state)
@@ -785,6 +835,16 @@ def _run_one_cycle(
     if cycle_ts - loop_state.get("last_heartbeat_ts", 0.0) >= heartbeat_interval:
         loop_state["last_heartbeat_ts"] = cycle_ts
         _send_heartbeat(telegram, order_manager, total_usd, prices, loop_state, holdings)
+
+    # Periodic time re-sync every 6 hours to prevent clock drift breaking HMAC signatures
+    _TIME_RESYNC_INTERVAL = 6 * 3600
+    if cycle_ts - loop_state.get("last_time_sync_ts", 0.0) >= _TIME_RESYNC_INTERVAL:
+        loop_state["last_time_sync_ts"] = cycle_ts
+        try:
+            offset = client.sync_time()
+            logger.info("Periodic time re-sync: offset=%+d ms", offset)
+        except Exception as exc:
+            logger.warning("Periodic time re-sync failed: %s", exc)
 
     # ── Step 7: Boundary-aligned sleep ───────────────────────────────────────
     sleep_secs = max(0.0, 60.0 - (time.time() % 60.0))
@@ -896,7 +956,6 @@ def main() -> None:
     state_manager = StateManager(path=Path(config.get("state_path", "state.json")))
     risk_manager = RiskManager(config=config)
     order_manager = OrderManager(client=client, risk_manager=risk_manager, config=config)
-    regime_detector = RegimeDetector(config=config)
     portfolio_allocator = PortfolioAllocator(config=config)
 
     # Load seed data and initialise LiveFetcher
@@ -929,9 +988,6 @@ def main() -> None:
         sol_strategy.__class__.__name__,
     )
 
-    # Register shutdown handler BEFORE reconciliation (handles crashes during startup)
-    _register_shutdown_handler(state_manager, risk_manager, order_manager, telegram)
-
     # Startup reconciliation
     startup_reconciliation(
         client=client,
@@ -943,15 +999,33 @@ def main() -> None:
 
     # Cold-start HWM init: if no persisted state loaded, fetch live balance now
     # so the circuit breaker and tiered sizing multipliers work from the first cycle.
+    # MUST include crypto holdings — cash-only would set HWM too low and falsely
+    # trigger the circuit breaker when positions are already open.
     if risk_manager._portfolio_hwm == 0:
         try:
             balance = client.get_balance()
             initial_usd = float(balance.get("total_usd", 0.0))
-            if initial_usd > 0:
-                risk_manager.initialize_hwm(initial_usd)
-                logger.info("Cold start: initialized portfolio HWM to $%.0f", initial_usd)
+            cold_holdings = balance.get("holdings", {})
+            initial_portfolio = initial_usd
+            for asset, qty in cold_holdings.items():
+                pair = f"{asset}/USD"
+                try:
+                    ticker = client.get_ticker(pair)
+                    asset_price = float(
+                        ticker.get("Data", {}).get(pair, {}).get("LastPrice", 0.0)
+                    )
+                    initial_portfolio += qty * asset_price
+                except Exception:
+                    pass
+            if initial_portfolio > 0:
+                risk_manager.initialize_hwm(initial_portfolio)
+                logger.info(
+                    "Cold start: initialized portfolio HWM to $%.0f "
+                    "(cash=$%.0f + crypto=$%.0f)",
+                    initial_portfolio, initial_usd, initial_portfolio - initial_usd,
+                )
             else:
-                logger.warning("Cold start: balance returned total_usd=0, HWM not initialized")
+                logger.warning("Cold start: portfolio value=0, HWM not initialized")
         except Exception as exc:
             logger.warning("Cold start: could not fetch balance for HWM init: %s", exc)
 
@@ -960,15 +1034,44 @@ def main() -> None:
 
     # Restore loop_state from persisted state (preserves last_signal_epoch across restarts)
     saved_state = state_manager.read() or {}
+
+    # Restore per-pair regime detectors from persisted state
+    restored_regime_detectors: dict[str, RegimeDetector] = {}
+    regime_states_raw = saved_state.get("regime_detectors", {})
+    if not isinstance(regime_states_raw, dict):
+        logger.warning(
+            "regime_detectors in state.json is not a dict (got %s), skipping restoration",
+            type(regime_states_raw).__name__,
+        )
+        regime_states_raw = {}
+    for pair, regime_state in regime_states_raw.items():
+        try:
+            det = RegimeDetector(config=config)
+            det.load_state(regime_state)
+            restored_regime_detectors[pair] = det
+            logger.info(
+                "Restored regime for %s: %s", pair, regime_state.get("current_regime", "?")
+            )
+        except Exception as exc:
+            logger.warning("Failed to restore regime for %s: %s", pair, exc)
+
     loop_state: dict[str, Any] = {
         "last_signal_epoch": saved_state.get("last_signal_epoch", 0),
         "features_cache": {},
         "last_trade": saved_state.get("last_trade", "None yet"),
+        "last_trade_date": saved_state.get("last_trade_date", ""),
         "last_heartbeat_ts": 0.0,
+        "pair_regime_detectors": restored_regime_detectors,
     }
 
     tradeable_pairs: list[str] = config.get("tradeable_pairs", ["BTC/USD"])
     feature_pairs: list[str] = config.get("feature_pairs", ["BTC/USD"])
+
+    # Register shutdown handler AFTER loop_state is created so the closure
+    # captures it and can save regime detectors, last_trade, etc.
+    _register_shutdown_handler(
+        state_manager, risk_manager, order_manager, telegram, loop_state
+    )
 
     # ── Main loop ─────────────────────────────────────────────────────────────
     while True:
@@ -986,7 +1089,6 @@ def main() -> None:
                 mean_reversion_strategy=mean_reversion_strategy,
                 relaxed_mr_strategy=relaxed_mr_strategy,
                 pairs_ml_strategy=pairs_ml_strategy,
-                regime_detector=regime_detector,
                 tradeable_pairs=tradeable_pairs,
                 feature_pairs=feature_pairs,
                 loop_state=loop_state,
@@ -994,10 +1096,17 @@ def main() -> None:
             )
         except KeyboardInterrupt:
             logger.info("KeyboardInterrupt — saving state and exiting")
+            regime_states = {
+                pair: det.dump_state()
+                for pair, det in loop_state.get("pair_regime_detectors", {}).items()
+            }
             state = {
                 "risk_manager": risk_manager.dump_state(),
                 "order_manager": order_manager.dump_state(),
+                "regime_detectors": regime_states,
                 "last_signal_epoch": loop_state.get("last_signal_epoch", 0),
+                "last_trade": loop_state.get("last_trade", "None yet"),
+                "last_trade_date": loop_state.get("last_trade_date", ""),
                 "timestamp": time.time(),
             }
             state_manager.write(state)

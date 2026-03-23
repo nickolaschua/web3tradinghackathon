@@ -177,9 +177,104 @@ class RoostooClient:
             "Data": data,
         }
 
-    def place_order(self, pair: str, side: str, quantity: float) -> dict:
-        """Submit a market order. Enforces 65s trade cooldown before dispatching."""
+    def place_order(
+        self, pair: str, side: str, quantity: float, skip_cooldown: bool = False,
+    ) -> dict:
+        """Submit a MARKET order.
+
+        Args:
+            skip_cooldown: If True, bypass the 65s trade cooldown. Used for
+                           stop-loss exits where speed is critical — a 65s delay
+                           while price is moving against you can be costly.
+                           The 30-call/min rate limiter is still enforced.
+        """
+        if not skip_cooldown:
+            _trade_cooldown.acquire()
+        return self._request("POST", "/v3/place_order", {
+            "pair": pair,
+            "side": side,
+            "quantity": str(quantity),
+            "type": "MARKET",
+        })
+
+    def place_limit_with_fallback(
+        self, pair: str, side: str, quantity: float, price: float,
+        poll_secs: float = 5.0,
+    ) -> dict:
+        """Place a LIMIT order for maker rate; fall back to MARKET if not filled.
+
+        Acquires the 65s trade cooldown ONCE for the entire sequence:
+          1. Place LIMIT at `price`
+          2. Wait `poll_secs`, then check status
+          3. If FILLED → return (saved ~50% on commission)
+          4. If still PENDING → cancel, place MARKET fallback
+
+        Returns the same response shape as place_order() regardless of path taken.
+        """
         _trade_cooldown.acquire()
+
+        # Step 1: Try LIMIT
+        resp = self._request("POST", "/v3/place_order", {
+            "pair": pair,
+            "side": side,
+            "quantity": str(quantity),
+            "type": "LIMIT",
+            "price": str(round(price, 2)),
+        })
+
+        if not resp.get("Success"):
+            logger.warning("LIMIT order rejected for %s — immediate MARKET fallback", pair)
+            return self._request("POST", "/v3/place_order", {
+                "pair": pair,
+                "side": side,
+                "quantity": str(quantity),
+                "type": "MARKET",
+            })
+
+        detail = resp.get("OrderDetail", {})
+        order_id = detail.get("OrderID")
+
+        # Rarely, a LIMIT can fill synchronously
+        if detail.get("Status") == "FILLED":
+            logger.info("LIMIT %s %s filled immediately (maker rate)", side, pair)
+            return resp
+
+        # Step 2: Wait and poll
+        if order_id is None:
+            logger.warning("LIMIT response missing OrderID — MARKET fallback")
+            return self._request("POST", "/v3/place_order", {
+                "pair": pair,
+                "side": side,
+                "quantity": str(quantity),
+                "type": "MARKET",
+            })
+
+        time.sleep(poll_secs)
+
+        try:
+            query_resp = self._request(
+                "POST", "/v3/query_order", {"order_id": str(order_id)}
+            )
+            matched = query_resp.get("OrderMatched", [])
+            if matched:
+                order_info = matched[0] if isinstance(matched, list) else matched
+                inner = order_info.get("OrderDetail", order_info)
+                if inner.get("Status") == "FILLED":
+                    logger.info(
+                        "LIMIT %s %s filled after %.0fs poll (maker rate)", side, pair, poll_secs
+                    )
+                    return {"Success": True, "OrderDetail": inner, "OrderId": order_id}
+        except Exception as exc:
+            logger.warning("LIMIT poll failed for %s: %s", pair, exc)
+
+        # Step 3: Cancel pending LIMIT and fall back to MARKET
+        try:
+            self._request("POST", "/v3/cancel_order", {"order_id": str(order_id)})
+            logger.info("Cancelled pending LIMIT %s — MARKET fallback", order_id)
+        except Exception as exc:
+            logger.warning("LIMIT cancel failed for order %s: %s", order_id, exc)
+
+        logger.info("LIMIT->MARKET fallback: %s %s qty=%.6f", side, pair, quantity)
         return self._request("POST", "/v3/place_order", {
             "pair": pair,
             "side": side,
