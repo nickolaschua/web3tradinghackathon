@@ -1050,8 +1050,13 @@ def main() -> None:
         except Exception as exc:
             logger.warning("Failed to restore regime for %s: %s", pair, exc)
 
+    # Skip the first 15M candle after startup — seed data features differ from
+    # live-accumulated features, causing a spurious trade on every restart.
+    # Setting last_signal_epoch to current epoch forces the bot to wait for
+    # the next candle boundary, by which time the candle builder has real ticks.
+    _current_epoch = int(time.time()) // _CANDLE_15M_SECONDS
     loop_state: dict[str, Any] = {
-        "last_signal_epoch": saved_state.get("last_signal_epoch", 0),
+        "last_signal_epoch": max(saved_state.get("last_signal_epoch", 0), _current_epoch),
         "features_cache": {},
         "last_trade": saved_state.get("last_trade", "None yet"),
         "last_trade_date": saved_state.get("last_trade_date", ""),
