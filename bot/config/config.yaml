@@ -58,6 +58,6 @@ intraday:
   bias_weight: 0.3  # size multiplier = base_size * (1 + bias_weight * bias), bias in [0, 3]
 
 # Logging
-log_level: "INFO"
+log_level: "DEBUG"
 log_max_bytes: 10485760
 log_backup_count: 10
