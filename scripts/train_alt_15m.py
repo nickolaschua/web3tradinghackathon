@@ -1,23 +1,21 @@
 #!/usr/bin/env python3
 """
-Train and backtest a 15M XGBoost model for ETH/USD or SOL/USD.
+Train and backtest a 15M XGBoost model for ETH/SOL/BNB/DOGE.
 
 Mirrors train_model_15m.py (BTC) but adapts the feature pipeline so that
-the target coin's own OHLCV drives the technical indicators, and the other
-two coins contribute cross-asset lag/correlation features.
+the target coin's own OHLCV drives the technical indicators, and other
+coins contribute cross-asset lag/correlation features.
 
 Feature set (19 cols, parallel to BTC model):
-  ETH target: standard indicators on ETH
-              + btc_return_4h, sol_return_4h, btc_return_1d, sol_return_1d
-              + eth_btc_corr, eth_btc_beta
-  SOL target: standard indicators on SOL
-              + btc_return_4h, eth_return_4h, btc_return_1d, eth_return_1d
-              + sol_btc_corr, sol_btc_beta
+  Standard indicators on target coin (13)
+  + 4H and 1D cross-asset return lags from two other coins (4)
+  + target_btc_corr, target_btc_beta (2)
 
 Usage:
   python scripts/train_alt_15m.py --target eth
   python scripts/train_alt_15m.py --target sol
-  python scripts/train_alt_15m.py --target eth --sweep
+  python scripts/train_alt_15m.py --target bnb --sweep
+  python scripts/train_alt_15m.py --target doge --sweep
   python scripts/train_alt_15m.py --target eth --cv-only
 """
 
@@ -71,6 +69,18 @@ FEATURE_COLS_BY_TARGET = {
     ],
 }
 
+
+def _get_feature_cols(target: str) -> list[str]:
+    """Return feature columns for any target coin.
+    ETH/SOL have hardcoded cross-asset lags. All others use ETH+SOL lags."""
+    if target in FEATURE_COLS_BY_TARGET:
+        return FEATURE_COLS_BY_TARGET[target]
+    return _STANDARD_COLS + [
+        "eth_return_4h", "sol_return_4h",
+        "eth_return_1d", "sol_return_1d",
+        f"{target}_btc_corr", f"{target}_btc_beta",
+    ]
+
 XGB_PARAMS = dict(
     n_estimators=300,
     max_depth=5,
@@ -95,46 +105,61 @@ def prepare_features(
     btc_path: str,
     eth_path: str,
     sol_path: str,
+    target_path: str = None,
 ) -> pd.DataFrame:
     """
-    Build feature matrix for the target coin (eth or sol).
+    Build feature matrix for any target coin.
 
     Pipeline:
     1. compute_features(target_df)              — standard indicators on target
-    2. compute_cross_asset_features(feat, ...)  — lag1/lag2 from other two coins
+    2. compute_cross_asset_features(feat, ...)  — lag1/lag2 from other coins
     3. Add 4H (16-bar) and 1D (96-bar) cross-asset lags
     4. Compute rolling corr / beta of target vs BTC
     5. dropna()
     """
-    btc = pd.read_parquet(btc_path)
-    eth = pd.read_parquet(eth_path)
-    sol = pd.read_parquet(sol_path)
+    # Load core coins (always needed for cross-asset features)
+    all_dfs = {
+        "btc": pd.read_parquet(btc_path),
+        "eth": pd.read_parquet(eth_path),
+        "sol": pd.read_parquet(sol_path),
+    }
+    # Load target coin if not already in core set
+    if target not in all_dfs:
+        if target_path is None:
+            target_path = f"data/{target.upper()}USDT_15m.parquet"
+        all_dfs[target] = pd.read_parquet(target_path)
 
-    for df in (btc, eth, sol):
+    for df in all_dfs.values():
         df.index = pd.to_datetime(df.index)
         df.columns = df.columns.str.lower()
 
-    if target == "eth":
-        target_df = eth
-        cross_dfs = {"BTC/USD": btc, "SOL/USD": sol}
-        cross_assets = [("btc", btc), ("sol", sol)]
-    else:  # sol
-        target_df = sol
-        cross_dfs = {"BTC/USD": btc, "ETH/USD": eth}
-        cross_assets = [("btc", btc), ("eth", eth)]
+    target_df = all_dfs[target]
+
+    # Cross-asset DataFrames: core coins except target
+    _to_pair = lambda k: f"{k.upper()}/USD"
+    cross_dfs = {_to_pair(k): v for k, v in all_dfs.items()
+                 if k != target and k in ("btc", "eth", "sol")}
 
     feat = compute_features(target_df)
     feat = compute_cross_asset_features(feat, cross_dfs)
 
-    # 4H (16-bar) and 1D (96-bar) cross-asset log-return lags
-    for asset, df in cross_assets:
+    # Determine which two coins provide the 4H/1D cross-asset lags
+    feature_cols = _get_feature_cols(target)
+    lag_assets = []
+    for col in feature_cols:
+        for asset in ("btc", "eth", "sol"):
+            if col == f"{asset}_return_4h" and asset != target:
+                lag_assets.append(asset)
+
+    for asset in lag_assets:
+        df = all_dfs[asset]
         log_ret = np.log(df["close"] / df["close"].shift(1))
         feat[f"{asset}_return_4h"] = log_ret.shift(16).reindex(feat.index)
         feat[f"{asset}_return_1d"] = log_ret.shift(96).reindex(feat.index)
 
     # Rolling correlation and beta: target vs BTC
     target_ret = np.log(target_df["close"] / target_df["close"].shift(1)).reindex(feat.index)
-    btc_ret = np.log(btc["close"] / btc["close"].shift(1)).reindex(feat.index)
+    btc_ret = np.log(all_dfs["btc"]["close"] / all_dfs["btc"]["close"].shift(1)).reindex(feat.index)
 
     corr = target_ret.rolling(CORR_WINDOW).corr(btc_ret)
     cov = target_ret.rolling(CORR_WINDOW).cov(btc_ret)
@@ -520,13 +545,15 @@ def save_model(model, output_path: str) -> None:
 
 def parse_args():
     p = argparse.ArgumentParser(
-        description="Train 15M XGBoost model for ETH/USD or SOL/USD"
+        description="Train 15M XGBoost model for ETH/SOL/BNB/DOGE"
     )
-    p.add_argument("--target", required=True, choices=["eth", "sol"],
-                   help="Target coin to train on")
+    p.add_argument("--target", required=True,
+                   help="Target coin ticker (e.g. eth, sol, bnb, doge, link, avax, ada, ...)")
     p.add_argument("--btc", default="data/BTCUSDT_15m.parquet")
     p.add_argument("--eth", default="data/ETHUSDT_15m.parquet")
     p.add_argument("--sol", default="data/SOLUSDT_15m.parquet")
+    p.add_argument("--target-data", default=None,
+                   help="Path to target coin's 15m parquet (default: data/{TARGET}USDT_15m.parquet)")
     p.add_argument("--horizon", type=int, default=HORIZON_15M)
     p.add_argument("--tp-pct", type=float, default=0.008,
                    help="Take-profit %% for triple-barrier label (default 0.8%%)")
@@ -549,12 +576,14 @@ def main():
     args = parse_args()
     target = args.target.lower()
     output_path = args.output or f"models/xgb_{target}_15m.pkl"
-    feature_cols = FEATURE_COLS_BY_TARGET[target]
+    feature_cols = _get_feature_cols(target)
 
     print(f"=== Training XGBoost 15M model for {target.upper()}/USD ===\n")
 
     print("Step 1: Loading and computing features...")
-    feat = prepare_features(target, args.btc, args.eth, args.sol)
+    target_path = args.target_data or f"data/{target.upper()}USDT_15m.parquet"
+    feat = prepare_features(target, args.btc, args.eth, args.sol,
+                            target_path=target_path)
     print(f"  Feature matrix: {feat.shape[0]:,} bars x {feat.shape[1]} columns")
     print(f"  Date range: {feat.index[0]} to {feat.index[-1]}")
 
