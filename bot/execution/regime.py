@@ -23,8 +23,8 @@ class RegimeState(Enum):
 
 REGIME_MULTIPLIERS = {
     RegimeState.BULL_TREND: 1.00,
-    RegimeState.SIDEWAYS:   0.50,
-    RegimeState.BEAR_TREND: 0.35,
+    RegimeState.SIDEWAYS:   1.00,
+    RegimeState.BEAR_TREND: 1.00,
 }
 
 
