@@ -23,7 +23,7 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-BINANCE_API_BASE = "https://api.binance.com/api/v3"
+BINANCE_API_BASE = "https://data-api.binance.vision/api/v3"
 REQUEST_SLEEP = 0.15   # seconds between paginated requests per symbol
 BATCH_SIZE = 1000      # max rows per API call (Binance limit)
 DEFAULT_WORKERS = 5    # parallel symbols (conservative; Binance limit: 1200 weight/min)
