@@ -963,7 +963,7 @@ def main() -> None:
     # - compute_btc_context_features requires window=2880 (30d)
     # - pairs ML features require ols_window(2880) + zscore_window(672) = 3552 bars minimum
     seed_dfs = _load_seed_data(config)
-    live_fetcher = LiveFetcher(seed_dfs=seed_dfs, maxlen=4000)
+    live_fetcher = LiveFetcher(seed_dfs=seed_dfs, maxlen=8000)
     logger.info("LiveFetcher initialised: %s", live_fetcher)
 
     # Primary strategy: XGBoost 15M model for BTC/USD (threshold=0.65, exit=0.08)

@@ -30,7 +30,7 @@ REGIME_MULTIPLIERS = {
 
 class RegimeDetector:
     """
-    Detects market regime (bull/sideways/bear) using EMA crossover on daily-resampled 4H data.
+    Detects market regime (bull/sideways/bear) using EMA crossover on daily-resampled 15M data.
     Uses hysteresis to prevent thrashing at crossover boundaries.
     """
 
@@ -42,28 +42,28 @@ class RegimeDetector:
             config: Configuration dictionary (may contain regime-specific settings)
         """
         self.config = config
-        self.MIN_4H_BARS = 300
+        self.MIN_BARS = 4800  # 50 days * 96 bars/day at 15M resolution
         self.CONFIRMATION_BARS = 2
 
         self._current_regime = RegimeState.SIDEWAYS
         self._pending_regime: Optional[RegimeState] = None
         self._pending_count: int = 0
 
-    def _resample_to_daily(self, df_4h: pd.DataFrame) -> pd.DataFrame:
+    def _resample_to_daily(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Resample 4H OHLCV data to daily.
+        Resample 15M OHLCV data to daily.
 
         Args:
-            df_4h: DataFrame with 'timestamp' (or as index), 'open', 'high', 'low', 'close', 'volume'
+            df: DataFrame with 'timestamp' (or as index), 'open', 'high', 'low', 'close', 'volume'
 
         Returns:
             Daily OHLCV DataFrame with 'timestamp' column
         """
         # Set timestamp as index if it's a column
-        if "timestamp" in df_4h.columns:
-            df_work = df_4h.set_index("timestamp").copy()
+        if "timestamp" in df.columns:
+            df_work = df.set_index("timestamp").copy()
         else:
-            df_work = df_4h.copy()
+            df_work = df.copy()
 
         # Resample to daily
         daily = df_work.resample("1D").agg(
@@ -79,17 +79,17 @@ class RegimeDetector:
 
         return daily
 
-    def is_warmed_up(self, df_4h: pd.DataFrame) -> bool:
+    def is_warmed_up(self, df: pd.DataFrame) -> bool:
         """
-        Check if we have enough 4H bars for regime detection.
+        Check if we have enough 15M bars for regime detection.
 
         Args:
-            df_4h: DataFrame with 4H candles
+            df: DataFrame with 15M candles
 
         Returns:
-            True if we have at least MIN_4H_BARS bars
+            True if we have at least MIN_BARS bars
         """
-        return len(df_4h) >= self.MIN_4H_BARS
+        return len(df) >= self.MIN_BARS
 
     def get_regime(self) -> RegimeState:
         """Get the current regime state."""
@@ -129,25 +129,25 @@ class RegimeDetector:
         else:
             return RegimeState.BEAR_TREND
 
-    def update(self, df_4h: pd.DataFrame) -> RegimeState:
+    def update(self, df: pd.DataFrame) -> RegimeState:
         """
-        Update regime based on 4H data, applying hysteresis.
+        Update regime based on 15M data, applying hysteresis.
 
         Args:
-            df_4h: DataFrame with 4H OHLCV data
+            df: DataFrame with 15M OHLCV data
 
         Returns:
             Current regime state after update
         """
         # Check warmup
-        if not self.is_warmed_up(df_4h):
+        if not self.is_warmed_up(df):
             logger.debug(
-                f"RegimeDetector: not warmed up ({len(df_4h)}/{self.MIN_4H_BARS} bars)"
+                f"RegimeDetector: not warmed up ({len(df)}/{self.MIN_BARS} bars)"
             )
             return self._current_regime
 
         # Resample to daily and compute signal
-        daily_df = self._resample_to_daily(df_4h)
+        daily_df = self._resample_to_daily(df)
         raw_signal = self._compute_ema_crossover(daily_df)
 
         if raw_signal is None:

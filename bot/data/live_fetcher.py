@@ -18,17 +18,17 @@ from bot.data.features import (
 class LiveFetcher:
     """
     Maintains per-pair OHLCV ring buffers seeded from historical Parquet data
-    and extended via completed 4H epoch candles.
+    and extended via completed 15M epoch candles.
 
     IMPORTANT — two distinct data flows:
-    - _buffers: completed 4H candles only (seeded from Parquet, extended via
-      append_epoch_candle() at each 4H boundary). Used for ALL feature computation.
+    - _buffers: completed 15M candles only (seeded from Parquet, extended via
+      append_epoch_candle() at each 15M boundary). Used for ALL feature computation.
     - _last_prices: latest live price from ticker polls (updated by poll_ticker()).
       Used only for current-price lookups (stop checks, position sizing).
 
     poll_ticker() does NOT write to _buffers. This is intentional: adding 60-second
     tick "candles" to the feature buffer would cause RSI/MACD/EMA to be computed on
-    minute-scale bars rather than 4H bars, completely invalidating model predictions.
+    minute-scale bars rather than 15M bars, completely invalidating model predictions.
 
     Args:
         seed_dfs: Dict mapping Roostoo pair symbols (e.g. "BTC/USD") to
