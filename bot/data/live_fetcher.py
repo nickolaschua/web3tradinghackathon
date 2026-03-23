@@ -51,6 +51,9 @@ class LiveFetcher:
         }
         # Latest live price from ticker polls — separate from feature buffer.
         self._last_prices: Dict[str, float] = {}
+        # Per-pair candle builder: accumulates OHLCV from ticker polls within
+        # each 15M window so append_epoch_candle() produces realistic candles.
+        self._candle_builders: Dict[str, dict] = {}
         # Seed each buffer from historical data
         for pair, df in seed_dfs.items():
             self._seed_from_history(pair, df)
@@ -117,21 +120,32 @@ class LiveFetcher:
         df.index.name = "timestamp"
         return df
 
-    def poll_ticker(self, pair: str, last_price: float) -> None:
+    def poll_ticker(self, pair: str, last_price: float, volume: float = 0.0) -> None:
         """
-        Record the latest live price from a Roostoo ticker poll.
+        Record the latest live price and update the in-progress candle builder.
 
-        IMPORTANT: this method does NOT write to _buffers. Writing 60-second
-        tick prices into the feature buffer would corrupt RSI/MACD/EMA — those
-        indicators are trained on 4H bars and must only ever see 4H candles.
-
-        Use append_epoch_candle() at 4H boundaries to extend _buffers.
+        Does NOT write to _buffers — only accumulates OHLCV for the current
+        15M window. append_epoch_candle() flushes the builder into _buffers.
 
         Args:
             pair: Roostoo pair symbol (e.g. "BTC/USD").
             last_price: The LastPrice field from /v3/ticker response.
+            volume: The CoinTradeValue field from /v3/ticker response.
         """
-        self._last_prices[pair] = float(last_price)
+        price = float(last_price)
+        self._last_prices[pair] = price
+
+        cb = self._candle_builders.get(pair)
+        if cb is None:
+            self._candle_builders[pair] = {
+                "open": price, "high": price, "low": price,
+                "close": price, "volume": float(volume),
+            }
+        else:
+            cb["high"] = max(cb["high"], price)
+            cb["low"] = min(cb["low"], price)
+            cb["close"] = price
+            cb["volume"] = float(volume)  # use latest snapshot, not cumulative
 
     def append_epoch_candle(
         self,
@@ -142,9 +156,9 @@ class LiveFetcher:
         """
         Append a completed 15M epoch candle to the feature buffer for `pair`.
 
-        Called by main.py once per 15M boundary, after all pairs have been polled.
-        Uses the last known ticker price as a close-price proxy
-        (O=H=L=C=price, volume=0 — same limitation as Roostoo has no OHLCV).
+        Called by main.py once per 15M boundary. Uses the candle builder
+        (accumulated from ticker polls) for realistic OHLCV. Falls back to
+        flat candle (O=H=L=C=price) if no polls occurred in this window.
 
         Args:
             pair: Roostoo pair symbol (e.g. "BTC/USD").
@@ -155,14 +169,27 @@ class LiveFetcher:
             self._buffers[pair] = deque(maxlen=self._maxlen)
 
         ts = timestamp if timestamp is not None else int(time.time())
-        self._buffers[pair].append({
-            "open":      price,
-            "high":      price,
-            "low":       price,
-            "close":     price,
-            "volume":    0.0,
-            "timestamp": ts,
-        })
+
+        cb = self._candle_builders.pop(pair, None)
+        if cb is not None:
+            cb["close"] = price  # ensure close matches latest price
+            self._buffers[pair].append({
+                "open":      cb["open"],
+                "high":      max(cb["high"], price),
+                "low":       min(cb["low"], price),
+                "close":     price,
+                "volume":    cb["volume"],
+                "timestamp": ts,
+            })
+        else:
+            self._buffers[pair].append({
+                "open":      price,
+                "high":      price,
+                "low":       price,
+                "close":     price,
+                "volume":    0.0,
+                "timestamp": ts,
+            })
 
     def get_latest_price(self, pair: str) -> float:
         """

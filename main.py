@@ -432,9 +432,11 @@ def _run_one_cycle(
     for pair in pairs_to_poll:
         try:
             ticker = client.get_ticker(pair)
-            price = float(ticker.get("Data", {}).get(pair, {}).get("LastPrice", 0.0))
+            pair_data = ticker.get("Data", {}).get(pair, {})
+            price = float(pair_data.get("LastPrice", 0.0))
+            volume = float(pair_data.get("CoinTradeValue", 0.0))
             if price > 0.0:
-                live_fetcher.poll_ticker(pair, price)
+                live_fetcher.poll_ticker(pair, price, volume=volume)
                 prices[pair] = price
         except Exception as exc:
             logger.warning("Step 1: poll_ticker failed for %s: %s", pair, exc)
